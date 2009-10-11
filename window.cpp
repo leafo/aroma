@@ -6,11 +6,8 @@ bool Window::created = false;
 
 void Window::install(lua_State *l)
 {
-	lua_newtable(l);
-	setfunction("new", Window::_new);
-	
+	lua_pushcfunction(l, Window::_new);
 	lua_setglobal(l, "Window"); 
-
 }
 
 void Window::pushKeytable(lua_State *l)
