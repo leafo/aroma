@@ -2,3 +2,10 @@ lengine
 leaf corcoran <leafo.net>
 2009
 
+Dependencies
+
+Lua 5.1 - http://lua.org
+GLFW - http://glfw.sourceforge.net/
+Corona - http://corona.sourceforge.net/
+
+

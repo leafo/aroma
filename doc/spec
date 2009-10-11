@@ -1,0 +1,120 @@
+
+## Considerations
+
+Put as much data into lua as possible, eg the tile map shouldn't
+be an external text file, or a binary file, but should be a lua table.
+
+Keep the dependencies to a minimal, in the end I should use only
+libraries that are statically linked so a single executable can be distributed.
+
+Need to figure out a way to insert the lua script into the binary 
+after it has been built, to keep the single executable idea.
+
+Also insert binary data like images/audio, this can be done during the build 
+using xxd/hexdump on linux but can it be done after?
+
+
+## Usage
+
+	> ./game script.lua
+
+A barebones example 
+	
+	-- create the window
+	local win = Window.new("Title", width, height)
+	local canvas = win.canvas
+
+	-- set the drawing area
+	canvas:reshape{320,240}
+	canvas:clearColor{0,0,0}
+
+	-- run the game loop	
+	while win.running do 
+		-- do something here
+		-- ...
+
+		-- canvas.dt contains time since last frame
+		local fps = 1 / canvas.dt
+		
+		-- flush must be called to update event state
+		-- and redraw frame. It returns true if the 
+		-- window is still open
+		win.running = canvas:flush() and not 
+			win.keyDown(win.key.esc)
+	end
+	
+
+Loading an image
+	
+	local image = canvas.image("myimage.png")
+
+	while win.running do
+		-- draw the entire image to 100,100
+		image:draw{100, 100}
+
+		-- blit a portion of the image
+		image:blit({source_x, source_y, source_w, source_h}, 
+			{dest_x, dest_y, dest_w, dest_h})	
+
+
+		-- etc ...
+	end
+
+
+Using a bitmap font
+
+	-- load a font, the source letter size is 16 by 16
+	local font = canvas.font("font.png", {16, 16})
+
+	while win.running do 
+		font({x,y}, "This is my string")
+
+		-- etc ...
+	end
+
+
+Using a tile map
+
+	-- design some map out of tile numbers
+	local myMap = {
+		1, 1, 1, 1, 1, 1,	
+		1, 0, 0, 0, 0, 1,	
+		1, 0, 0, 0, 0, 1,	
+		1, 0, 0, 0, 0, 1,	
+		1, 1, 1, 1, 1, 1
+	}
+
+	-- map_width is the width of map in tiles
+	local map = canvas.map("tiles.png", {tile_w, tile_h}, map, map_width)
+
+	while win.running do
+		mm:draw{offset_x, offset_y}
+
+		-- etc ...
+	end
+
+Input 
+	
+	-- see all the possible keys, there aren't many yet
+	for key in pairs(win.key) do
+		print(key)
+	end
+
+	-- check if a key is currently pressed down
+	win.keyDown(win.key.space)
+
+	-- position of joystick
+	print canvas.input.xaxis
+	print canvas.input.yaxis
+
+
+	-- ideally we want to just use a couple action buttons defined
+	-- by the system, bypassing the actual device used for input
+
+	-- see all the future buttons:
+	for i in pairs(canvas.input) do
+		print(i)
+	end
+
+
+
