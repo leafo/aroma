@@ -86,7 +86,10 @@ int Window::_new(lua_State *l)
 	Canvas::push(l);
 	lua_setfield(l, -2, "canvas");
 
-	return 1; // the window table
+	// get canvas back
+	lua_getfield(l, -1, "canvas");
+
+	return 2; 
 }
 
 /**
