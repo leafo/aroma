@@ -21,8 +21,7 @@ using xxd/hexdump on linux but can it be done after?
 A barebones example 
 	
 	-- create the window
-	local win = Window.new("Title", width, height)
-	local canvas = win.canvas
+	local win, canvas = Window("Title", width, height)
 
 	-- set the drawing area
 	canvas:reshape{320,240}
@@ -88,7 +87,7 @@ Using a tile map
 	local map = canvas.map("tiles.png", {tile_w, tile_h}, map, map_width)
 
 	while win.running do
-		mm:draw{offset_x, offset_y}
+		map:draw{offset_x, offset_y}
 
 		-- etc ...
 	end
