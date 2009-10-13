@@ -20,8 +20,13 @@ void Canvas::push(lua_State *l)
 	setnumber("dt", 0);
 	setnumber("time", glfwGetTime());
 
-	// mouse pos
-	Point::push(l, 0,0);
+	// mouse input
+	lua_newtable(l);
+	setint("x", 0);
+	setint("y", 0);
+	setbool("left", false);
+	setbool("right", false);
+
 	lua_setfield(l, -2, "mouse");
 	
 	// create the input table
@@ -123,12 +128,11 @@ int Canvas::_flush(lua_State *l)
 
 	// update the mouse point
 	lua_getfield(l, 1, "mouse");
+	setint("x", xx);
+	setint("y", yy);
 
-	lua_pushnumber(l, xx);
-	lua_rawseti(l, -2, 1);
-
-	lua_pushnumber(l, yy);
-	lua_rawseti(l, -2, 2);
+	setbool("left", glfwGetMouseButton(GLFW_MOUSE_BUTTON_LEFT));
+	setbool("right", glfwGetMouseButton(GLFW_MOUSE_BUTTON_RIGHT));
 
 
 	lua_getfield(l, 1, "input");
