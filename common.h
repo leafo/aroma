@@ -41,10 +41,15 @@ struct Color {
 
 	Color() { };
 
+	void bind(); // bind color to opengl current
+
 	// return the floating point values
 	double rf();
 	double gf();
 	double bf();
+
+	static Color pop(lua_State *l);
+	static void Push(lua_State *l, byte r, byte g, byte b);
 
 	static byte MAX;
 
@@ -69,8 +74,8 @@ struct Point {
 	static void push(lua_State *l, Point p);
 };
 
-struct Rect : public Point {
-	double w, h;
+struct Rect {
+	double x, y, w, h;
 
 	static Rect fromPoint(Point p, double _w, double _h);
 

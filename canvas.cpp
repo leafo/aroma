@@ -1,8 +1,6 @@
 
 #include "common.h"
 
-static Color pop_color(lua_State *l);
-
 void Canvas::push(lua_State *l)
 {
 	lua_newtable(l);
@@ -90,13 +88,13 @@ int Canvas::_reshape(lua_State *l)
 int Canvas::_clearColor(lua_State *l) 
 {
 	if (lua_gettop(l) == 2) {
-		Color c = pop_color(l);
+		Color c = Color::pop(l);
 		glClearColor(c.rf(),c.gf(),c.bf(),0);
 		return 0;
 	} 
 
 	// return the clear color
-	return luaL_error(l, "put return clear color here");
+	return luaL_error(l, "this should return clear color");
 }
 
 int Canvas::_flush(lua_State *l) 
@@ -149,39 +147,23 @@ int Canvas::_flush(lua_State *l)
 
 int Canvas::_rect(lua_State *l)
 {
+	Color c = Color::pop(l);
+
 	Point a = Point::pop(l);
 	Point b = Point::pop(l);
 
-	// glColor4ub(255,255,255, 255);
+
+	glDisable(GL_TEXTURE_2D);
+	c.bind();
 	glBegin(GL_QUADS);
 		glVertex2d(a.x, a.y);
 		glVertex2d(b.x, a.y);
 		glVertex2d(b.x, b.y);
 		glVertex2d(a.x, b.y);
 	glEnd();
+	Color::White.bind();
+	glEnable(GL_TEXTURE_2D);
 
 	return 0;
 }
-
-
-// pop a color off the head of the table
-static Color pop_color(lua_State *l)
-{
-	if (!lua_istable(l, -1))
-		luaL_error(l, "fatal error: failed to find color for argument");
-
-	lua_rawgeti(l,-1, 1);
-	lua_rawgeti(l,-2, 2);
-	lua_rawgeti(l,-3, 3);
-
-	int r = luaL_checkint(l, -3); 
-	int g = luaL_checkint(l, -2); 
-	int b = luaL_checkint(l, -1); 
-
-	// pop the table and values
-	lua_pop(l, 4);
-
-	return Color(r,g,b);
-}
-
 

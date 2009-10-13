@@ -1,6 +1,28 @@
 
 #include "common.h"
 
+#define POOL_SIZE 4
+
+double pool[POOL_SIZE];
+
+// count - how many things to pull, max of 4
+void pop_tuple(lua_State *l, int count) {
+	if (count > POOL_SIZE) count = POOL_SIZE;
+
+	int popc = count;
+	if (lua_istable(l, -1)) {
+		for (int i = 0; i < count; i++) {
+			lua_rawgeti(l, -(i+1), i+1);
+		}
+		popc++;
+	}
+	
+	for (int i = 0; i < count; i++) {
+		pool[i] = luaL_checknumber(l, -(count - i));
+	}
+
+	lua_pop(l, popc);
+}
 
 // create a new rectangle from a point
 Rect Rect::fromPoint(Point p, double _w, double _h)
@@ -16,24 +38,8 @@ Rect Rect::fromPoint(Point p, double _w, double _h)
 // pop rectangle from stack
 Rect Rect::pop(lua_State *l)
 {
-	Rect r;
-	
-	int count = 4;
-	if (lua_istable(l, -1)) {
-		count = 5;
-		lua_rawgeti(l, -1, 1);
-		lua_rawgeti(l, -2, 2);
-		lua_rawgeti(l, -3, 3);
-		lua_rawgeti(l, -4, 4);
-	}
-
-	r.x = luaL_checknumber(l, -4);
-	r.y = luaL_checknumber(l, -3);
-	r.w = luaL_checknumber(l, -2);
-	r.h = luaL_checknumber(l, -1);
-
-	lua_pop(l, count);
-
+	pop_tuple(l, 4);
+	Rect r = { pool[0], pool[1], pool[2], pool[3] };
 	return r;
 }
 
@@ -69,19 +75,9 @@ int Point::_print(lua_State *l)
 // read either two numbers from table, or 2 integers
 Point Point::pop(lua_State *l) 
 {
-	Point p;
-	
-	int count = 2; // pop count
-	if (lua_istable(l, -1)) {
-		count = 3;
-		lua_rawgeti(l, -1, 1);
-		lua_rawgeti(l, -2, 2);
-	} 
+	pop_tuple(l, 2);
+	Point p = { pool[0], pool[1] };
 
-	p.x = luaL_checknumber(l, -2);
-	p.y = luaL_checknumber(l, -1);
-
-	lua_pop(l, count);
 	return p;
 }
 
@@ -103,4 +99,14 @@ void Point::push(lua_State *l, Point p)
 	return push(l, p.x, p.y);
 }
 
+
+Color Color::pop(lua_State *l)
+{
+	pop_tuple(l, 3);
+	return Color(pool[0], pool[1], pool[2]);
+}
+
+void Color::bind() {
+	glColor3ub(r,g,b);
+}
 
