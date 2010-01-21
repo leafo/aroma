@@ -37,7 +37,10 @@ struct Color {
 	byte r, g, b, a;
 
 	Color(byte r, byte g, byte b) 
-		: r(r), g(g), b(b) { }
+		: r(r), g(g), b(b), a(255) { }
+
+	Color(byte r, byte g, byte b, byte a) 
+		: r(r), g(g), b(b), a(a) { }
 
 	Color() { };
 
@@ -96,6 +99,8 @@ public:
 	// instance functions
 	static int _new(lua_State *l);
 	static int _keyDown(lua_State *l);
+	static int _hideMouse(lua_State *l);
+	static int _showMouse(lua_State *l);
 };
 
 class Canvas {
@@ -112,6 +117,7 @@ public:
 	static int _reshape(lua_State *l);
 	static int _rect(lua_State *l);
 	static int _flush(lua_State *l);
+	static int _setMouse(lua_State *l);
 };
 
 class Image { 

@@ -94,26 +94,35 @@ Using a tile map
 
 Input 
 	
-	-- see all the possible keys, there aren't many yet
-	for key in pairs(win.key) do
-		print(key)
-	end
-
-	-- check if a key is currently pressed down
-	win.keyDown(win.key.space)
+	-- Input is to be abstracted, so we use canvas.input.something
+	-- to check the status of a predefined input
 
 	-- position of joystick
 	print canvas.input.xaxis
 	print canvas.input.yaxis
 
+	-- working inputs
+	canvas.input.a -- the Q key by default
+	canvas.input.b -- the W key
 
-	-- ideally we want to just use a couple action buttons defined
-	-- by the system, bypassing the actual device used for input
+	canvas.input.left
+	canvas.input.right
+	canvas.input.up
+	canvas.input.down
 
-	-- see all the future buttons:
+	-- you can also directly query the keyboard
+	-- eg. see if space is down 
+	win.keyDown(win.key.space)
+
+	-- see all the possible keys, there aren't many yet
+	for key in pairs(win.key) do
+		print(key)
+	end
+
+
+	-- see all the future inputs:
 	for i in pairs(canvas.input) do
 		print(i)
 	end
-
 
 

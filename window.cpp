@@ -71,6 +71,8 @@ int Window::_new(lua_State *l)
 	setbool("running", true);
 
 	setfunction("keyDown", Window::_keyDown);
+	setfunction("showMouse", Window::_showMouse);
+	setfunction("hideMouse", Window::_hideMouse);
 
 	Window::pushKeytable(l);
 	lua_setfield(l, -2, "key");
@@ -100,6 +102,18 @@ int Window::_keyDown(lua_State *l)
 	lua_pushboolean(l, glfwGetKey(key));
 	return 1;
 }
+
+
+int Window::_hideMouse(lua_State *l) {
+	glfwDisable(GLFW_MOUSE_CURSOR);
+	return 0;
+}
+
+int Window::_showMouse(lua_State *l) {
+	glfwEnable(GLFW_MOUSE_CURSOR);	
+	return 0;
+}
+
 
 
 // this is just here for reference, not actually used

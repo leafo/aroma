@@ -102,11 +102,17 @@ void Point::push(lua_State *l, Point p)
 
 Color Color::pop(lua_State *l)
 {
+	// if it is a table there might be an alpha
+	if (lua_istable(l, -1) && lua_objlen(l, -1) == 4) {
+		pop_tuple(l, 4);
+		return Color(pool[0], pool[1], pool[2], pool[3]);
+	} 
+
 	pop_tuple(l, 3);
 	return Color(pool[0], pool[1], pool[2]);
 }
 
 void Color::bind() {
-	glColor3ub(r,g,b);
+	glColor4ub(r,g,b,a);
 }
 

@@ -10,6 +10,8 @@ void Canvas::push(lua_State *l)
 	setfunction("reshape", Canvas::_reshape);
 	setfunction("clearColor", Canvas::_clearColor);
 	setfunction("flush", Canvas::_flush);
+	setfunction("setMouse", Canvas::_setMouse);
+
 	setfunction("image", Image::_new);
 	setfunction("font", Font::_new);
 	setfunction("map", TileMap::_new);
@@ -140,9 +142,33 @@ int Canvas::_flush(lua_State *l)
 	setnumber("xaxis", axis[0]);
 	setnumber("yaxis", axis[1]);
 
+
+	setbool("left", glfwGetKey(GLFW_KEY_LEFT));
+	setbool("right", glfwGetKey(GLFW_KEY_RIGHT));
+	setbool("up", glfwGetKey(GLFW_KEY_UP));
+	setbool("down", glfwGetKey(GLFW_KEY_DOWN));
+
+	setbool("a", glfwGetKey('Q'));
+	setbool("b", glfwGetKey('W'));
+
+
+
+
+
 	lua_pushboolean(l, glfwGetWindowParam(GLFW_OPENED) > 0);
 
 	return 1;
+}
+
+int Canvas::_setMouse(lua_State *l) {
+	Point p = Point::pop(l);
+
+	Canvas *c = win->canvas;
+	float xx = (win->width / c->width ) * p.x;
+	float yy = (win->height / c->height ) * p.y;
+	glfwSetMousePos((int)xx, (int)yy);
+
+	return 0;
 }
 
 int Canvas::_rect(lua_State *l)
