@@ -1,4 +1,4 @@
-#include "common.h"
+#include "image.h"
 #include <corona.h>
 
 static int next_p2(int x);
@@ -132,7 +132,7 @@ int Image::_draw(lua_State *l)
 		glVertex2d(loc.x + image.width, loc.y + image.height);
 		glTexCoord2f(0, 1);
 		glVertex2d(loc.x, loc.y + image.height);
-	glEnd();	
+	glEnd();
 
 	return 0;
 }

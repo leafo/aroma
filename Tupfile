@@ -1,0 +1,7 @@
+.gitignore
+
+flags = -lglfw -lGLU -lGL -lX11 -lXrandr -lm -lcorona -llua -ldl
+
+: foreach *.cpp |> g++ -fpic -c %f |> %B.o
+: *.o |> g++ -fpic -shared -o %o %f $(flags) |> aroma.so
+

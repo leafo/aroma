@@ -1,5 +1,5 @@
 #include <string.h>
-#include "common.h"
+#include "font.h"
 
 void Font::string(Point dest, const char *str)
 {
@@ -8,6 +8,8 @@ void Font::string(Point dest, const char *str)
 
 	dest.x -= (tw - realwidth) / 2;
 	Point origin = dest;
+
+	glEnable(GL_TEXTURE_2D);
 
 	int len = strlen(str);
 	while (len > 0)
@@ -24,6 +26,8 @@ void Font::string(Point dest, const char *str)
 		}
 		len--;
 	}
+
+	glDisable(GL_TEXTURE_2D);
 }
 
 void Font::install(lua_State *l)
@@ -68,5 +72,4 @@ int Font::_string(lua_State *l)
 
 	return 0;
 }
-
 

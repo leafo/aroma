@@ -1,5 +1,32 @@
 
-#include "common.h"
+#include "canvas.h"
+
+
+
+void Viewport::set(double t, double r, double b, double l) {
+	top = t;
+	right = r;
+	bottom = b;
+	left = l;
+}
+
+// set the default viewport
+Canvas::Canvas(Window *win) : is2d(true), fov(60) {
+	view.set(0, win->width, win->height, 0);
+	reshape();
+}
+
+// set the projection matrix
+void Canvas::reshape() {
+	glMatrixMode(GL_PROJECTION);	
+	glLoadIdentity();
+	if (is2d) {
+		gluOrtho2D(view.left, view.right, view.bottom, view.top);
+	} else {
+		gluPerspective(fov, (double)win->width/win->height, 1, 50);
+	}
+	glMatrixMode(GL_MODELVIEW);
+}
 
 void Canvas::push(lua_State *l)
 {
@@ -7,7 +34,17 @@ void Canvas::push(lua_State *l)
 
 	// functions
 	setfunction("rect", Canvas::_rect);
-	setfunction("reshape", Canvas::_reshape);
+	setfunction("line", Canvas::_line);
+
+	setfunction("view2d", Canvas::_view2d);
+	setfunction("view3d", Canvas::_view3d);
+	setfunction("look", Canvas::_look);
+	setfunction("strip", Canvas::_strip);
+
+	setfunction("rotate", Canvas::_rotate);
+	setfunction("scale", Canvas::_scale);
+	setfunction("translate", Canvas::_translate);
+
 	setfunction("clearColor", Canvas::_clearColor);
 	setfunction("flush", Canvas::_flush);
 	setfunction("setMouse", Canvas::_setMouse);
@@ -15,6 +52,7 @@ void Canvas::push(lua_State *l)
 	setfunction("image", Image::_new);
 	setfunction("font", Font::_new);
 	setfunction("map", TileMap::_new);
+	setfunction("mesh", Mesh::_new);
 
 	// properties
 	setnumber("dt", 0);
@@ -50,53 +88,91 @@ void Canvas::push(lua_State *l)
 	setbool("l", false);
 	setbool("r", false);
 
-	lua_setfield(l, -2, "input");
+	setnumber("width", view.right - view.left);
+	setnumber("height", view.bottom - view.top);
 
-	// resize it
-	Point::push(l, win->width, win->height);
-	Canvas::_reshape(l);
+	lua_setfield(l, -2, "input");
 }
 
-
-// args [ canvas, point ]
-int Canvas::_reshape(lua_State *l) 
-{
+// set the viewport directly
+int Canvas::_view2d(lua_State *l) {
 	Canvas *c = win->canvas;
+	Point br = Point::pop(l);
+	Point tl = Point::pop(l);
 
-	Point p = Point::pop(l);
-	c->width = p.x;
-	c->height = p.y;
-	
-	if (!lua_istable(l, -1)) 
-		luaL_error(l, "fatal error: expected canvas table for reshape");
+	// if we have the canvas table, update it
+	if (lua_istable(l, -1)) {
+		setnumber("width", c->view.right - c->view.left);
+		setnumber("height", c->view.bottom - c->view.top);
+	}
 
-	// update the table
-	setint("width", c->width);
-	setint("height", c->height);
+	glDisable(GL_DEPTH_TEST);
 
-	int width, height;	
-	glfwGetWindowSize(&width, &height);
-
-	glViewport(0,0, width, height);
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	gluOrtho2D(0, c->width, c->height, 0);
-
-	glMatrixMode(GL_PROJECTION);
-	
+	c->is2d = true;
+	c->view.set(tl.y, br.x, br.y, tl.x);
+	c->reshape();
 	return 0;
 }
 
+int Canvas::_view3d(lua_State *l) {
+	Canvas *c = win->canvas;
+	double fov = luaL_checknumber(l, -1);
+
+	glEnable(GL_DEPTH_TEST);
+
+	c->is2d = false;
+	c->fov = fov;
+	c->reshape();
+	return 0;
+}
+
+int Canvas::_look(lua_State *l) {
+	Canvas *c = win->canvas;
+	if (c->is2d) return 0;
+	Point center = Point::pop3(l);
+	Point eye = Point::pop3(l);
+
+	gluLookAt(eye.x, eye.y, eye.z, center.x, center.y, center.z, 0,1,0);
+
+	// set the light position
+	GLfloat lightPos[] = {2,2,2, 1};
+	glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
+	glPointSize(10.0);
+	glBegin(GL_POINTS);
+	glVertex3f(2,2,2);
+	glEnd();
+
+	return 0;
+}
+
+int Canvas::_strip(lua_State *l) {
+	// draw a cube or something
+	static double vert[] = {
+		-1, 1, 0,
+		1, 1, 0,
+		1, -1, 0,
+		-1, -1, 0,
+	};
+
+	glVertexPointer(3, GL_DOUBLE, 0, vert);
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glDrawArrays(GL_QUADS, 0, 4);
+	glDisable(GL_VERTEX_ARRAY);
+
+	return 0;
+}
+
+
 int Canvas::_clearColor(lua_State *l) 
 {
-	if (lua_gettop(l) == 2) {
-		Color c = Color::pop(l);
-		glClearColor(c.rf(),c.gf(),c.bf(),0);
-		return 0;
+	if (lua_gettop(l) == 1) {
+		// return the clear color
+		return luaL_error(l, "this should return clear color");
 	} 
 
-	// return the clear color
-	return luaL_error(l, "this should return clear color");
+	Color c = Color::pop(l);
+	glClearColor(c.rf(),c.gf(),c.bf(),0);
+	return 0;
 }
 
 int Canvas::_flush(lua_State *l) 
@@ -104,9 +180,14 @@ int Canvas::_flush(lua_State *l)
 	if (!lua_istable(l, 1))
 		return luaL_error(l, "canvas expected as first argument");
 
+	Canvas *c = win->canvas;
+
 	glfwSwapBuffers();
 	glfwSleep(0.005);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	// if (!c->is2d)
+	glLoadIdentity();
 
 	// set the game time
 	double time = glfwGetTime();
@@ -118,18 +199,26 @@ int Canvas::_flush(lua_State *l)
 	setnumber("time" , time);
 	setnumber("dt" , time - old);
 
-	// find out mouse coords
 	int x, y;
-	float xx, yy;
+	double cx, cy; // canvas mouse coordinates
 	glfwGetMousePos(&x, &y);
-	Canvas *c = win->canvas;
-	xx = (c->width / win->width) * x;
-	yy = (c->height / win->height) * y;
+
+	if (c->is2d) {
+		Viewport & view = c->view;
+		double vwidth = view.right - view.left;
+		double vheight = view.bottom - view.top;
+
+		cx = view.left + (x * vwidth / win->width);
+		cy = view.top + (y * vheight / win->height);
+	} else {
+		cx = (double)x;
+		cy = (double)y;
+	}
 
 	// update the mouse point
 	lua_getfield(l, 1, "mouse");
-	setint("x", xx);
-	setint("y", yy);
+	setnumber("x", cx);
+	setnumber("y", cy);
 
 	setbool("left", glfwGetMouseButton(GLFW_MOUSE_BUTTON_LEFT));
 	setbool("right", glfwGetMouseButton(GLFW_MOUSE_BUTTON_RIGHT));
@@ -151,33 +240,57 @@ int Canvas::_flush(lua_State *l)
 	setbool("a", glfwGetKey('Q'));
 	setbool("b", glfwGetKey('W'));
 
-
-
-
-
 	lua_pushboolean(l, glfwGetWindowParam(GLFW_OPENED) > 0);
 
 	return 1;
 }
 
+/**
+ * Set the current mouse location
+ */
 int Canvas::_setMouse(lua_State *l) {
+	Canvas *c = win->canvas;
 	Point p = Point::pop(l);
 
-	Canvas *c = win->canvas;
-	float xx = (win->width / c->width ) * p.x;
-	float yy = (win->height / c->height ) * p.y;
-	glfwSetMousePos((int)xx, (int)yy);
+	if (c->is2d) {
+		Viewport & view = win->canvas->view;
+		double vwidth = view.right - view.left;
+		double vheight = view.bottom - view.top;
+
+		// convert from canvas to window coordinates
+		double wx = (p.x - view.left) * (win->width / vwidth);
+		double wy = (p.y - view.top) * (win->height / vheight);
+		glfwSetMousePos((int)wx, (int)wy);
+	} else {
+		glfwSetMousePos((int)p.x, (int)p.y);
+	}
 
 	return 0;
 }
 
-int Canvas::_rect(lua_State *l)
-{
+int Canvas::_line(lua_State *l) {
 	Color c = Color::pop(l);
-
 	Point a = Point::pop(l);
 	Point b = Point::pop(l);
 
+	glDisable(GL_TEXTURE_2D);
+	c.bind();
+	glBegin(GL_LINES);
+		glVertex2d(a.x, a.y);
+		glVertex2d(b.x, b.y);
+	glEnd();
+	Color::White.bind();
+	glEnable(GL_TEXTURE_2D);
+
+	return 0;
+}
+
+
+int Canvas::_rect(lua_State *l)
+{
+	Color c = Color::pop(l);
+	Point a = Point::pop(l);
+	Point b = Point::pop(l);
 
 	glDisable(GL_TEXTURE_2D);
 	c.bind();
@@ -192,4 +305,35 @@ int Canvas::_rect(lua_State *l)
 
 	return 0;
 }
+
+
+int Canvas::_rotate(lua_State *l) {
+	double axis_z = luaL_checknumber(l, -1);
+	double axis_y = luaL_checknumber(l, -2);
+	double axis_x = luaL_checknumber(l, -3);
+
+	double angle = luaL_checknumber(l, -4);
+
+	glRotated(angle, axis_x, axis_y, axis_z);
+	return 0;
+}
+
+int Canvas::_scale(lua_State *l) {
+	double s = luaL_checknumber(l, -1);
+	glScaled(s,s,s);
+	return 0;
+}
+
+
+int Canvas::_translate(lua_State *l) {
+	Point p = Point::pop(l);
+
+	glTranslated(p.x, p.y, p.z);
+
+	return 0;
+}
+
+
+
+
 

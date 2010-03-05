@@ -1,7 +1,5 @@
 
-#include "common.h"
-
-static void read_array(lua_State *l, int *array, int count);
+#include "tiles.h"
 
 
 int TileSet::load(const char *fname, int w, int h)
@@ -26,9 +24,10 @@ void TileSet::tile(Point dest, int id)
 	tiles.blit(src, Rect::fromPoint(dest, tw, th));
 }
 
-/**
- * ============== TileMap ============== 
- */
+
+
+
+
 
 int TileMap::load(const char *fname, int tw, int th, int *cells, int w, int h)
 {
@@ -84,7 +83,7 @@ int TileMap::_new(lua_State *l)
 
 	// get the array
 	int *cells = new int[num];
-	read_array(l, cells, num);
+	readIntArray(l, cells, num);
 	lua_pop(l, 1);
 
 	Point tileSize = Point::pop(l);
@@ -132,22 +131,5 @@ int _height(lua_State *l)
 }
 
 
-// read an integer array from table on top of stack
-static void read_array(lua_State *l, int *array, int count)
-{
-	int buffsize = 10; // read 10 at a time
-
-	int k = 0;
-	while (count != 0) {
-		int take = count < buffsize ? count : buffsize;
-		for (int i = 0; i < take; i++) {
-			lua_rawgeti(l, -(i+1), k+1);
-			array[k++] = luaL_checkinteger(l, -1);
-		}
-
-		lua_pop(l, take);
-		count -= take;
-	}
-}
 
 

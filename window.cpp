@@ -1,4 +1,4 @@
-#include "common.h"
+#include "window.h"
 
 Window *win = 0;
 
@@ -64,6 +64,26 @@ int Window::_new(lua_State *l)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	/* */
 
+	// set up lighting
+	/*
+	glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHT0);
+	glShadeModel(GL_SMOOTH);
+	*/
+	
+	GLfloat ambient[] = {0.2, 0.2, 0.2, 1.0};
+	GLfloat diffuse[] = {0.9, 0.9, 0.9, 1.0};
+	GLfloat specular[] = {0.5, 0.5, 0.5, 1.0};
+
+	glLightfv(GL_LIGHT0, GL_AMBIENT, ambient);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, specular);	
+
+
+	// glEnable(GL_COLOR_MATERIAL);
+	// glColorMaterial(GL_FRONT, GL_DIFFUSE);
+
+
 	// create the window table
 	lua_newtable(l);
 	setint("width", width);
@@ -77,12 +97,9 @@ int Window::_new(lua_State *l)
 	Window::pushKeytable(l);
 	lua_setfield(l, -2, "key");
 
-	Canvas *c = new Canvas;
-	c->width = width;
-	c->height = height;
-	win->canvas = c;
+	win->canvas = new Canvas(win);
+	win->canvas->push(l);
 
-	Canvas::push(l);
 	lua_setfield(l, -2, "canvas");
 
 	// get canvas back
