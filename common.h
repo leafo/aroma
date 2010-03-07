@@ -10,6 +10,7 @@ extern "C" {
 	#include <lauxlib.h>
 }
 
+#define GL_GLEXT_PROTOTYPES
 #include <GL/glfw.h>
 
 #include <iostream>

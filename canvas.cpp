@@ -295,9 +295,17 @@ int Canvas::_rect(lua_State *l)
 	glDisable(GL_TEXTURE_2D);
 	c.bind();
 	glBegin(GL_QUADS);
+
+		glTexCoord2d(0,0);
 		glVertex2d(a.x, a.y);
+
+		glTexCoord2d(1,0);
 		glVertex2d(b.x, a.y);
+
+		glTexCoord2d(1,1);
 		glVertex2d(b.x, b.y);
+
+		glTexCoord2d(0,1);
 		glVertex2d(a.x, b.y);
 	glEnd();
 	Color::White.bind();

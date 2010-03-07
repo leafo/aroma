@@ -1,5 +1,7 @@
 #include "window.h"
 
+#include "shader.h"
+
 Window *win = 0;
 
 bool Window::created = false;
@@ -93,6 +95,8 @@ int Window::_new(lua_State *l)
 	setfunction("keyDown", Window::_keyDown);
 	setfunction("showMouse", Window::_showMouse);
 	setfunction("hideMouse", Window::_hideMouse);
+
+	setfunction("compileShader", Shader::_new);
 
 	Window::pushKeytable(l);
 	lua_setfield(l, -2, "key");
