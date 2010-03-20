@@ -5,6 +5,7 @@
 /aroma.so
 /canvas.o
 /font.o
+/framebuffer.o
 /geometry.o
 /image.o
 /mesh.o

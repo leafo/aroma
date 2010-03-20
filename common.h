@@ -30,6 +30,10 @@ typedef unsigned char byte;
 #define setfunction(name,val) lua_pushcfunction(l, val);\
 	lua_setfield(l, -2, name)
 
+#define newuserdata(type) ((type*)lua_newuserdata(l, sizeof(type)))
+#define getself(type) ((type*)luaL_checkudata(l, 1, #type))
+
+#define $(val) #val ": " << val << " "
 
 // void stackDump(lua_State *L);
 void readIntArray(lua_State *l, int *array, int count);

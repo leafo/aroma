@@ -5,6 +5,7 @@
 using namespace std;
 
 #include "shader.h"
+#include "image.h"
 
 // read entire file
 // probably not going to use this
@@ -70,6 +71,7 @@ int Shader::_new(lua_State *l) {
 
 		setfunction("bind", Shader::_bind);
 		setfunction("release", Shader::_release);
+		setfunction("uniform", Shader::_uniform);
 
 		lua_setfield(l, -2, "__index");
 	}
@@ -82,11 +84,50 @@ int Shader::_new(lua_State *l) {
 int Shader::_bind(lua_State *l) {
 	Shader *s = (Shader*)luaL_checkudata(l, 1, "Shader");
 	glUseProgram(s->program);
+
+	if (LUA_TTABLE == lua_type(l, -1)) {
+		return _uniform(l);
+	}
+
 	return 0;
 }
 
 int Shader::_release(lua_State *l) {
 	glUseProgram(0);
+	return 0;
+}
+
+
+/**
+ * set some uniform values
+ */
+int Shader::_uniform(lua_State *l) {
+	Shader *self = getself(Shader);
+	lua_pushnil(l);
+	while (lua_next(l, -2) != 0) {
+		const char *key = luaL_checkstring(l, -2);
+		GLuint uloc = glGetUniformLocation(self->program, key);
+
+		int type = lua_type(l, -1);
+		switch (type) {
+			case LUA_TNUMBER:
+				glUniform1f(uloc, luaL_checknumber(l, -1));
+				break;
+			case LUA_TUSERDATA: {
+				// this is wrong: it is based on texture unit
+				Image *image = (Image*)luaL_checkudata(l, -1, "Image");
+				if (image) {
+					glUniform1i(uloc, image->texid);
+				}
+				break;
+			}
+			default:
+				cout << "unknown uniform type: " << type << endl;
+		}
+
+		lua_pop(l, 1);
+	}
+
 	return 0;
 }
 

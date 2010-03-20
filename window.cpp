@@ -6,6 +6,10 @@ Window *win = 0;
 
 bool Window::created = false;
 
+static void resize(int x, int y) {
+	glViewport(0,0, x, y);
+}
+
 void Window::install(lua_State *l)
 {
 	lua_pushcfunction(l, Window::_new);
@@ -19,6 +23,10 @@ void Window::pushKeytable(lua_State *l)
 	lua_setfield(l, -2, "esc");
 	lua_pushinteger(l, GLFW_KEY_SPACE);
 	lua_setfield(l, -2, "space");
+	lua_pushinteger(l, GLFW_KEY_LSHIFT);
+	lua_setfield(l, -2, "shift");
+	lua_pushinteger(l, GLFW_KEY_ENTER);
+	lua_setfield(l, -2, "enter");
 }
 
 
@@ -59,6 +67,8 @@ int Window::_new(lua_State *l)
 
 	glfwSetWindowTitle(title);
 	glfwEnable(GLFW_STICKY_KEYS);
+
+	glfwSetWindowSizeCallback(resize);
 
 	/* */
 	glEnable(GL_TEXTURE_2D);
@@ -101,7 +111,7 @@ int Window::_new(lua_State *l)
 	Window::pushKeytable(l);
 	lua_setfield(l, -2, "key");
 
-	win->canvas = new Canvas(win);
+	win->canvas = new Canvas();
 	win->canvas->push(l);
 
 	lua_setfield(l, -2, "canvas");

@@ -14,6 +14,7 @@ public:
 
 	static int _bind(lua_State *l);
 	static int _release(lua_State *l);
+	static int _uniform(lua_State *l);
 };
 
 #endif /* SHADER_H_ */

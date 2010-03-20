@@ -12,11 +12,13 @@ public:
 	int t_width, t_height; // the actual size of texture
 
 	int load(const char *fname); // load image from disk
+	int create(int width, int height, const void *bytes); 
+
 	void blit(Rect src, Rect dest);
+	void draw(int x, int y);
 
 	static void install(lua_State *l); // load the Image metatable
-	static Image pop(lua_State *l);
-	static void push(lua_State *l, Image *i); // don't use this
+	static Image pop(lua_State *l); // don't use this anymore
 
 	// instance functions
 	static int _new(lua_State *l);

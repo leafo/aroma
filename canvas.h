@@ -9,24 +9,29 @@
 #include "font.h"
 #include "tiles.h"
 #include "mesh.h"
+#include "framebuffer.h"
 
 extern Window *win;
 
-// for 2d drawing mode
 struct Viewport {
 	void set(double t, double r, double b, double l);
 	double top, left, bottom, right;
+	bool is2d;
+	double fov; // field of view for 3d mode
+
+	Viewport();
+	void reshape(); // reshape opengl to this viewport
+	double getWidth();
+	double getHeight();
 };
 
 class Canvas {
 public:
-	Canvas(Window *win);
+	Canvas();
 	void push(lua_State *l); // push this canvas to top of stack
 	void reshape(); // shape the projection matrix
 
-	bool is2d;
 	Viewport view;
-	double fov; // field of view for 3d mode
 
 	// double width, height;
 	Color paint;
@@ -36,6 +41,7 @@ public:
 
 	// instance functions
 	static int _clearColor(lua_State *l);
+	static int _clear(lua_State *l);
 
 	static int _view2d(lua_State *l);
 
@@ -47,6 +53,8 @@ public:
 	static int _rotate(lua_State *l);
 	static int _scale(lua_State *l);
 	static int _translate(lua_State *l);
+
+	static int _getTime(lua_State *l);
 
 	static int _rect(lua_State *l);
 	static int _line(lua_State *l);
