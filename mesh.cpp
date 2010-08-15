@@ -30,7 +30,6 @@ int Mesh::_new(lua_State *l) {
 		return luaL_error(l, "invalid number of vertices for dimension: %d", dim);
 	}
 
-
 	double *v = new double[count];
 	readArray(l, v, count);
 

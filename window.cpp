@@ -106,7 +106,7 @@ int Window::_new(lua_State *l)
 	setfunction("showMouse", Window::_showMouse);
 	setfunction("hideMouse", Window::_hideMouse);
 
-	setfunction("compileShader", Shader::_new);
+	setfunction("shader", Shader::_new);
 
 	Window::pushKeytable(l);
 	lua_setfield(l, -2, "key");

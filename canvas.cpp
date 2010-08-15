@@ -151,15 +151,18 @@ int Canvas::_look(lua_State *l) {
 	Point center = Point::pop3(l);
 	Point eye = Point::pop3(l);
 
-	gluLookAt(eye.x, eye.y, eye.z, center.x, center.y, center.z, 0,1,0);
+	gluLookAt(eye.x, eye.y, eye.z, center.x, center.y, center.z, 0,0,1);
 
 	// set the light position
 	GLfloat lightPos[] = {2,2,2, 1};
 	glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
+
+	/*
 	glPointSize(10.0);
 	glBegin(GL_POINTS);
 	glVertex3f(2,2,2);
 	glEnd();
+	*/
 
 	return 0;
 }
@@ -319,6 +322,7 @@ int Canvas::_rect(lua_State *l)
 	Point a = Point::pop(l);
 	Point b = Point::pop(l);
 
+	// glPopAttrib (current_bit?)
 	glDisable(GL_TEXTURE_2D);
 	c.bind();
 	glBegin(GL_QUADS);
