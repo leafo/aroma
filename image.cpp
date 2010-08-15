@@ -11,6 +11,10 @@ struct Pixel {
 	unsigned char r, g, b, a;
 };
 
+void Image::bind() const {
+	glBindTexture(GL_TEXTURE_2D, texid);
+}
+
 int Image::create(int width, int height, const void *bytes) {
 	this->width = width;
 	this->height = height;
@@ -116,6 +120,7 @@ int Image::_new(lua_State *l) {
 		lua_newtable(l); // the index table
 		setfunction("draw", Image::_draw);
 		setfunction("blit", Image::_blit);
+		setfunction("bind", Image::_bind);
 
 		lua_setfield(l, -2, "__index");
 	}
@@ -139,6 +144,13 @@ int Image::_blit(lua_State *l) {
 	getself(Image)->blit(src, dest);
 	return 0;
 }
+
+int Image::_bind(lua_State *l) {
+	Image *self = getself(Image);
+	self->bind();
+	return 0;
+}
+
 
 static int next_p2(int x)
 {

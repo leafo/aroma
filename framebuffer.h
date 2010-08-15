@@ -18,6 +18,7 @@ public:
 	static int _render(lua_State *l);
 
 	static int _draw(lua_State *l);
+	static int _bindTex(lua_State *l);
 	// draw the image
 };
 
