@@ -116,8 +116,15 @@ int Canvas::_getTime(lua_State *l) {
 // set the viewport directly
 int Canvas::_view2d(lua_State *l) {
 	Canvas *c = win->canvas;
-	Point br = Point::pop(l);
-	Point tl = Point::pop(l);
+
+	Point br, tl;
+	if (lua_gettop(l) < 2) {
+		tl.x = 0; tl.y = 0;
+		br.x = win->width; br.y = win->height;
+	} else {
+		Point br = Point::pop(l);
+		Point tl = Point::pop(l);
+	}
 
 	glDisable(GL_LIGHTING);
 	glDisable(GL_LIGHT0);
