@@ -1,20 +1,26 @@
 
-require "aroma"
+package.path = package.path .. ';../lib/?.lua'
 
-local win, canvas = Window("3d test", 640, 480);
+require "aroma"
+require "ply"
+
+local win, canvas = aroma.window("3d test", 640, 480);
 canvas:clearColor(34,34,34)
 canvas:view3d(60)
 
 local dragging = false
 local mx, my
-local theta = 90 
+local theta_x, theta_y = 0, 0
 
-local m = canvas.mesh({
-	-1, 1,
-	 1, 1,
-	 1, -1,
-	-1, -1,
-	}, 2, "quads")
+-- local m = canvas.mesh({
+-- 	-1, 1,
+-- 	 1, 1,
+-- 	 1, -1,
+-- 	-1, -1,
+-- 	}, 2, "quads")
+
+local ship = ply.parse"ship.ply"
+local m = canvas.mesh(ship:getVertices(), 3)
 
 while win.running do
 	-- print(canvas.mouse.x, canvas.mouse.y)
@@ -30,13 +36,11 @@ while win.running do
 		-- do the drag stuff
 		local dx, dy = canvas.mouse.x - mx, canvas.mouse.y - my
 		mx, my = canvas.mouse.x, canvas.mouse.y
-		theta = theta + dx / 180
+		theta_x, theta_y = theta_x + dx / 180, theta_y + dy / 180
 	end
 	
-
-	canvas:look(5*math.cos(theta), 5, 5*math.sin(theta), 0,0,0)
-	-- m:render()
-	canvas:sphere(1.0)
+	canvas:look(5*math.cos(theta_x), 5*math.sin(theta_x), 5, 0,0,1)
+	m:render()
 
 	win.running = canvas:flush() and not win.keyDown(win.key.esc)
 end
