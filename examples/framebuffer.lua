@@ -4,7 +4,7 @@
 require "aroma"
 local win, canvas = aroma.window("game", 600, 600)
 
-local i = canvas.image("hi.png")
+local i = canvas.image"res/hi.png"
 local fbo = canvas.framebuffer(256, 256)
 
 while win.running do

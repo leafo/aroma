@@ -19,7 +19,7 @@ local theta_x, theta_y = 0, 0
 -- 	-1, -1,
 -- 	}, 2, "quads")
 
-local ship = ply.parse"ship.ply"
+local ship = ply.parse"res/ship.ply"
 local m = canvas.mesh(ship:getVertices(), 3)
 
 while win.running do
