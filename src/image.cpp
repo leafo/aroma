@@ -121,6 +121,7 @@ int Image::_new(lua_State *l) {
 		setfunction("draw", Image::_draw);
 		setfunction("blit", Image::_blit);
 		setfunction("bind", Image::_bind);
+		setfunction("size", Image::_size);
 
 		lua_setfield(l, -2, "__index");
 	}
@@ -136,6 +137,15 @@ int Image::_draw(lua_State *l) {
 	getself(Image)->draw(p.x, p.y);
 	return 0;
 }
+
+int Image::_size(lua_State *l) {
+	Image *self = getself(Image);
+	lua_pushnumber(l, self->width);
+	lua_pushnumber(l, self->height);
+	return 2;
+}
+
+
 
 int Image::_blit(lua_State *l) {
 	Rect dest = Rect::pop(l);

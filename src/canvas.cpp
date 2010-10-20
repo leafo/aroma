@@ -119,6 +119,9 @@ int Canvas::_view2d(lua_State *l) {
 	Point br = Point::pop(l);
 	Point tl = Point::pop(l);
 
+	glDisable(GL_LIGHTING);
+	glDisable(GL_LIGHT0);
+
 	// if we have the canvas table, update it
 	if (lua_istable(l, -1)) {
 		setnumber("width", c->view.right - c->view.left);
@@ -138,6 +141,9 @@ int Canvas::_view3d(lua_State *l) {
 	double fov = luaL_checknumber(l, -1);
 
 	glEnable(GL_DEPTH_TEST);
+
+	glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHT0);
 
 	c->view.is2d = false;
 	c->view.fov = fov;

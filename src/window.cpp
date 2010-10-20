@@ -76,11 +76,10 @@ int Window::_new(lua_State *l)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	/* */
 
-	// set up lighting
+	glShadeModel(GL_FLAT);
 	/*
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
-	glShadeModel(GL_SMOOTH);
 	*/
 	
 	GLfloat ambient[] = {0.2, 0.2, 0.2, 1.0};

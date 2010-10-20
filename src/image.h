@@ -25,6 +25,7 @@ public:
 	static int _draw(lua_State *l);
 	static int _blit(lua_State *l);
 	static int _bind(lua_State *l);
+	static int _size(lua_State *l);
 };
 
 
