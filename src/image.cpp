@@ -15,7 +15,7 @@ void Image::bind() const {
 	glBindTexture(GL_TEXTURE_2D, texid);
 }
 
-int Image::create(int width, int height, const void *bytes) {
+void Image::create(int width, int height, const void *bytes) {
 	this->width = width;
 	this->height = height;
 
@@ -31,12 +31,11 @@ int Image::create(int width, int height, const void *bytes) {
 			GL_RGBA, GL_UNSIGNED_BYTE, bytes);	
 }
 
-int Image::load(const char *fname)
-{
+int Image::load(const char *fname) {
 	double start = glfwGetTime();
 	corona::Image *tmp = corona::OpenImage(fname, corona::PF_R8G8B8A8);
 
-	if (!tmp) return 0; // failed
+	if (!tmp) return false; // failed
 
 	int width = tmp->getWidth();
 	int height = tmp->getHeight();
@@ -61,7 +60,7 @@ int Image::load(const char *fname)
 	cout << "uploading image: " << glfwGetTime() - start << endl;
 
 	delete tmp;
-	return 1;
+	return true;
 }
 
 void Image::draw(int x, int y) {
@@ -162,8 +161,7 @@ int Image::_bind(lua_State *l) {
 }
 
 
-static int next_p2(int x)
-{
+static int next_p2(int x) {
 	int size = 1;
 	while (size < x) {
 		size = size << 1;

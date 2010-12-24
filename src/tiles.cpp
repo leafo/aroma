@@ -4,12 +4,14 @@
 
 int TileSet::load(const char *fname, int w, int h)
 {
-	if (!tiles.load(fname)) return 0;
+	if (!tiles.load(fname)) return false;
 
 	tw = w;
 	th = h;
 	xstride = tiles.width / tw;
 	ystride = tiles.height / th;
+
+	return true;
 }
 
 // draw a tile to dest
@@ -25,17 +27,15 @@ void TileSet::tile(Point dest, int id)
 }
 
 
-
-
-
-
 int TileMap::load(const char *fname, int tw, int th, int *cells, int w, int h)
 {
-	if (!tileset.load(fname, tw, th)) return 0;
+	if (!tileset.load(fname, tw, th)) return false;
 	width = w;
 	height = h;
 	
 	tiles = cells;
+
+	return true;
 }
 
 // draw the map

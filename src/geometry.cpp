@@ -80,31 +80,13 @@ Point Point::fromArray(double *values, int count) {
 	return p;
 }
 
-
-// install point metatable and constructor
-// is this used anymore?
-void Point::install(lua_State *l)
-{
-	luaL_newmetatable(l, "Point");
-
-	lua_newtable(l); // create the index table
-	setfunction("print", _print);
-
-	lua_setfield(l, -2, "__index"); // set index in metatable
-
-	// now register the function on global
-	lua_pushcfunction(l, _new);
-	lua_setfield(l, LUA_GLOBALSINDEX, "Point");
-}
-
 // point constructor
-int Point::_new(lua_State *l) 
-{
+int Point::_new(lua_State *l) {
 	push(l, pop(l));
+	return 1;
 }
 
-int Point::_print(lua_State *l)
-{
+int Point::_print(lua_State *l) {
 	Point p = pop(l);
 	cout << "Point: " << p.x << ", " << p.y << endl;
 	return 0;

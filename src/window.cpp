@@ -2,22 +2,68 @@
 
 #include "shader.h"
 
-Window *win = 0;
-
-bool Window::created = false;
+Window *Window::instance = NULL;
 
 static void resize(int x, int y) {
 	glViewport(0,0, x, y);
 }
 
-void Window::install(lua_State *l)
-{
-	lua_pushcfunction(l, Window::_new);
-	lua_setglobal(l, "Window"); 
+Window *Window::create_window(int width, int height, const char *title) {
+	if (Window::instance == 0) {
+		glfwInit();	
+
+		bool ok = glfwOpenWindow(
+			width, height,
+			8, 8, 8,
+			8, // alpha buffer
+			24, // depth buffer
+			0, // stencil buffer
+			GLFW_WINDOW
+		);
+
+		if (!ok) {
+			glfwTerminate();
+			return NULL;
+		}
+
+		glfwSetWindowTitle(title);
+		glfwEnable(GLFW_STICKY_KEYS);
+
+		glfwSetWindowSizeCallback(resize);
+
+		/* */
+		glEnable(GL_TEXTURE_2D);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		/* */
+
+		glShadeModel(GL_FLAT);
+		/*
+		glEnable(GL_LIGHTING);
+		glEnable(GL_LIGHT0);
+		*/
+		
+		GLfloat ambient[] = {0.2, 0.2, 0.2, 1.0};
+		GLfloat diffuse[] = {0.9, 0.9, 0.9, 1.0};
+		GLfloat specular[] = {0.5, 0.5, 0.5, 1.0};
+
+		glLightfv(GL_LIGHT0, GL_AMBIENT, ambient);
+		glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse);
+		glLightfv(GL_LIGHT0, GL_SPECULAR, specular);	
+
+
+		// glEnable(GL_COLOR_MATERIAL);
+		// glColorMaterial(GL_FRONT, GL_DIFFUSE);
+
+		Window *win = Window::instance = new Window;
+		win->width = width;
+		win->height = height;
+	}
+
+	return Window::instance;
 }
 
-void Window::pushKeytable(lua_State *l)
-{
+void Window::pushKeytable(lua_State *l) {
 	lua_newtable(l);
 	lua_pushinteger(l, GLFW_KEY_ESC);
 	lua_setfield(l, -2, "esc");
@@ -30,8 +76,8 @@ void Window::pushKeytable(lua_State *l)
 }
 
 
-int Window::_new(lua_State *l)
-{
+/*
+int Window::_new(lua_State *l) {
 	if (Window::created) {
 		return luaL_error(l, "can't make two windows");
 	}
@@ -40,59 +86,6 @@ int Window::_new(lua_State *l)
 	const char *title = luaL_checkstring(l, 1);
 	int width = luaL_checkint(l, 2);
 	int height = luaL_checkint(l, 3);
-
-	// create opengl
-	glfwInit();	
-	
-	// win = new Window;
-	// win = (Window *)lua_newuserdata(l, sizeof(Window));
-	// win = pushStruct<Window>(l, "Window");
-	win = new Window;
-	win->width = width;
-	win->height = height;
-	
-	bool ok = glfwOpenWindow(
-		width, height,
-		8, 8, 8,
-		8, // alpha buffer
-		24, // depth buffer
-		0, // stencil buffer
-		GLFW_WINDOW
-	);
-
-	if (!ok) {
-		glfwTerminate();
-		return luaL_error(l, "fatal error: failed to open window");
-	}
-
-	glfwSetWindowTitle(title);
-	glfwEnable(GLFW_STICKY_KEYS);
-
-	glfwSetWindowSizeCallback(resize);
-
-	/* */
-	glEnable(GL_TEXTURE_2D);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	/* */
-
-	glShadeModel(GL_FLAT);
-	/*
-	glEnable(GL_LIGHTING);
-	glEnable(GL_LIGHT0);
-	*/
-	
-	GLfloat ambient[] = {0.2, 0.2, 0.2, 1.0};
-	GLfloat diffuse[] = {0.9, 0.9, 0.9, 1.0};
-	GLfloat specular[] = {0.5, 0.5, 0.5, 1.0};
-
-	glLightfv(GL_LIGHT0, GL_AMBIENT, ambient);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse);
-	glLightfv(GL_LIGHT0, GL_SPECULAR, specular);	
-
-
-	// glEnable(GL_COLOR_MATERIAL);
-	// glColorMaterial(GL_FRONT, GL_DIFFUSE);
 
 
 	// create the window table
@@ -120,14 +113,9 @@ int Window::_new(lua_State *l)
 
 	return 2; 
 }
+*/
 
-/**
- * instance functions
- */
-
-
-int Window::_keyDown(lua_State *l)
-{
+int Window::_keyDown(lua_State *l) {
 	int key = luaL_checkint(l, 1);
 	lua_pushboolean(l, glfwGetKey(key));
 	return 1;

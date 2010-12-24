@@ -100,6 +100,7 @@ int FrameBuffer::_release(lua_State *l) {
 int FrameBuffer::_bindTex(lua_State *l) {
 	FrameBuffer *self = getself(FrameBuffer);
 	self->tex.bind();
+	return 0;
 }
 
 int FrameBuffer::_draw(lua_State *l) {

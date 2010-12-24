@@ -1,24 +1,17 @@
 #include "common.h"
-#include "window.h"
-#include "geometry.h"
-
-luaL_Reg aroma_library[] = {
-	{"window", Window::_new},
-	{NULL, NULL},
-};
+// #include "window.h"
+#include "canvas.h"
 
 extern "C" {
 	LUALIB_API int luaopen_aroma(lua_State *l) {
-		luaL_register(l, "aroma", aroma_library);
-		// Window::install(l);
-		// Point::install(l);
+		lua_register(l, "aroma", Canvas::_new);
+		lua_getglobal(l, "aroma");
 		return 1;
 	}
 }
 
 // read an integer array from table on top of stack
-void readIntArray(lua_State *l, int *array, int count)
-{
+void readIntArray(lua_State *l, int *array, int count) {
 	int buffsize = 10; // read 10 at a time
 
 	int k = 0;
@@ -79,7 +72,5 @@ void stackDump(lua_State *L) {
 	}
 	printf("\n");  /* end the listing */
 }
-
-
 
 

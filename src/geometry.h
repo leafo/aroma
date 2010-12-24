@@ -45,8 +45,6 @@ struct Point {
 
 	static Point fromArray(double *values, int count);
 
-	static void install(lua_State *l);
-
 	static int _new(lua_State *l);
 	static int _print(lua_State *l);
 

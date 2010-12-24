@@ -11,48 +11,58 @@
 #include "mesh.h"
 #include "framebuffer.h"
 
-extern Window *win;
-
 struct Viewport {
 	void set(double t, double r, double b, double l);
 	double top, left, bottom, right;
 	bool is2d;
 	double fov; // field of view for 3d mode
 
-	Viewport();
+	Viewport(double width, double height);
 	void reshape(); // reshape opengl to this viewport
 	double getWidth();
 	double getHeight();
+
+	void print();
 };
 
 class Canvas {
 public:
-	Canvas();
+	Canvas(Window &window);
 	void push(lua_State *l); // push this canvas to top of stack
 	void reshape(); // shape the projection matrix
 
+	Window &window;
 	Viewport view;
 
 	// double width, height;
 	Color paint;
 	Color clearColor;
 
-	// static void push(lua_State *l); // create a new canvas
+	static int _new(lua_State *l); // create new canvas
 
-	// instance functions
+	static int _call(lua_State *l); // call the canvas object
+
+	// instance methods
+	
+	static int _run(lua_State *l); // run the game loop
+
 	static int _clearColor(lua_State *l);
 	static int _clear(lua_State *l);
 
-	static int _view2d(lua_State *l);
-
-
+	static int _viewport(lua_State *l); // set 2d viewport
 	static int _view3d(lua_State *l);
+
 	static int _look(lua_State *l);
 	static int _strip(lua_State *l);
+
+	static int _save(lua_State *l);
+	static int _restore(lua_State *l);
 
 	static int _rotate(lua_State *l);
 	static int _scale(lua_State *l);
 	static int _translate(lua_State *l);
+
+	// static int _noise(lua_State *l);
 
 	static int _getTime(lua_State *l);
 

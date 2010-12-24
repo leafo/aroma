@@ -11,7 +11,7 @@ public:
 	int width, height;
 
 	int load(const char *fname); // load image from disk
-	int create(int width, int height, const void *bytes); 
+	void create(int width, int height, const void *bytes); 
 
 	void blit(Rect src, Rect dest);
 	void draw(int x, int y);

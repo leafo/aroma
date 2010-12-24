@@ -1,9 +1,15 @@
 
 #include "canvas.h"
 
-Viewport::Viewport() {
+static Canvas *_canvas = NULL; // find a better place to put this
+
+Viewport::Viewport(double width, double height) {
 	is2d = true;
-	set(0, win->width, win->height, 0);
+	set(0, width, height, 0);
+}
+
+void Viewport::print() {
+	cout << $(top) << $(left) << $(right) << $(bottom) << endl;
 }
 
 void Viewport::set(double t, double r, double b, double l) {
@@ -25,29 +31,61 @@ void Viewport::reshape() {
 	glMatrixMode(GL_PROJECTION);	
 	glLoadIdentity();
 	if (is2d) {
-		// cout << $(top) << $(right) << $(bottom) << $(left) << endl;
+		glDisable(GL_LIGHTING);
+		glDisable(GL_LIGHT0);
+
+		glDisable(GL_DEPTH_TEST);
 		gluOrtho2D(left, right, bottom, top);
 	} else {
+		glEnable(GL_DEPTH_TEST);
+
+		glEnable(GL_LIGHTING);
+		glEnable(GL_LIGHT0);
+
 		gluPerspective(fov, (double)getWidth()/getHeight(), 1, 50);
 	}
 	glMatrixMode(GL_MODELVIEW);
 }
 
 
-Canvas::Canvas() {
-	// TODO
-	// reshape();
+Canvas::Canvas(Window &window)
+	: window(window), view(window.width, window.height)
+{ 
+	view.reshape();
 }
 
-void Canvas::push(lua_State *l) {
+/**
+ * create a new canvas
+ * args: width, height[, title]
+ */
+int Canvas::_new(lua_State *l) {
+	const char *title = "Aroma";
+
+	int width = luaL_checkint(l, 1);
+	int height = luaL_checkint(l, 2);
+	if (lua_gettop(l) > 2) {
+		title = luaL_checkstring(l, 3);
+	}
+
+	Window *win = Window::create_window(width, height, title);
+	if (!win) return luaL_error(l, "fatal error: failed to open window");
+
+	_canvas = new Canvas(*win);
+
+	Viewport &view = _canvas->view;
+
 	lua_newtable(l);
 
 	// functions
+	
+	setfunction("run", Canvas::_run);
+
 	setfunction("rect", Canvas::_rect);
 	setfunction("line", Canvas::_line);
 
-	setfunction("view2d", Canvas::_view2d);
+	setfunction("viewport", Canvas::_viewport);
 	setfunction("view3d", Canvas::_view3d);
+
 	setfunction("look", Canvas::_look);
 	setfunction("strip", Canvas::_strip);
 
@@ -55,8 +93,13 @@ void Canvas::push(lua_State *l) {
 	setfunction("scale", Canvas::_scale);
 	setfunction("translate", Canvas::_translate);
 
+	setfunction("save", Canvas::_save);
+	setfunction("restore", Canvas::_restore);
+
+	// setfunction("noise", Canvas::_noise);
+
 	setfunction("getTime", Canvas::_getTime);
-	setfunction("clearColor", Canvas::_clearColor);
+	setfunction("clear_color", Canvas::_clearColor);
 	setfunction("clear", Canvas::_clear);
 	setfunction("flush", Canvas::_flush);
 	setfunction("setMouse", Canvas::_setMouse);
@@ -106,80 +149,179 @@ void Canvas::push(lua_State *l) {
 	setnumber("height", view.bottom - view.top);
 
 	lua_setfield(l, -2, "input");
+
+	// create meta table
+	lua_newtable(l);		
+	setfunction("__call", _call);
+	lua_setmetatable(l, -2);
+
+	return 1;
 }
+
+// args: canvas object, a table
+// uses every string key as a function name in the canvas object
+// to be called with the value as the only argument
+int Canvas::_call(lua_State *l) {
+	luaL_checktype(l, 2, LUA_TTABLE);
+	lua_pushnil(l);
+
+	bool run_when_done = false;
+
+	while (lua_next(l, 2) != 0) {
+		if (lua_type(l, -2) == LUA_TSTRING) {
+			lua_pushvalue(l, -2); // push the key on top
+			lua_gettable(l, 1); // get value from canvas
+			if (lua_isfunction(l, -1)) {
+				lua_pushvalue(l, 1); // push canvas table
+				lua_pushvalue(l, -3); // push value on top
+				lua_call(l, 2, 0);
+			} else {
+				lua_pop(l, 1); // remove canvas value
+				
+				lua_pushvalue(l, -2); // copy key
+				
+				if (lua_isstring(l, -1)) {
+					const char *key_name = lua_tolstring(l, -1, NULL);
+					if (strcmp(key_name, "ondraw") == 0) {
+						run_when_done = true;
+					}
+				}
+
+				lua_pushvalue(l, -2); // copy value
+				lua_settable(l, 1);
+			}
+		}
+		lua_pop(l, 1); // remove value
+	}
+
+	lua_settop(l, 1); // leave behind canvas
+
+	if (run_when_done) {
+		lua_pushstring(l, "run");
+		lua_gettable(l, 1);
+		lua_pushvalue(l, 1);
+		lua_call(l, 1, 0);
+	}
+
+	return 1;
+}
+
+// run the game loop
+// args: canvas table
+// expects an ondraw function in canvas table to be run
+int Canvas::_run(lua_State *l) {
+	luaL_checktype(l, 1, LUA_TTABLE);
+
+	bool finished = false;
+	while (!finished) {
+		lua_pushstring(l, "ondraw");
+		lua_gettable(l, 1);
+
+		if (!lua_isfunction(l, -1)) {
+			return luaL_error(l, "ondraw function is not set");
+		}
+
+		lua_pushvalue(l, 1); // canvas
+		lua_call(l, 1, 1);
+
+		finished = lua_toboolean(l, -1);
+
+		lua_pop(l, 1); // pop return value
+
+		lua_pushstring(l, "flush");
+		lua_gettable(l, 1);
+		lua_pushvalue(l, 1);
+		lua_call(l, 1, 1);
+
+		finished = finished || !lua_toboolean(l, -1) || glfwGetKey(GLFW_KEY_ESC);
+		lua_pop(l, 1); // pop return value
+	}
+
+	return 0;
+}
+
+
+// set the 2d viewport
+// args: canvas, number | table
+int Canvas::_viewport(lua_State *l) {
+	Viewport view(0,0);
+	if (lua_isnumber(l, -1)) {
+		double scale = lua_tonumber(l, -1);
+		view.right = _canvas->window.width / scale;
+		view.bottom = _canvas->window.width / scale;
+	} else if (lua_istable(l, -1)) {
+		int i = 1;
+		switch (lua_objlen(l, -1)) {
+			case 4:
+				lua_rawgeti(l, -1, i++);
+				lua_rawgeti(l, -2, i++);
+				view.left = lua_tonumber(l, -2);
+				view.top = lua_tonumber(l, -1);
+				lua_pop(l, 2);
+			case 2:
+				lua_rawgeti(l, -1, i++);
+				lua_rawgeti(l, -2, i++);
+				view.right = lua_tonumber(l, -2);
+				view.bottom = lua_tonumber(l, -1);
+				lua_pop(l, 2);
+				break;
+			default:
+				return luaL_error(l, "unknown 2d viewport size");
+		}
+	}
+
+	cout << "setting 2d viewport: " ;
+	view.print();
+
+	view.reshape();
+	_canvas->view = view;
+
+	// update the canvas
+	lua_pushvalue(l, 1);
+	setnumber("width", view.getWidth());
+	setnumber("height", view.getHeight());
+
+	return 0;
+}
+
+// enabled 3d view, set field of view
+// args: [canvas] fov
+int Canvas::_view3d(lua_State *l) {
+	double fov = luaL_checknumber(l, -1);
+
+	Viewport &view = _canvas->view;
+
+	view.is2d = false;
+	view.fov = fov;
+	view.reshape();
+	return 0;
+}
+
 
 int Canvas::_getTime(lua_State *l) {
 	lua_pushnumber(l, glfwGetTime());
 	return 1;
 }
 
-// set the viewport directly
-int Canvas::_view2d(lua_State *l) {
-	Canvas *c = win->canvas;
-
-	Point br, tl;
-	if (lua_gettop(l) < 2) {
-		tl.x = 0; tl.y = 0;
-		br.x = win->width; br.y = win->height;
-	} else {
-		Point br = Point::pop(l);
-		Point tl = Point::pop(l);
-	}
-
-	glDisable(GL_LIGHTING);
-	glDisable(GL_LIGHT0);
-
-	// if we have the canvas table, update it
-	if (lua_istable(l, -1)) {
-		setnumber("width", c->view.right - c->view.left);
-		setnumber("height", c->view.bottom - c->view.top);
-	}
-
-	glDisable(GL_DEPTH_TEST);
-
-	c->view.is2d = true;
-	c->view.set(tl.y, br.x, br.y, tl.x);
-	c->view.reshape();
-	return 0;
-}
-
-int Canvas::_view3d(lua_State *l) {
-	Canvas *c = win->canvas;
-	double fov = luaL_checknumber(l, -1);
-
-	glEnable(GL_DEPTH_TEST);
-
-	glEnable(GL_LIGHTING);
-	glEnable(GL_LIGHT0);
-
-	c->view.is2d = false;
-	c->view.fov = fov;
-	c->view.reshape();
-	return 0;
-}
-
+// set camera for 3d view
+// args: eye:point3 center:point3
 int Canvas::_look(lua_State *l) {
-	Canvas *c = win->canvas;
-	if (c->view.is2d) return 0;
+	Viewport &view = _canvas->view;
+	if (view.is2d) return 0;
 	Point center = Point::pop3(l);
 	Point eye = Point::pop3(l);
 
 	gluLookAt(eye.x, eye.y, eye.z, center.x, center.y, center.z, 0,0,1);
 
 	// set the light position
+	// TODO: clearly this should not be here
 	GLfloat lightPos[] = {2,2,2, 1};
 	glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
-
-	/*
-	glPointSize(10.0);
-	glBegin(GL_POINTS);
-	glVertex3f(2,2,2);
-	glEnd();
-	*/
 
 	return 0;
 }
 
+// debug function
 int Canvas::_strip(lua_State *l) {
 	// draw a cube or something
 	static double vert[] = {
@@ -197,16 +339,7 @@ int Canvas::_strip(lua_State *l) {
 	return 0;
 }
 
-
-int Canvas::_clearColor(lua_State *l) 
-{
-	/*
-	if (lua_gettop(l) == 1) {
-		// return the clear color
-		return luaL_error(l, "this should return clear color");
-	} 
-	*/
-
+int Canvas::_clearColor(lua_State *l) {
 	Color c = Color::pop(l);
 	glClearColor(c.rf(),c.gf(),c.bf(),1);
 	return 0;
@@ -218,18 +351,15 @@ int Canvas::_clear(lua_State *l) {
 	return 0;
 }
 
-int Canvas::_flush(lua_State *l) 
-{
+int Canvas::_flush(lua_State *l) {
 	if (!lua_istable(l, 1))
 		return luaL_error(l, "canvas expected as first argument");
-
-	Canvas *c = win->canvas;
 
 	glfwSwapBuffers();
 	glfwSleep(0.005);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	// if (!c->is2d)
+	// if (!_canvas->view.is2d)
 	glLoadIdentity();
 
 	// set the game time
@@ -246,13 +376,14 @@ int Canvas::_flush(lua_State *l)
 	double cx, cy; // canvas mouse coordinates
 	glfwGetMousePos(&x, &y);
 
-	if (c->view.is2d) {
-		Viewport & view = c->view;
+	Window &win = _canvas->window;
+	Viewport &view = _canvas->view;
+	if (view.is2d) {
 		double vwidth = view.right - view.left;
 		double vheight = view.bottom - view.top;
 
-		cx = view.left + (x * vwidth / win->width);
-		cy = view.top + (y * vheight / win->height);
+		cx = view.left + (x * vwidth / win.width);
+		cy = view.top + (y * vheight / win.height);
 	} else {
 		cx = (double)x;
 		cy = (double)y;
@@ -289,20 +420,20 @@ int Canvas::_flush(lua_State *l)
 }
 
 /**
- * Set the current mouse location
+ * Set the mouse location
  */
 int Canvas::_setMouse(lua_State *l) {
-	Canvas *c = win->canvas;
 	Point p = Point::pop(l);
 
-	if (c->view.is2d) {
-		Viewport & view = win->canvas->view;
+	Window &win = _canvas->window;
+	Viewport &view = _canvas->view;
+	if (view.is2d) {
 		double vwidth = view.right - view.left;
 		double vheight = view.bottom - view.top;
 
 		// convert from canvas to window coordinates
-		double wx = (p.x - view.left) * (win->width / vwidth);
-		double wy = (p.y - view.top) * (win->height / vheight);
+		double wx = (p.x - view.left) * (win.width / vwidth);
+		double wy = (p.y - view.top) * (win.height / vheight);
 		glfwSetMousePos((int)wx, (int)wy);
 	} else {
 		glfwSetMousePos((int)p.x, (int)p.y);
@@ -329,8 +460,7 @@ int Canvas::_line(lua_State *l) {
 }
 
 
-int Canvas::_rect(lua_State *l)
-{
+int Canvas::_rect(lua_State *l) {
 	Color c = Color::pop(l);
 	Point a = Point::pop(l);
 	Point b = Point::pop(l);
@@ -385,7 +515,38 @@ int Canvas::_translate(lua_State *l) {
 	return 0;
 }
 
+/*
+int Canvas::_noise(lua_State *l) {
+	int count = lua_gettop(l);
+	if (count > 3) count = 3;
 
+	double noise = 0;
+	switch (count) {
+		case 1:
+			noise = PerlinNoise1D(luaL_checknumber(l, 1), 2, 2, 1);
+			break;
+		case 2:
+			noise = PerlinNoise2D(luaL_checknumber(l, 1),
+					luaL_checknumber(l, 2), 2, 2, 1);
+			break;
+		case 3: 
+			noise = PerlinNoise3D(luaL_checknumber(l, 1),
+					luaL_checknumber(l, 2), luaL_checknumber(l, 3),
+					2, 2, 1);
+			break;
+	}
 
+	lua_pushnumber(l, noise);
+	return 1;
+}
+*/
+
+int Canvas::_save(lua_State *l) {
+	return 0;
+}
+
+int Canvas::_restore(lua_State *l) {
+	return 0;
+}
 
 

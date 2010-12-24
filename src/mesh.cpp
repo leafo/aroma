@@ -155,7 +155,7 @@ int Mesh::_gc(lua_State *l) {
 
 // returns a vertex iterator
 int Mesh::_vertices(lua_State *l) {
-	Mesh *m = (Mesh*)luaL_checkudata(l, 1, "Mesh");
+	/*Mesh *m = (Mesh*)*/luaL_checkudata(l, 1, "Mesh");
 
 	lua_pushvalue(l, 1); // copy the mesh
 	lua_pushinteger(l, 0); // the counter
