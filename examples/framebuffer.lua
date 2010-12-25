@@ -1,31 +1,33 @@
 
--- todo framebuffer object
-
 require "aroma"
-local win, canvas = aroma.window("game", 600, 600)
 
-local i = canvas.image"res/hi.png"
-local fbo = canvas.framebuffer(256, 256)
+aroma(600 ,600) {
+	ondraw = function(self)
+		local i = self.image"res/hi.png"
+		local fbo = self.framebuffer(256,256)
 
-while win.running do
-	fbo:render(function(w, h)
-		canvas:view2d(0,0, w, h)
-		canvas:clear(128,128,128);
-		-- i:draw(,0)
-		local whole = {0,0, i:size()}
+		self.ondraw = function()
+			fbo:render(function(w,h)
+				self:viewport{w,h}
+				self:clear(128,128,128)
 
-		i:blit(whole, 0,0, w/2, h/2)
-		i:blit(whole, w/2, 0, w/2, h/2)
+				-- draw something in the fbo
+				local whole = {0,0, i:size()}
 
-		i:blit(whole, 0, h/2, w/2, h/2)
-		i:blit(whole, w/2, h/2, w/2, h/2)
-	end)
+				i:blit(whole, 0,0, w/2, h/2)
+				i:blit(whole, w/2, 0, w/2, h/2)
 
-	canvas:view2d(0,0, 600, 600)
-	canvas:clear(0,0,0);
+				i:blit(whole, 0, h/2, w/2, h/2)
+				i:blit(whole, w/2, h/2, w/2, h/2)
 
-	for i = -10,400,90 do fbo:draw(i,i) end
+			end)
 
-	win.running = canvas:flush() and not win.keyDown(win.key.esc)
-end
+			self:viewport(1)
+			self:clear(0,0,0)
+
+			for i = -10,400,90 do fbo:draw(i,i) end
+
+		end
+	end
+}
 

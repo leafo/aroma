@@ -10,6 +10,7 @@
 #include "tiles.h"
 #include "mesh.h"
 #include "framebuffer.h"
+#include "shader.h"
 
 struct Viewport {
 	void set(double t, double r, double b, double l);
@@ -74,8 +75,11 @@ public:
 	static int _rect(lua_State *l);
 	static int _line(lua_State *l);
 	static int _flush(lua_State *l);
+
 	static int _setMouse(lua_State *l);
 
+	static int _hideMouse(lua_State *l);
+	static int _showMouse(lua_State *l);
 };
 
 #endif /* CANVAS_H_ */

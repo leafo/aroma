@@ -2,10 +2,10 @@
 
 require "aroma"
 
-local win, canvas = aroma.window('gaeme', 800, 800)
-canvas:clearColor(34,34,34)
-canvas:view2d(0,0, 400, 400)
---canvas:view3d(60)
+local canvas = aroma(800, 800, "shadows") {
+	viewport = 2,
+	clear_color = {34,34,34}
+}
 
 -- local text = canvas.font("lib/font.bmp", 16, 16)
 
@@ -17,9 +17,7 @@ local m = canvas.mesh({
 }, 2, "polygon")
 local base = m:clone()
 
-
 local mouse = false
-local space = false
 
 function point(x,y, r,g,b) 
 	if not r then r,g,b = 0,255,0 end
@@ -97,12 +95,12 @@ function shadowPolygon(mesh, light, drawNormals)
 		if dot > 0 then -- facing the light
 			edgeType = 1
 			if drawNormals then
-				canvas.line(mx, my, mx + nx, my + ny, 255,255,255)
+				canvas:line(mx, my, mx + nx, my + ny, 255,255,255)
 			end
 		else
 			edgeType = 2
 			if drawNormals then
-				canvas.line(mx, my, mx + nx, my + ny, 255,0,0)
+				canvas:line(mx, my, mx + nx, my + ny, 255,0,0)
 			end
 		end
 
@@ -124,8 +122,8 @@ function shadowPolygon(mesh, light, drawNormals)
 			end
 		end
 
-		canvas.line(light.x, light.y, {mesh:get(startShadow)}, 255,0,255) -- light vector
-		canvas.line(light.x, light.y, {mesh:get(endShadow)}, 0,0,255) -- light vector
+		canvas:line(light.x, light.y, {mesh:get(startShadow)}, 255,0,255) -- light vector
+		canvas:line(light.x, light.y, {mesh:get(endShadow)}, 0,0,255) -- light vector
 	end
 
 
@@ -162,7 +160,7 @@ end
 
 local points = {}
 local time = 0
-while win.running do
+while true do
 	time = time + canvas.dt
 	-- canvas.rect(10,10, 100, 100, {200,10,10})
 	-- canvas.rect(50,50, 150, 150, {10,200,10, 128})
@@ -175,21 +173,11 @@ while win.running do
 		y = canvas.mouse.y,
 	}
 
-	for i,x,y in base:vertices() do
-		-- m:set(i, x+math.sin(time*5+y)*10, y)
-	end
+	-- for i,x,y in base:vertices() do
+	-- 	m:set(i, x+math.sin(time*5+y)*10, y)
+	-- end
 
 	point(light.x, light.y, 255,255,0)
-
-	if win.keyDown(win.key.space) then
-		-- canvas.setMouse(100, 100)
-		win.hideMouse()
-		space = true
-	elseif space == true then
-		print(canvas.mouse.x, canvas.mouse.y)
-		win.showMouse()
-		space = false
-	end
 
 	if canvas.mouse.left then mouse = true end
 	if mouse and not canvas.mouse.left then
@@ -198,7 +186,6 @@ while win.running do
 		table.insert(points, canvas.mouse.y)
 		
 		mouse = false
-		-- canvas:setMouse(400, 240)
 	end
 
 
@@ -216,5 +203,5 @@ while win.running do
 
 	shadowPolygon(m, light):render(0,0,0)
 
-	win.running = canvas:flush() and not win.keyDown(win.key.esc)
+	if not canvas:flush() or canvas:key"esc" then break end
 end

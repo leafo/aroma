@@ -1,8 +1,9 @@
 
 require "aroma"
 
-local win, canvas = aroma.window("life", 300, 300)
-canvas:view2d()
+-- 
+-- hold space to spawn cells
+--
 
 local speed = .1 -- time in seconds for one iteration
 
@@ -51,7 +52,7 @@ function Board(width, height, cell_width, cell_height)
 	local time = 0
 	return {
 		paused = false,
-		render = function(self)
+		render = function(self, canvas)
 			if not self.paused then
 				time = time + canvas.dt
 				if time >= speed then
@@ -80,21 +81,22 @@ end
 
 math.randomseed(os.time())
 
-local width = 4
-local b = Board(win.width/width, win.height/width, width, width)
+aroma(300, 300, "life") {
+	clear_color = {34,34,34},
+	ondraw = function(self)
+		local width = 4
+		local b = Board(self.width/width, self.height/width, width, width)
 
-while win.running do
-	b.paused = false
+		self.ondraw = function() 
+			if self:key"space" then
+				b.paused = true
+				b:flood();
+			else
+				b.paused = false
+			end
 
-	print(canvas.dt)
-
-	if win.keyDown(win.key.space) then
-		b:flood()
-		b.paused = true
+			b:render(self)
+		end
 	end
-
-	b:render()
-
-	win.running = canvas:flush() and not win.keyDown(win.key.esc)
-end
+}
 

@@ -129,7 +129,10 @@ int Canvas::_new(lua_State *l) {
 	setfunction("clear_color", Canvas::_clearColor);
 	setfunction("clear", Canvas::_clear);
 	setfunction("flush", Canvas::_flush);
-	setfunction("setMouse", Canvas::_setMouse);
+
+	setfunction("set_mouse", Canvas::_setMouse);
+	setfunction("hide_mouse", Canvas::_hideMouse);
+	setfunction("show_mouse", Canvas::_showMouse);
 
 	setfunction("key", Canvas::_key);
 	setfunction("key_up", Canvas::_key_up);
@@ -139,6 +142,7 @@ int Canvas::_new(lua_State *l) {
 	setfunction("font", Font::_new);
 	setfunction("map", TileMap::_new);
 	setfunction("mesh", Mesh::_new);
+	setfunction("shader", Shader::_new);
 
 	setfunction("framebuffer", FrameBuffer::_new);
 
@@ -305,9 +309,6 @@ int Canvas::_viewport(lua_State *l) {
 				return luaL_error(l, "unknown 2d viewport size");
 		}
 	}
-
-	cout << "setting 2d viewport: " ;
-	view.print();
 
 	view.reshape();
 	_canvas->view = view;
@@ -502,6 +503,17 @@ int Canvas::_setMouse(lua_State *l) {
 
 	return 0;
 }
+
+int Canvas::_hideMouse(lua_State *l) {
+	glfwDisable(GLFW_MOUSE_CURSOR);
+	return 0;
+}
+
+int Canvas::_showMouse(lua_State *l) {
+	glfwEnable(GLFW_MOUSE_CURSOR);	
+	return 0;
+}
+
 
 int Canvas::_line(lua_State *l) {
 	Color c = Color::pop(l);

@@ -63,16 +63,6 @@ Window *Window::create_window(int width, int height, const char *title) {
 	return Window::instance;
 }
 
-int Window::_hideMouse(lua_State *l) {
-	glfwDisable(GLFW_MOUSE_CURSOR);
-	return 0;
-}
-
-int Window::_showMouse(lua_State *l) {
-	glfwEnable(GLFW_MOUSE_CURSOR);	
-	return 0;
-}
-
 // this is just here for reference, not actually used
 // allocate userdata for new struct and push it on
 // the stack. Return the pointer to struct
