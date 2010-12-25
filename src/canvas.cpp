@@ -1,7 +1,33 @@
 
 #include "canvas.h"
 
+#include "set"
+
+using namespace std;
+
 static Canvas *_canvas = NULL; // find a better place to put this
+
+static const char *keys[] = {"esc", "space", "shift", "enter", 0};
+static const int key_to_id[] = {
+	GLFW_KEY_ESC, GLFW_KEY_SPACE,
+	GLFW_KEY_LSHIFT, GLFW_KEY_ENTER
+};
+
+static set<int> keys_down;
+static set<int> keys_up;
+
+static int push_key_table(lua_State *l);
+static int pop_key(lua_State *l);
+
+void GLFWCALL key_listener(int key_id, int action) {
+	if (action == GLFW_PRESS) {
+		// cout << "pushing key " << key_id << endl;
+		keys_down.insert(key_id);
+	} else if (action == GLFW_RELEASE) {
+		// cout << "releasing key " << key_id << endl;
+		keys_up.insert(key_id);
+	}
+}
 
 Viewport::Viewport(double width, double height) {
 	is2d = true;
@@ -52,11 +78,12 @@ Canvas::Canvas(Window &window)
 	: window(window), view(window.width, window.height)
 { 
 	view.reshape();
+	glfwSetKeyCallback(key_listener);
 }
 
 /**
  * create a new canvas
- * args: width, height[, title]
+ * args: width, height, [title]
  */
 int Canvas::_new(lua_State *l) {
 	const char *title = "Aroma";
@@ -104,6 +131,10 @@ int Canvas::_new(lua_State *l) {
 	setfunction("flush", Canvas::_flush);
 	setfunction("setMouse", Canvas::_setMouse);
 
+	setfunction("key", Canvas::_key);
+	setfunction("key_up", Canvas::_key_up);
+	setfunction("key_down", Canvas::_key_down);
+
 	setfunction("image", Image::_new);
 	setfunction("font", Font::_new);
 	setfunction("map", TileMap::_new);
@@ -114,6 +145,10 @@ int Canvas::_new(lua_State *l) {
 	// properties
 	setnumber("dt", 0);
 	setnumber("time", glfwGetTime());
+
+	setnumber("width", view.getWidth());
+	setnumber("height", view.getHeight());
+
 
 	// mouse input
 	lua_newtable(l);
@@ -145,10 +180,11 @@ int Canvas::_new(lua_State *l) {
 	setbool("l", false);
 	setbool("r", false);
 
-	setnumber("width", view.right - view.left);
-	setnumber("height", view.bottom - view.top);
-
 	lua_setfield(l, -2, "input");
+
+	// the keys
+	push_key_table(l);
+	lua_setfield(l, -2, "keys");
 
 	// create meta table
 	lua_newtable(l);		
@@ -158,7 +194,7 @@ int Canvas::_new(lua_State *l) {
 	return 1;
 }
 
-// args: canvas object, a table
+// args: canvas, settings:table
 // uses every string key as a function name in the canvas object
 // to be called with the value as the only argument
 int Canvas::_call(lua_State *l) {
@@ -181,7 +217,7 @@ int Canvas::_call(lua_State *l) {
 				lua_pushvalue(l, -2); // copy key
 				
 				if (lua_isstring(l, -1)) {
-					const char *key_name = lua_tolstring(l, -1, NULL);
+					const char *key_name = lua_tostring(l, -1);
 					if (strcmp(key_name, "ondraw") == 0) {
 						run_when_done = true;
 					}
@@ -207,8 +243,8 @@ int Canvas::_call(lua_State *l) {
 }
 
 // run the game loop
-// args: canvas table
-// expects an ondraw function in canvas table to be run
+// args: canvas
+// needs ondraw method in canvas table in order to run
 int Canvas::_run(lua_State *l) {
 	luaL_checktype(l, 1, LUA_TTABLE);
 
@@ -242,7 +278,7 @@ int Canvas::_run(lua_State *l) {
 
 
 // set the 2d viewport
-// args: canvas, number | table
+// args: canvas, scale:number | dimensions:table
 int Canvas::_viewport(lua_State *l) {
 	Viewport view(0,0);
 	if (lua_isnumber(l, -1)) {
@@ -285,7 +321,7 @@ int Canvas::_viewport(lua_State *l) {
 }
 
 // enabled 3d view, set field of view
-// args: [canvas] fov
+// args: [canvas], fov
 int Canvas::_view3d(lua_State *l) {
 	double fov = luaL_checknumber(l, -1);
 
@@ -297,6 +333,27 @@ int Canvas::_view3d(lua_State *l) {
 	return 0;
 }
 
+
+
+// check if a key is pressed
+// args: canvas, key:string|number
+int Canvas::_key(lua_State *l) {
+	int key = pop_key(l);
+	lua_pushboolean(l, glfwGetKey(key));
+	return 1;
+}
+
+int Canvas::_key_down(lua_State *l) {
+	int key = pop_key(l);
+	lua_pushboolean(l, keys_down.find(key) != keys_down.end());
+	return 1;
+}
+
+int Canvas::_key_up(lua_State *l) {
+	int key = pop_key(l);
+	lua_pushboolean(l, keys_up.find(key) != keys_up.end());
+	return 1;
+}
 
 int Canvas::_getTime(lua_State *l) {
 	lua_pushnumber(l, glfwGetTime());
@@ -355,6 +412,10 @@ int Canvas::_flush(lua_State *l) {
 	if (!lua_istable(l, 1))
 		return luaL_error(l, "canvas expected as first argument");
 
+	// clear key events
+	keys_down.clear();
+	keys_up.clear();
+
 	glfwSwapBuffers();
 	glfwSleep(0.005);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -405,7 +466,6 @@ int Canvas::_flush(lua_State *l) {
 	setnumber("xaxis", axis[0]);
 	setnumber("yaxis", axis[1]);
 
-
 	setbool("left", glfwGetKey(GLFW_KEY_LEFT));
 	setbool("right", glfwGetKey(GLFW_KEY_RIGHT));
 	setbool("up", glfwGetKey(GLFW_KEY_UP));
@@ -415,6 +475,7 @@ int Canvas::_flush(lua_State *l) {
 	setbool("b", glfwGetKey('W'));
 
 	lua_pushboolean(l, glfwGetWindowParam(GLFW_OPENED) > 0);
+
 
 	return 1;
 }
@@ -549,4 +610,46 @@ int Canvas::_restore(lua_State *l) {
 	return 0;
 }
 
+// insert keys from key table into table on top of stack
+int push_key_table(lua_State *l) {
+	lua_newtable(l);
+	const char **key = keys;
+	int i = 0;
+	while (*key) {
+		lua_pushinteger(l, key_to_id[i++]);
+		lua_setfield(l, -2, *(key++));
+	}
+
+	return 1;
+}
+
+// get a key off the top of stack, leaves it how it was
+// args: canvas, key:string|number
+int pop_key(lua_State *l) {
+	int key;
+
+	if (lua_isstring(l, -1)) {
+		// check if it is in the key table
+		lua_getfield(l, -2, "keys");
+		lua_pushvalue(l, -2); // string on top
+		lua_gettable(l, -2);
+		
+		if (lua_isnil(l, -1)) {
+			// get the first letter and use it as char
+			size_t len;
+			const char *key_str = lua_tolstring(l, -3, &len);
+			if (len == 0) return luaL_error(l, "invalid key string");
+			key = toupper(key_str[0]);
+		} else {
+			// use value from keys table
+			key = lua_tointeger(l, -1); 
+		}
+
+		lua_pop(l, 2); // pop key table and value
+	} else  {
+		key = luaL_checkint(l, -1);
+	}
+
+	return key;
+}
 

@@ -63,65 +63,6 @@ Window *Window::create_window(int width, int height, const char *title) {
 	return Window::instance;
 }
 
-void Window::pushKeytable(lua_State *l) {
-	lua_newtable(l);
-	lua_pushinteger(l, GLFW_KEY_ESC);
-	lua_setfield(l, -2, "esc");
-	lua_pushinteger(l, GLFW_KEY_SPACE);
-	lua_setfield(l, -2, "space");
-	lua_pushinteger(l, GLFW_KEY_LSHIFT);
-	lua_setfield(l, -2, "shift");
-	lua_pushinteger(l, GLFW_KEY_ENTER);
-	lua_setfield(l, -2, "enter");
-}
-
-
-/*
-int Window::_new(lua_State *l) {
-	if (Window::created) {
-		return luaL_error(l, "can't make two windows");
-	}
-	Window::created = true;
-
-	const char *title = luaL_checkstring(l, 1);
-	int width = luaL_checkint(l, 2);
-	int height = luaL_checkint(l, 3);
-
-
-	// create the window table
-	lua_newtable(l);
-	setint("width", width);
-	setint("height", height);
-	setbool("running", true);
-
-	setfunction("keyDown", Window::_keyDown);
-	setfunction("showMouse", Window::_showMouse);
-	setfunction("hideMouse", Window::_hideMouse);
-
-	setfunction("shader", Shader::_new);
-
-	Window::pushKeytable(l);
-	lua_setfield(l, -2, "key");
-
-	win->canvas = new Canvas();
-	win->canvas->push(l);
-
-	lua_setfield(l, -2, "canvas");
-
-	// get canvas back
-	lua_getfield(l, -1, "canvas");
-
-	return 2; 
-}
-*/
-
-int Window::_keyDown(lua_State *l) {
-	int key = luaL_checkint(l, 1);
-	lua_pushboolean(l, glfwGetKey(key));
-	return 1;
-}
-
-
 int Window::_hideMouse(lua_State *l) {
 	glfwDisable(GLFW_MOUSE_CURSOR);
 	return 0;
@@ -131,8 +72,6 @@ int Window::_showMouse(lua_State *l) {
 	glfwEnable(GLFW_MOUSE_CURSOR);	
 	return 0;
 }
-
-
 
 // this is just here for reference, not actually used
 // allocate userdata for new struct and push it on

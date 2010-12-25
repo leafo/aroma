@@ -66,6 +66,11 @@ public:
 
 	static int _getTime(lua_State *l);
 
+	static int _key(lua_State *l);
+
+	static int _key_down(lua_State *l);
+	static int _key_up(lua_State *l);
+
 	static int _rect(lua_State *l);
 	static int _line(lua_State *l);
 	static int _flush(lua_State *l);
