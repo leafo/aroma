@@ -104,7 +104,7 @@ int Canvas::_new(lua_State *l) {
 	lua_newtable(l);
 
 	// functions
-	
+
 	setfunction("run", Canvas::_run);
 
 	setfunction("rect", Canvas::_rect);
@@ -139,6 +139,9 @@ int Canvas::_new(lua_State *l) {
 	setfunction("key_down", Canvas::_key_down);
 
 	setfunction("image", Image::_new);
+	setfunction("image_string", Image::_new_from_memory);
+	setfunction("image_bytes", Image::_get_image_bytes);
+
 	setfunction("font", Font::_new);
 	setfunction("map", TileMap::_new);
 	setfunction("mesh", Mesh::_new);
