@@ -1,14 +1,27 @@
 #include "common.h"
-// #include "window.h"
 #include "canvas.h"
+#include "image.h"
+
+static const struct luaL_Reg aroma_funcs [] = {
+	{"new", Canvas::_new},
+	{"image_bytes", Image::_get_image_bytes},
+	{NULL, NULL}
+};
 
 extern "C" {
 	LUALIB_API int luaopen_aroma(lua_State *l) {
-		lua_register(l, "aroma", Canvas::_new);
-		lua_getglobal(l, "aroma");
+		luaL_register(l, "aroma", aroma_funcs);
+
+		if (luaL_newmetatable(l, "aroma")) {
+			// alias for aroma.new
+			setfunction("__call", Canvas::_new);
+		}
+
+		lua_setmetatable(l, -2);
 		return 1;
 	}
 }
+
 
 // read an integer array from table on top of stack
 void readIntArray(lua_State *l, int *array, int count) {

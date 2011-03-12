@@ -162,9 +162,33 @@ void Image::blit(Rect src, Rect dest) {
 	glEnd();
 }
 
-int Image::_new(lua_State *l) {
+/**
+ * Load an image from disk
+ * returns image:userdata
+ */
+int Image::_new_from_file(lua_State *l) {
 	const char *fname = luaL_checkstring(l, 1);
-	push_image(l)->load(fname);
+	if (!push_image(l)->load(fname))
+		return luaL_error(l, "failed to load image: %s", fname);
+	return 1;
+}
+
+/**
+ * Create an image from width, height, and binary rgba byte array
+ * returns image:userdata
+ */
+int Image::_new_from_raw(lua_State *l) {
+	int w = luaL_checkint(l, 1);
+	int h = luaL_checkint(l, 2);
+	const char *bytes = luaL_checkstring(l, 3);
+
+	int len = lua_objlen(l, 3);
+
+	if (len != w*h*4)
+		return luaL_error(l, "bytes do not match given dimensions");
+
+	push_image(l)->create(w, h, bytes);
+
 	return 1;
 }
 
@@ -175,7 +199,8 @@ int Image::_new(lua_State *l) {
 int Image::_new_from_memory(lua_State *l) {
 	const char *bytes = luaL_checkstring(l, 1);
 	int len = lua_objlen(l, 1);
-	push_image(l)->load_memory(bytes, len);
+	if (!push_image(l)->load_memory(bytes, len))
+		return luaL_error(l, "failed to load image from memory");
 	return 1;
 }
 
@@ -232,19 +257,23 @@ int Image::_raw_update(lua_State *l) {
  * Loads and image from file name, and returns a byte string of pixels
  * expensive due to copy
  *
- * returns bytes:string, width:number, height:number
+ * returns width:number, height:number, bytes:string
  */
 int Image::_get_image_bytes(lua_State *l) {
 	const char *fname = luaL_checkstring(l, 1);
 
+	double start = glfwGetTime();
 	corona::Image *tmp = corona::OpenImage(fname, corona::PF_R8G8B8A8);
 
 	if (!tmp) return luaL_error(l, "failed to open image");
 
 	apply_color_key(tmp, Pixel(255, 0, 255));
-	lua_pushlstring(l, (const char *)tmp->getPixels(),tmp->getWidth()*tmp->getHeight()*4);
+
 	lua_pushinteger(l, tmp->getWidth());
 	lua_pushinteger(l, tmp->getHeight());
+	lua_pushlstring(l, (const char *)tmp->getPixels(),tmp->getWidth()*tmp->getHeight()*4);
+
+	// cout << "loading image bytes: " << glfwGetTime() - start << endl;
 
 	delete tmp;
 	return 3;

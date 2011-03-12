@@ -22,7 +22,8 @@ public:
 	void bind() const;
 
 	// instance functions
-	static int _new(lua_State *l);
+	static int _new_from_file(lua_State *l);
+	static int _new_from_raw(lua_State *l);
 	static int _new_from_memory(lua_State *l);
 
 	static int _get_image_bytes(lua_State *l); // get raw bytes for file name

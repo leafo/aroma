@@ -76,7 +76,7 @@ void Viewport::reshape() {
 
 Canvas::Canvas(Window &window)
 	: window(window), view(window.width, window.height)
-{ 
+{
 	view.reshape();
 	glfwSetKeyCallback(key_listener);
 }
@@ -88,10 +88,10 @@ Canvas::Canvas(Window &window)
 int Canvas::_new(lua_State *l) {
 	const char *title = "Aroma";
 
-	int width = luaL_checkint(l, 1);
-	int height = luaL_checkint(l, 2);
-	if (lua_gettop(l) > 2) {
-		title = luaL_checkstring(l, 3);
+	int width = luaL_checkint(l, 2);
+	int height = luaL_checkint(l, 3);
+	if (lua_gettop(l) > 3) {
+		title = luaL_checkstring(l, 4);
 	}
 
 	Window *win = Window::create_window(width, height, title);
@@ -138,8 +138,10 @@ int Canvas::_new(lua_State *l) {
 	setfunction("key_up", Canvas::_key_up);
 	setfunction("key_down", Canvas::_key_down);
 
-	setfunction("image", Image::_new);
-	setfunction("image_string", Image::_new_from_memory);
+	setfunction("image", Image::_new_from_file);
+	setfunction("image_from_bytes", Image::_new_from_raw);
+	setfunction("image_from_string", Image::_new_from_memory);
+
 	setfunction("image_bytes", Image::_get_image_bytes);
 
 	setfunction("font", Font::_new);
@@ -291,7 +293,7 @@ int Canvas::_viewport(lua_State *l) {
 	if (lua_isnumber(l, -1)) {
 		double scale = lua_tonumber(l, -1);
 		view.right = _canvas->window.width / scale;
-		view.bottom = _canvas->window.width / scale;
+		view.bottom = _canvas->window.height / scale;
 	} else if (lua_istable(l, -1)) {
 		int i = 1;
 		switch (lua_objlen(l, -1)) {
