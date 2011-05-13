@@ -5,12 +5,6 @@
 #include "common.h"
 #include "geometry.h"
 #include "window.h"
-#include "image.h"
-#include "font.h"
-#include "tiles.h"
-#include "mesh.h"
-#include "framebuffer.h"
-#include "shader.h"
 
 struct Viewport {
 	void set(double t, double r, double b, double l);

@@ -1,6 +1,10 @@
 
 #include "framebuffer.h"
 
+void register_Framebuffer(lua_State *l) {
+	setfunction("framebuffer", FrameBuffer::_new);
+}
+
 int FrameBuffer::_new(lua_State *l) {
 	int width = luaL_checkinteger(l, -2);
 	int height = luaL_checkinteger(l, -1);

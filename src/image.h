@@ -5,6 +5,8 @@
 #include "common.h"
 #include "geometry.h"
 
+void register_Image(lua_State *l);
+
 class Image {
 public:
 	GLuint texid;

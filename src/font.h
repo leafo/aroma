@@ -4,6 +4,8 @@
 #include "common.h"
 #include "tiles.h"
 
+void register_Font(lua_State *l);
+
 class Font {
 protected:
 	Image letters;

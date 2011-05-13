@@ -8,6 +8,13 @@
 #include "GL/glpng.h"
 #endif
 
+void register_Image(lua_State *l) {
+	setfunction("image", Image::_new_from_file);
+	setfunction("image_from_bytes", Image::_new_from_raw);
+	setfunction("image_from_string", Image::_new_from_memory);
+	setfunction("image_bytes", Image::_get_image_bytes);
+}
+
 static int texCoords[] = {
 	0,0,  1,0,  1,1,  0,1
 };

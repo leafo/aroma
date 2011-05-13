@@ -4,6 +4,8 @@
 
 #include "common.h"
 
+void register_Shader(lua_State *l);
+
 class Shader {
 public:
 	bool linked;

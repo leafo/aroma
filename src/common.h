@@ -18,6 +18,8 @@ using namespace std;
 
 typedef unsigned char byte;
 
+typedef void(*AromaRegister)(lua_State *l);
+
 #define setint(name,val) lua_pushinteger(l, val);\
 	lua_setfield(l, -2, name)
 

@@ -5,6 +5,8 @@
 #include "common.h"
 #include "image.h"
 
+void register_Framebuffer(lua_State *l);
+
 class FrameBuffer {
 public:
 	int width, height;

@@ -4,6 +4,8 @@
 
 #include "geometry.h"
 
+void register_Mesh(lua_State *l);
+
 /**
  * a 2d or 3d mesh to be rendered as vertex array
  */

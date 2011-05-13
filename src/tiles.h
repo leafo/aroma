@@ -6,6 +6,8 @@
 #include "image.h"
 #include "geometry.h"
 
+void register_Tiles(lua_State *l);
+
 class TileSet {
 public:
 	Image tiles;

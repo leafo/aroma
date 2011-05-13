@@ -1,6 +1,10 @@
 
 #include "tiles.h"
 
+void register_Tiles(lua_State *l) {
+	setfunction("map", TileMap::_new);
+}
+
 
 int TileSet::load(const char *fname, int w, int h)
 {

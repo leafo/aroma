@@ -1,5 +1,13 @@
 
 #include "canvas.h"
+
+#include "image.h"
+#include "font.h"
+#include "tiles.h"
+#include "mesh.h"
+#include "framebuffer.h"
+#include "shader.h"
+
 #include <set>
 
 using namespace std;
@@ -17,6 +25,16 @@ static set<int> keys_up;
 
 static int push_key_table(lua_State *l);
 static int pop_key(lua_State *l);
+
+static AromaRegister aroma_libs[] = {
+	register_Image,
+	register_Font,
+	register_Mesh,
+	register_Tiles,
+	register_Framebuffer,
+	register_Shader,
+	0
+};
 
 void GLFWCALL key_listener(int key_id, int action) {
 	if (action == GLFW_PRESS) {
@@ -122,8 +140,6 @@ int Canvas::_new(lua_State *l) {
 	setfunction("save", Canvas::_save);
 	setfunction("restore", Canvas::_restore);
 
-	// setfunction("noise", Canvas::_noise);
-
 	setfunction("getTime", Canvas::_getTime);
 	setfunction("clear_color", Canvas::_clearColor);
 	setfunction("clear", Canvas::_clear);
@@ -137,18 +153,11 @@ int Canvas::_new(lua_State *l) {
 	setfunction("key_up", Canvas::_key_up);
 	setfunction("key_down", Canvas::_key_down);
 
-	setfunction("image", Image::_new_from_file);
-	setfunction("image_from_bytes", Image::_new_from_raw);
-	setfunction("image_from_string", Image::_new_from_memory);
-
-	setfunction("image_bytes", Image::_get_image_bytes);
-
-	setfunction("font", Font::_new);
-	setfunction("map", TileMap::_new);
-	setfunction("mesh", Mesh::_new);
-	setfunction("shader", Shader::_new);
-
-	setfunction("framebuffer", FrameBuffer::_new);
+	// load libraries
+	AromaRegister *lib = aroma_libs;
+	while (*lib) {
+		(*lib++)(l);
+	}
 
 	// properties
 	setnumber("dt", 0);

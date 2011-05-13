@@ -6,6 +6,10 @@ using namespace std;
 #include "shader.h"
 #include "image.h"
 
+void register_Shader(lua_State *l) {
+	setfunction("shader", Shader::_new);
+}
+
 // read entire file
 // probably not going to use this
 char* readFile(const char *fname) {

@@ -1,6 +1,10 @@
 
 #include "mesh.h"
 
+void register_Mesh(lua_State *l) {
+	setfunction("mesh", Mesh::_new);
+}
+
 int Mesh::_new(lua_State *l) {
 	int dim = 3;
 	GLenum format = GL_TRIANGLES;

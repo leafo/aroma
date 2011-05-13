@@ -1,6 +1,10 @@
 
 #include "font.h"
 
+void register_Font(lua_State *l) {
+	setfunction("font", Font::_new);
+}
+
 typedef struct {
 	double x1,y1, x2,y2, x3,y3, x4,y4;
 
