@@ -1,7 +1,6 @@
 
 #include "canvas.h"
-
-#include "set"
+#include <set>
 
 using namespace std;
 
