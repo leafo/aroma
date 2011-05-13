@@ -1,7 +1,25 @@
 .gitignore
 
-flags = -lglfw -lGLU -lGL -lX11 -lXrandr -lm -lcorona -llua -ldl
+libs = -lglfw
+ifeq (@(TUP_PLATFORM),linux)
+  libs += -lGLU -lGL -lX11 -lXrandr -lm -lcorona -ldl
+  link = -fpic -shared
+  flags += -DUSE_CORONA
+#   libs += -lpng
+#   flags += -Ilib/
+#   : lib/glpng.c |> g++ -fpic -c %f -o %o $(flags) |> glpng.o {lib_o}
+endif
 
-: foreach *.cpp |> g++ -fpic -c %f |> %B.o
-: *.o |> g++ -fpic -shared -o %o %f $(flags) |> aroma.so
+ifeq (@(TUP_PLATFORM),macosx)
+  libs += -framework OpenGL -framework Cocoa -L/usr/X11/lib/ -lpng
+  flags += -Ilib/ -I/usr/X11/include/
+  link = -bundle -undefined dynamic_lookup
+  : lib/glpng.c |> g++ -c %f -o %o $(flags) |> glpng.o {lib_o}
+endif
+
+flags += -g
+libs += -g
+
+: foreach *.cpp |> g++ -fpic -c %f $(flags) |> %B.o {lib_o}
+: {lib_o} |> g++ $(link) -o %o %f $(libs) |> aroma.so
 

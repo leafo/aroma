@@ -1,5 +1,11 @@
 #include "image.h"
+#include <cstdlib>
+
+#ifdef USE_CORONA
 #include <corona.h>
+#else
+#include "GL/glpng.h"
+#endif
 
 static int texCoords[] = {
 	0,0,  1,0,  1,1,  0,1
@@ -10,7 +16,8 @@ static int next_p2(int x);
 struct Pixel {
 	byte r, g, b, a;
 
-	Pixel(byte r, byte g, byte b) : r(r), g(g), b(b), a(1) { }
+	Pixel() {}
+	Pixel(byte r, byte g, byte b) : r(r), g(g), b(b), a(255) { }
 
 	bool operator==(const Pixel &other) const {
 		return r == other.r &&g == other.g && b == other.b;
@@ -40,30 +47,68 @@ static Image *push_image(lua_State *l) {
 	return i;
 }
 
+
 /**
  * Modify the image such that color key is transparent
  */
-static void apply_color_key(corona::Image *img, Pixel key) {
-	int width = img->getWidth();
-	int height = img->getHeight();
-
-	Pixel *pixels = (Pixel*)img->getPixels();
+static void apply_color_key(int width, int height, Pixel *pixels, Pixel key) {
+	// int width = img->getWidth();
+	// int height = img->getHeight();
+	// Pixel *pixels = (Pixel*)img->getPixels();
+	
 	for (int i = 0; i < width*height; i++) {
 		if (*pixels == key) pixels->a = 0;
 		pixels++;
 	}
 }
 
+
+#ifdef USE_CORONA
+
 /**
  * Upload bytes from corona image to textured image
  */
-static void copy_image(corona::Image *src, Image *dest) {
-	apply_color_key(src, Pixel(255, 0, 255));
+static bool copy_image(corona::Image *src, Image *dest) {
+	apply_color_key(src->getWidth(), src->getHeight(),
+			(Pixel*)src->getPixels(), Pixel(255, 0, 255));
 
 	double start = glfwGetTime();
 	dest->create(src->getWidth(), src->getHeight(), src->getPixels());
 	cout << "uploading image: " << glfwGetTime() - start << endl;
+	return true;
 }
+
+#else
+
+static bool copy_image(pngRawInfo *src, Image *dest) {
+	cout << $(src->Width) << $(src->Height) << endl;
+	cout << $(src->Components) << endl;
+	
+	Pixel *buffer;
+	if (src->Components == 3) {
+		cout << "copying buffer" << endl;
+		unsigned int len = src->Width * src->Height;
+		buffer = new Pixel[len];
+		for (int i = 0; i < len; i++) {
+			buffer[i] = Pixel(src->Data[i*3], src->Data[i*3+1], src->Data[i*3+2]);
+		}
+	} else if (src->Components == 4) {
+		buffer = (Pixel*)src->Data;
+	} else {
+		return false;
+	}
+
+	apply_color_key(src->Width, src->Height, buffer, Pixel(255, 0, 255));
+
+	double start = glfwGetTime();
+	dest->create(src->Width, src->Height, buffer);
+	cout << "uploading image: " << glfwGetTime() - start << endl;
+
+	if ((void*)buffer != (void*)src->Data) delete[] buffer; // clean up any copies
+	return true;
+}
+
+#endif
 
 void Image::bind() const {
 	glBindTexture(GL_TEXTURE_2D, texid);
@@ -80,7 +125,7 @@ void Image::create(int width, int height, const void *bytes) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
+	
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0,
 			GL_RGBA, GL_UNSIGNED_BYTE, bytes);
 }
@@ -92,6 +137,7 @@ void Image::update(int x, int y, int width, int height, const void *bytes) {
 }
 
 bool Image::load_memory(const void* bytes, int size) {
+#if USE_CORONA
 	double start = glfwGetTime();
 
 	corona::Image *tmp = corona::OpenImage(corona::CreateMemoryFile(bytes, size),
@@ -103,10 +149,12 @@ bool Image::load_memory(const void* bytes, int size) {
 	copy_image(tmp, this);
 
 	delete tmp;
+#endif
 	return true;
 }
 
 bool Image::load(const char *fname) {
+#if USE_CORONA
 	double start = glfwGetTime();
 	corona::Image *tmp = corona::OpenImage(fname, corona::PF_R8G8B8A8);
 
@@ -116,6 +164,12 @@ bool Image::load(const char *fname) {
 	copy_image(tmp, this);
 
 	delete tmp;
+#else
+	pngRawInfo info;
+	if (!pngLoadRaw(fname, &info)) return false;
+	copy_image(&info, this);
+	free(info.Data);
+#endif
 	return true;
 }
 
@@ -260,6 +314,7 @@ int Image::_raw_update(lua_State *l) {
  * returns width:number, height:number, bytes:string
  */
 int Image::_get_image_bytes(lua_State *l) {
+#ifdef USE_CORONA
 	const char *fname = luaL_checkstring(l, 1);
 
 	double start = glfwGetTime();
@@ -267,7 +322,8 @@ int Image::_get_image_bytes(lua_State *l) {
 
 	if (!tmp) return luaL_error(l, "failed to open image");
 
-	apply_color_key(tmp, Pixel(255, 0, 255));
+	apply_color_key(tmp->getWidth(), tmp->getHeight(),
+			(Pixel*)tmp->getPixels(), Pixel(255, 0, 255));
 
 	lua_pushinteger(l, tmp->getWidth());
 	lua_pushinteger(l, tmp->getHeight());
@@ -277,6 +333,9 @@ int Image::_get_image_bytes(lua_State *l) {
 
 	delete tmp;
 	return 3;
+#else 
+	return 0;
+#endif
 }
 
 static int next_p2(int x) {

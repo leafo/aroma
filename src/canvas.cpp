@@ -252,34 +252,37 @@ int Canvas::_call(lua_State *l) {
 }
 
 // run the game loop
-// args: canvas
+// args: canvas [, ondraw:function]
 // needs ondraw method in canvas table in order to run
 int Canvas::_run(lua_State *l) {
 	luaL_checktype(l, 1, LUA_TTABLE);
 
+	if (lua_gettop(l) > 1 && lua_isfunction(l, 2)) {
+		lua_pushvalue(l, 2);
+		lua_setfield(l, 1, "ondraw");
+		lua_settop(l, 1);
+	}
+
 	bool finished = false;
 	while (!finished) {
-		lua_pushstring(l, "ondraw");
-		lua_gettable(l, 1);
+		lua_getfield(l, 1, "ondraw");
 
 		if (!lua_isfunction(l, -1)) {
 			return luaL_error(l, "ondraw function is not set");
 		}
 
 		lua_pushvalue(l, 1); // canvas
+
 		lua_call(l, 1, 1);
-
 		finished = lua_toboolean(l, -1);
-
 		lua_pop(l, 1); // pop return value
 
-		lua_pushstring(l, "flush");
-		lua_gettable(l, 1);
-		lua_pushvalue(l, 1);
+		lua_getfield(l, 1, "flush");
+		lua_pushvalue(l, 1); // canvas
 		lua_call(l, 1, 1);
 
 		finished = finished || !lua_toboolean(l, -1) || glfwGetKey(GLFW_KEY_ESC);
-		lua_pop(l, 1); // pop return value
+		lua_settop(l, 1); // leave canvas on stack
 	}
 
 	return 0;

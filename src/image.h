@@ -12,6 +12,7 @@ public:
 
 	bool load(const char *fname); // load image from disk
 	bool load_memory(const void *bytes, int size); // load image from memory
+
 	void create(int width, int height, const void *bytes);
 
 	// update a portion of the image texture from bytes
