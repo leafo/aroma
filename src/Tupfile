@@ -4,17 +4,16 @@ libs = -lglfw
 ifeq (@(TUP_PLATFORM),linux)
   libs += -lGLU -lGL -lX11 -lXrandr -lm -lcorona -ldl
   link = -fpic -shared
-  flags += -DUSE_CORONA
 #   libs += -lpng
 #   flags += -Ilib/
 #   : lib/glpng.c |> g++ -fpic -c %f -o %o $(flags) |> glpng.o {lib_o}
 endif
 
 ifeq (@(TUP_PLATFORM),macosx)
-  libs += -framework OpenGL -framework Cocoa -L/usr/X11/lib/ -lpng
-  flags += -Ilib/ -I/usr/X11/include/
+  libs += -framework ApplicationServices -framework OpenGL -framework Cocoa -L/usr/X11/lib/
+  flags += -I/usr/X11/include/
   link = -bundle -undefined dynamic_lookup
-  : lib/glpng.c |> g++ -c %f -o %o $(flags) |> glpng.o {lib_o}
+#  : lib/glpng.c |> g++ -c %f -o %o $(flags) |> glpng.o {lib_o}
 endif
 
 flags += -g

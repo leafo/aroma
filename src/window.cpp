@@ -2,6 +2,8 @@
 
 #include "shader.h"
 
+namespace aroma {
+
 Window *Window::instance = NULL;
 
 static void resize(int x, int y) {
@@ -11,6 +13,10 @@ static void resize(int x, int y) {
 Window *Window::create_window(int width, int height, const char *title) {
 	if (Window::instance == 0) {
 		glfwInit();	
+
+#ifdef __APPLE__
+		chdir(aroma_current_dir);
+#endif
 
 		bool ok = glfwOpenWindow(
 			width, height,
@@ -73,6 +79,8 @@ T* pushStruct(lua_State *l, const char* meta)
 	luaL_getmetatable(l, meta);
 	lua_setmetatable(l, -2);
 	return data;	
+}
+
 }
 
 

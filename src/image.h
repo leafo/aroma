@@ -5,6 +5,8 @@
 #include "common.h"
 #include "geometry.h"
 
+namespace aroma {
+
 void register_Image(lua_State *l);
 
 class Image {
@@ -15,7 +17,8 @@ public:
 	bool load(const char *fname); // load image from disk
 	bool load_memory(const void *bytes, int size); // load image from memory
 
-	void create(int width, int height, const void *bytes);
+	// void create(int width, int height, const void *bytes, GLenum format, GLenum type);
+	void create(int width, int height, const void *bytes, GLenum format = GL_RGBA, GLenum type = GL_UNSIGNED_BYTE);
 
 	// update a portion of the image texture from bytes
 	void update(int x, int y, int width, int height, const void *bytes);
@@ -39,5 +42,6 @@ public:
 	static int _raw_update(lua_State *l);
 };
 
+}
 
 #endif /* IMAGE_H_ */

@@ -1,12 +1,16 @@
 #include "image.h"
+
 #include <cstdlib>
 #include <cstdio>
+#include <unistd.h>
 
-#ifdef USE_CORONA
-#include <corona.h>
+#ifdef __APPLE__
+#include <ApplicationServices/ApplicationServices.h>
 #else
-#include "GL/glpng.h"
+#include <corona.h>
 #endif
+
+namespace aroma {
 
 void register_Image(lua_State *l) {
 	setfunction("image", Image::_new_from_file);
@@ -66,12 +70,81 @@ static void apply_color_key(int width, int height, Pixel *pixels, Pixel key) {
 	}
 }
 
+#ifdef __APPLE__
 
-#ifdef USE_CORONA
+char *file_bytes(const char *fname, size_t *_size) {
+	FILE *handle = fopen(fname, "rb");
+	if (!handle) return 0;
 
-/**
- * Upload bytes from corona image to textured image
- */
+	fseek(handle, 0, SEEK_END);
+	size_t size = ftell(handle);
+	rewind(handle);
+
+	cout << "reading " << size << " bytes" << endl;
+	char *buffer = new char[size];
+
+	fread(buffer, 1, size, handle);
+	*_size = size;
+	return buffer;
+}
+
+CGImageSourceRef source_from_bytes(const void *bytes, size_t len) {
+	CFDataRef data = CFDataCreate(NULL, (UInt8*)bytes, len);
+	CGImageSourceRef source = CGImageSourceCreateWithData(data, NULL);
+	CFRelease(data);
+	return source;
+}
+
+CGImageSourceRef source_from_fname(const char *fname) {
+	CFStringRef path_str = CFStringCreateWithCString(0, fname, 0);
+
+	CFURLRef path = 0;
+	path = CFURLCreateWithFileSystemPath(NULL, path_str,
+			kCFURLPOSIXPathStyle, false); 
+
+	// CFShow(path);
+
+	CGImageSourceRef source = CGImageSourceCreateWithURL(path, NULL);
+
+	CFRelease(path);
+	CFRelease(path_str);
+	return source;
+}
+
+// upload from cgsource
+int copy_image(CGImageSourceRef source, Image *dest) {
+	int count = CGImageSourceGetCount(source);
+	// CGImageSourceStatus status = CGImageSourceGetStatus(source);
+	// printf("status: %d\n", status);
+
+	CGImageRef image = CGImageSourceCreateImageAtIndex(source, 0, NULL);
+
+	int width, height;
+	width = CGImageGetWidth(image);
+	height = CGImageGetHeight(image);
+
+	GLubyte *buffer = new GLubyte[width * height * 4];
+	CGColorSpaceRef color_space = CGColorSpaceCreateDeviceRGB();
+
+	int bytes_per_row = width * 4;
+
+	CGContextRef context = CGBitmapContextCreate(buffer, width, height, 8,
+			bytes_per_row, color_space, kCGImageAlphaPremultipliedFirst);
+	CGContextDrawImage(context, CGRectMake(0,0, width, height), image);
+
+	dest->create(width, height, buffer, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8);
+
+	CGContextRelease(context);
+	CFRelease(color_space);
+	delete buffer;
+
+	CGImageRelease(image);
+	return 0;
+}
+
+#else
+
+// upload from corona image
 static bool copy_image(corona::Image *src, Image *dest) {
 	apply_color_key(src->getWidth(), src->getHeight(),
 			(Pixel*)src->getPixels(), Pixel(255, 0, 255));
@@ -82,49 +155,13 @@ static bool copy_image(corona::Image *src, Image *dest) {
 	return true;
 }
 
-#else
-
-static bool convert_image(pngRawInfo *src, Pixel* & buffer) {
-	buffer = NULL;
-	if (src->Components == 3) {
-		unsigned int len = src->Width * src->Height;
-		buffer = new Pixel[len];
-		for (int i = 0; i < len; i++) {
-			buffer[i] = Pixel(src->Data[i*3], src->Data[i*3+1], src->Data[i*3+2]);
-		}
-
-		return true;
-	} else if (src->Components == 4) {
-		return true;
-	}
-
-	return false;
-}
-
-static bool copy_image(pngRawInfo *src, Image *dest) {
-	Pixel *buffer;
-	if (!convert_image(src, buffer)) return false;
-	if (buffer == NULL) {
-		buffer = (Pixel*)src->Data;
-	}
-
-	apply_color_key(src->Width, src->Height, buffer, Pixel(255, 0, 255));
-
-	double start = glfwGetTime();
-	dest->create(src->Width, src->Height, buffer);
-	cout << "uploading image: " << glfwGetTime() - start << endl;
-
-	if ((void*)buffer != (void*)src->Data) delete[] buffer; // clean up any copies
-	return true;
-}
-
 #endif
 
 void Image::bind() const {
 	glBindTexture(GL_TEXTURE_2D, texid);
 }
 
-void Image::create(int width, int height, const void *bytes) {
+void Image::create(int width, int height, const void *bytes, GLenum format, GLenum type) {
 	this->width = width;
 	this->height = height;
 
@@ -136,8 +173,7 @@ void Image::create(int width, int height, const void *bytes) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0,
-			GL_RGBA, GL_UNSIGNED_BYTE, bytes);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, format, type, bytes);
 }
 
 void Image::update(int x, int y, int width, int height, const void *bytes) {
@@ -147,50 +183,49 @@ void Image::update(int x, int y, int width, int height, const void *bytes) {
 }
 
 bool Image::load_memory(const void* bytes, int size) {
-#if USE_CORONA
 	double start = glfwGetTime();
-
+#ifdef __APPLE__
+	CGImageSourceRef source = source_from_bytes(bytes, size);
+	if (!source) return false;
+	copy_image(source, this);
+	CFRelease(source);
+#else
 	corona::Image *tmp = corona::OpenImage(corona::CreateMemoryFile(bytes, size),
 			corona::PF_R8G8B8A8);
 
 	if (!tmp) return false; // failed
-	cout << "loading image: " << glfwGetTime() - start << endl;
 
 	copy_image(tmp, this);
 
 	delete tmp;
-	return true;
-#else
-	FILE *f_buffer = fmemopen((void *)bytes, size, "r");
-
-	pngRawInfo info;
-	if (!pngLoadRawF(f_buffer, &info)) return false;
-	copy_image(&info, this);
-	free(info.Data);
-
-	fclose(f_buffer);
-	return true;
 #endif
-	return false;
+	cout << "loading image: " << glfwGetTime() - start << endl;
+	return true;
 }
 
 bool Image::load(const char *fname) {
-#if USE_CORONA
 	double start = glfwGetTime();
+#ifdef __APPLE__
+	// size_t size;
+	// char *bytes = file_bytes(fname, &size);
+	// if (!bytes) return false;
+
+	// CGImageSourceRef source = source_from_bytes(bytes, size);
+	
+	CGImageSourceRef source = source_from_fname(fname);
+	if (!source) return false;
+	copy_image(source, this);
+	CFRelease(source);
+#else
 	corona::Image *tmp = corona::OpenImage(fname, corona::PF_R8G8B8A8);
 
 	if (!tmp) return false; // failed
-	cout << "loading image: " << glfwGetTime() - start << endl;
 
 	copy_image(tmp, this);
 
 	delete tmp;
-#else
-	pngRawInfo info;
-	if (!pngLoadRaw(fname, &info)) return false;
-	copy_image(&info, this);
-	free(info.Data);
 #endif
+	cout << "loading image: " << glfwGetTime() - start << endl;
 	return true;
 }
 
@@ -345,18 +380,6 @@ int Image::_get_image_bytes(lua_State *l) {
 	width = tmp->getWidth();
 	height = tmp->getHeight();
 	buffer = (Pixel*)tmp->getPixels();
-#else
-	pngRawInfo info;
-	if (!pngLoadRaw(fname, &info)) return false;
-
-	width = info.Width;
-	height = info.Height;
-
-	if (!convert_image(&info, buffer)) return false;
-	if (buffer == NULL) {
-		buffer = (Pixel*)info.Data;
-	}
-#endif
 
 	apply_color_key(width, height, buffer, Pixel(255, 0, 255));
 
@@ -364,15 +387,11 @@ int Image::_get_image_bytes(lua_State *l) {
 	lua_pushinteger(l, height);
 	lua_pushlstring(l, (const char *)buffer, width*height*4);
 
-#ifdef USE_CORONA
 	delete tmp;
-#else
-	if ((void*)buffer != (void*)info.Data)
-		delete[] buffer;
-	free(info.Data);
-#endif
-
 	return 3;
+#else
+	return 0;
+#endif
 }
 
 static int next_p2(int x) {
@@ -381,5 +400,7 @@ static int next_p2(int x) {
 		size = size << 1;
 	}
 	return size;
+}
+
 }
 

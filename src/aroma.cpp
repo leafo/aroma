@@ -2,6 +2,12 @@
 #include "canvas.h"
 #include "image.h"
 
+using namespace aroma;
+
+namespace aroma {
+	const char *aroma_current_dir;
+}
+
 static const struct luaL_Reg aroma_funcs [] = {
 	{"new", Canvas::_new},
 	{"image_bytes", Image::_get_image_bytes},
@@ -10,6 +16,7 @@ static const struct luaL_Reg aroma_funcs [] = {
 
 extern "C" {
 	LUALIB_API int luaopen_aroma(lua_State *l) {
+		aroma_current_dir = getcwd(NULL, 0);
 		luaL_register(l, "aroma", aroma_funcs);
 
 		if (luaL_newmetatable(l, "aroma")) {
