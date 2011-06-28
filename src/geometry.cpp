@@ -3,6 +3,8 @@
 
 #define POOL_SIZE 4
 
+namespace aroma {
+
 double pool[POOL_SIZE];
 
 // count - how many things to pull, max of POOL_SIZE
@@ -177,5 +179,6 @@ double Color::bf() {
 	return 1.0 * b / MAX;
 }
 
+}
 
 

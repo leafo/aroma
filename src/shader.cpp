@@ -1,10 +1,10 @@
 #include <iostream>
 #include <fstream>
 
-using namespace std;
-
 #include "shader.h"
 #include "image.h"
+
+namespace aroma {
 
 void register_Shader(lua_State *l) {
 	setfunction("shader", Shader::_new);
@@ -193,5 +193,7 @@ bool Shader::add(GLuint type, const char *src) {
 	glAttachShader(program, sid);
 
 	return true;
+}
+
 }
 

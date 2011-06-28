@@ -1,10 +1,11 @@
 
 #include "tiles.h"
 
+namespace aroma {
+
 void register_Tiles(lua_State *l) {
 	setfunction("map", TileMap::_new);
 }
-
 
 int TileSet::load(const char *fname, int w, int h)
 {
@@ -134,6 +135,5 @@ int _height(lua_State *l)
 	return 1;
 }
 
-
-
+}
 

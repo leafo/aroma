@@ -6,6 +6,8 @@
 #include "image.h"
 #include "geometry.h"
 
+namespace aroma {
+
 void register_Tiles(lua_State *l);
 
 class TileSet {
@@ -39,6 +41,8 @@ public:
 	static int _width(lua_State *l);
 	static int _height(lua_State *l);
 };
+
+}
 
 #endif /* TILES */
 

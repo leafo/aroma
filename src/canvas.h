@@ -6,6 +6,8 @@
 #include "geometry.h"
 #include "window.h"
 
+namespace aroma {
+
 struct Viewport {
 	void set(double t, double r, double b, double l);
 	double top, left, bottom, right;
@@ -75,6 +77,8 @@ public:
 	static int _hideMouse(lua_State *l);
 	static int _showMouse(lua_State *l);
 };
+
+}
 
 #endif /* CANVAS_H_ */
 

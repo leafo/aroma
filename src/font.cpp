@@ -1,6 +1,8 @@
 
 #include "font.h"
 
+namespace aroma {
+
 void register_Font(lua_State *l) {
 	setfunction("font", Font::_new);
 }
@@ -95,5 +97,7 @@ void Font::string(const Point dest, const char *str) const {
 
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+}
+
 }
 

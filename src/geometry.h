@@ -4,6 +4,8 @@
 
 #include "common.h"
 
+namespace aroma {
+
 struct Color {
 	byte r, g, b, a;
 
@@ -61,6 +63,8 @@ struct Rect {
 	static Rect fromPoint(Point p, double _w, double _h);
 	static Rect pop(lua_State *l);
 };
+
+}
 
 #endif /* GEOMETRY_H_ */
 

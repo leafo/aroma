@@ -5,6 +5,8 @@
 #include "common.h"
 #include "image.h"
 
+namespace aroma {
+
 void register_Framebuffer(lua_State *l);
 
 class FrameBuffer {
@@ -23,5 +25,7 @@ public:
 	static int _bindTex(lua_State *l);
 	// draw the image
 };
+
+}
 
 #endif

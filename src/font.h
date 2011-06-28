@@ -4,6 +4,8 @@
 #include "common.h"
 #include "tiles.h"
 
+namespace aroma {
+
 void register_Font(lua_State *l);
 
 class Font {
@@ -17,5 +19,7 @@ public:
 
 	void string(const Point dest, const char *str) const;
 };
+
+}
 
 #endif /* FONT_H_ */

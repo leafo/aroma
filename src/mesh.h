@@ -4,6 +4,8 @@
 
 #include "geometry.h"
 
+namespace aroma {
+
 void register_Mesh(lua_State *l);
 
 /**
@@ -35,5 +37,6 @@ public:
 	static int _gc(lua_State *l); // garbage collect
 };
 
+}
 
 #endif /* MESH_H_ */

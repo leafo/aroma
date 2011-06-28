@@ -4,6 +4,8 @@
 
 #include "common.h"
 
+namespace aroma {
+
 void register_Shader(lua_State *l);
 
 class Shader {
@@ -24,6 +26,8 @@ public:
 	static int _vert(lua_State *l);
 
 };
+
+}
 
 #endif /* SHADER_H_ */
 

@@ -1,6 +1,8 @@
 
 #include "framebuffer.h"
 
+namespace aroma {
+
 void register_Framebuffer(lua_State *l) {
 	setfunction("framebuffer", FrameBuffer::_new);
 }
@@ -131,4 +133,5 @@ int FrameBuffer::_draw(lua_State *l) {
 	return 0;
 }
 
+}
 

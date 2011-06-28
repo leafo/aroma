@@ -12,6 +12,8 @@
 
 using namespace std;
 
+namespace aroma {
+
 static Canvas *_canvas = NULL; // find a better place to put this
 
 static const char *keys[] = {"esc", "space", "shift", "enter", 0};
@@ -679,5 +681,7 @@ int pop_key(lua_State *l) {
 	}
 
 	return key;
+}
+
 }
 

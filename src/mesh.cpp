@@ -1,6 +1,8 @@
 
 #include "mesh.h"
 
+namespace aroma {
+
 void register_Mesh(lua_State *l) {
 	setfunction("mesh", Mesh::_new);
 }
@@ -252,5 +254,5 @@ int Mesh::_dim(lua_State *l) {
 	return 1;
 }
 
-
+}
 

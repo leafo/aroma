@@ -5,6 +5,8 @@
 #include "common.h"
 #include "geometry.h"
 
+namespace aroma {
+
 class Window {
 public:
 	int width, height;
@@ -12,6 +14,8 @@ public:
 	static Window *instance;
 	static Window *create_window(int width, int height, const char *title); 
 };
+
+}
 
 #endif /* WINDOW_H_ */
 
