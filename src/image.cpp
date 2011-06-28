@@ -72,22 +72,6 @@ static void apply_color_key(int width, int height, Pixel *pixels, Pixel key) {
 
 #ifdef __APPLE__
 
-char *file_bytes(const char *fname, size_t *_size) {
-	FILE *handle = fopen(fname, "rb");
-	if (!handle) return 0;
-
-	fseek(handle, 0, SEEK_END);
-	size_t size = ftell(handle);
-	rewind(handle);
-
-	cout << "reading " << size << " bytes" << endl;
-	char *buffer = new char[size];
-
-	fread(buffer, 1, size, handle);
-	*_size = size;
-	return buffer;
-}
-
 CGImageSourceRef source_from_bytes(const void *bytes, size_t len) {
 	CFDataRef data = CFDataCreate(NULL, (UInt8*)bytes, len);
 	CGImageSourceRef source = CGImageSourceCreateWithData(data, NULL);
@@ -206,12 +190,6 @@ bool Image::load_memory(const void* bytes, int size) {
 bool Image::load(const char *fname) {
 	double start = glfwGetTime();
 #ifdef __APPLE__
-	// size_t size;
-	// char *bytes = file_bytes(fname, &size);
-	// if (!bytes) return false;
-
-	// CGImageSourceRef source = source_from_bytes(bytes, size);
-	
 	CGImageSourceRef source = source_from_fname(fname);
 	if (!source) return false;
 	copy_image(source, this);
