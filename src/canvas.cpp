@@ -7,6 +7,7 @@
 #include "mesh.h"
 #include "framebuffer.h"
 #include "shader.h"
+#include "simplex.h"
 
 #include <set>
 
@@ -138,6 +139,8 @@ int Canvas::_new(lua_State *l) {
 	setfunction("rotate", Canvas::_rotate);
 	setfunction("scale", Canvas::_scale);
 	setfunction("translate", Canvas::_translate);
+
+	setfunction("noise", Canvas::_noise);
 
 	setfunction("save", Canvas::_save);
 	setfunction("restore", Canvas::_restore);
@@ -606,31 +609,20 @@ int Canvas::_translate(lua_State *l) {
 	return 0;
 }
 
-/*
 int Canvas::_noise(lua_State *l) {
 	int count = lua_gettop(l);
-	if (count > 3) count = 3;
-
 	double noise = 0;
 	switch (count) {
-		case 1:
-			noise = PerlinNoise1D(luaL_checknumber(l, 1), 2, 2, 1);
-			break;
 		case 2:
-			noise = PerlinNoise2D(luaL_checknumber(l, 1),
-					luaL_checknumber(l, 2), 2, 2, 1);
+			noise = simplex2d(luaL_checknumber(l, -2), luaL_checknumber(l, -1));
 			break;
-		case 3: 
-			noise = PerlinNoise3D(luaL_checknumber(l, 1),
-					luaL_checknumber(l, 2), luaL_checknumber(l, 3),
-					2, 2, 1);
-			break;
+		default:
+			return luaL_error(l, "Invalid noise dimension");
 	}
 
 	lua_pushnumber(l, noise);
 	return 1;
 }
-*/
 
 int Canvas::_save(lua_State *l) {
 	return 0;

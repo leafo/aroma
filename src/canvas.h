@@ -59,7 +59,7 @@ public:
 	static int _scale(lua_State *l);
 	static int _translate(lua_State *l);
 
-	// static int _noise(lua_State *l);
+	static int _noise(lua_State *l);
 
 	static int _getTime(lua_State *l);
 
