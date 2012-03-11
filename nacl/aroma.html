@@ -19,6 +19,7 @@
   </style>
 </head>
 <body>
+  <button id="send">Send messages</button>
   <div id="listener">
     <embed name="nacl_module"
       id="aroma"
@@ -47,8 +48,17 @@
       }, true);
 
       listener.addEventListener("message", function(e) {
-        output.innerHTML += e.data + "\n";
+        output.innerHTML += e.data + " :: " + typeof(e.data) + "\n";
       }, true);
+
+      $("send").onclick = function() {
+        module.postMessage(null);
+        module.postMessage("hello");
+        module.postMessage(3434);
+        module.postMessage(3434.343);
+        module.postMessage(false);
+      };
+
     })();
 
   </script>

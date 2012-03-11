@@ -4,3 +4,5 @@ lua-5.1.5*
 dbg_*
 opt_*
 .sconsign.dblite
+lib/*.lua
+*.lua.h
