@@ -1,0 +1,6 @@
+lua-5.1.5*
+*.nexe
+*.nmf
+dbg_*
+opt_*
+.sconsign.dblite

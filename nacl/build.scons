@@ -4,13 +4,32 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import os
+
+from os import path
+from glob import glob
+import re
+
+lua_src = path.join("lua-5.1.5", "src")
+lua_c = glob(path.join(lua_src, "*.c"))
+
+skip = [
+    r"lua\.c$",
+    r"luac\.c$"
+]
+
+lua_c = [fname for fname in lua_c if not any((re.search(patt, fname) for patt in skip))]
+
 import make_nacl_env
 import nacl_utils
-import os
 
 nacl_env = make_nacl_env.NaClEnvironment(
     use_c_plus_plus_libs=True, nacl_platform=os.getenv('NACL_TARGET_PLATFORM'))
 
-sources = ['aroma.cc']
+sources = lua_c + [
+    'aroma.cc',
+]
 
+nacl_env.Append(LIBS=["nosys"])
+nacl_env.Append(CPPPATH=[lua_src])
 nacl_env.AllNaClModules(sources, 'aroma')
