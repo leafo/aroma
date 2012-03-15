@@ -15,6 +15,9 @@ extern "C" {
 
 #include "nacl.lua.h"
 
+#include <sys/time.h>
+#include <sys/nacl_syscalls.h>
+
 using namespace std;
 
 namespace aroma {
@@ -49,9 +52,29 @@ namespace aroma {
     return 0;
   }
 
+  int _sleep(lua_State *l) {
+    sleep(luaL_checknumber(l, 1));
+    return 0;
+  }
+
+  void sleep(float seconds) {
+    long nanoseconds = (long)(seconds * 1000000000);
+    timespec req = { 0, nanoseconds };
+    nanosleep(&req, NULL);
+  }
+
   class AromaInstance : public pp::Instance {
     protected:
       lua_State* l;
+
+      void bind_function(const char *name, lua_CFunction func) {
+        lua_getglobal(l, "nacl");
+        lua_pushlightuserdata(l, this);
+        lua_pushcclosure(l, func, 1);
+        lua_setfield(l, -2, name);
+        lua_pop(l, 1);
+      }
+
     public:
       AromaInstance(PP_Instance instance) : pp::Instance(instance) { }
 
@@ -62,11 +85,8 @@ namespace aroma {
         lua_newtable(l);
         lua_setglobal(l, "nacl");
 
-        // install methods
-        lua_getglobal(l, "nacl");
-        lua_pushlightuserdata(l, this);
-        lua_pushcclosure(l, _post_message, 1);
-        lua_setfield(l, -2, "post_message");
+        bind_function("post_message", _post_message);
+        bind_function("sleep", _sleep);
 
         lua_settop(l, 0);
 
