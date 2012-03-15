@@ -86,6 +86,8 @@
         }
       });
 
+      $("input").value = escape_html('code = require "test_include"\nprint(code)');
+
       $("run").onclick = function() {
         var code = $("input").value;
         output.innerHTML = "";
