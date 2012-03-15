@@ -5,7 +5,7 @@
   <title>hi</title>
   <style type="text/css">
     embed {
-      border: 1px solid black;
+      border: 1px solid #666;
     }
 
     textarea {
@@ -15,52 +15,84 @@
 
     body {
       margin-top: 40px;
+      background: #eee;
     }
+
+    .editor, .game {
+      vertical-align: top;
+      background: white;
+      padding: 8px;
+      margin: 0px 8px;
+      display: inline-block;
+      box-shadow: 0px 0px 8px rgba(0,0,0, 0.3);
+    }
+
+    .editor .buttons {
+      text-align: right;
+    }
+
+    .err {
+      color: #931A1A;
+    }
+
   </style>
 </head>
 <body>
-  <button id="send">Send messages</button>
-  <div id="listener">
-    <embed name="nacl_module"
-      id="aroma"
-      width=300 height=300
-      src="aroma.nmf"
-      type="application/x-nacl" />
+
+  <div class="game">
+    <div id="listener">
+      <embed name="nacl_module"
+        id="aroma"
+        width=300 height=300
+        src="aroma.nmf"
+        type="application/x-nacl" />
+    </div>
   </div>
+
+  <div class="editor">
+    <textarea id="input"></textarea>
+    <div class="buttons">
+      <span class="loading">Loading...</span>
+      <button id="run">Execute</button>
+    </div>
+  </div>
+
   <pre id="output"></pre>
-  <div class="loading">Loading...</div>
 
+  <script type="text/javascript" src="js/aroma.js"></script>
   <script type="text/javascript">
-    $ = function(name) { return document.getElementById(name); }
-    A = function(thing) { return Array.prototype.slice.apply(thing) };
-
-    module = null;
     (function() {
+      $ = function(name) { return document.getElementById(name); }
+      A = function(thing) { return Array.prototype.slice.apply(thing) };
+
       var output = $("output");
 
-      var listener = $("listener");
-      listener.addEventListener("load", function() {
-          console.log("module loaded..");
-          module = $('aroma');
-          A(document.querySelectorAll(".loading")).map(function(node) {
-            node.style.display = "none";
+      function escape_html(str) {
+        return str.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      }
+
+      game = new Aroma(document.getElementById("listener"), {
+        loaded: function() {
+          A(document.querySelectorAll(".loading")).map(function(e) {
+            e.style.display = "none";
           });
-      }, true);
+        },
+        std_out: function(str) {
+          output.innerHTML += escape_html(str) + "\n";
+        },
+        std_err: function(str) {
+          output.innerHTML += "<span class='err'>" +
+            escape_html(str) + "</span>\n";
+        }
+      });
 
-      listener.addEventListener("message", function(e) {
-        output.innerHTML += e.data + " :: " + typeof(e.data) + "\n";
-      }, true);
-
-      $("send").onclick = function() {
-        module.postMessage(null);
-        module.postMessage("hello");
-        module.postMessage(3434);
-        module.postMessage(3434.343);
-        module.postMessage(false);
-      };
+      $("run").onclick = function() {
+        var code = $("input").value;
+        output.innerHTML = "";
+        game.execute(code);
+      }
 
     })();
-
   </script>
 </body>
 </html>

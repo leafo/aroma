@@ -9,3 +9,6 @@ nacl.lua.h: lib/nacl.moon
 strip:
 	ls *.nexe | while read name; do x86_64-nacl-strip $$name -o $$name; done
 
+watch:
+	coffee -c -w js/*.coffee
+

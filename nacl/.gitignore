@@ -6,4 +6,5 @@ dbg_*
 opt_*
 .sconsign.dblite
 lib/*.lua
+js/*.js
 *.lua.h
