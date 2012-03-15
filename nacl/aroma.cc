@@ -20,6 +20,8 @@ extern "C" {
 
 using namespace std;
 
+extern "C" int luaopen_cjson(lua_State *l);
+
 namespace aroma {
 
   void push_var(lua_State* l, pp::Var var) {
@@ -75,12 +77,26 @@ namespace aroma {
         lua_pop(l, 1);
       }
 
+      // takes value on top of stack and puts it in package.loaded[name]
+      // pops value
+      void preload_library(const char *name) {
+        int i = lua_gettop(l);
+        lua_getglobal(l, "package");
+        lua_getfield(l, -1, "loaded");
+        lua_pushvalue(l, i);
+        lua_setfield(l, -2, name);
+        lua_settop(l, i - 1);
+      }
+
     public:
       AromaInstance(PP_Instance instance) : pp::Instance(instance) { }
 
       bool Init(uint32_t argc, const char** argn, const char** argv) {
         l = luaL_newstate();
         luaL_openlibs(l);
+
+        luaopen_cjson(l);
+        preload_library("cjson");
 
         lua_newtable(l);
         lua_setglobal(l, "nacl");
