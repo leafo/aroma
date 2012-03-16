@@ -4,6 +4,8 @@ cjson = require"cjson"
 msg_id = 0
 msg_responders = {}
 
+async_scope = nil
+
 post_message = (o) ->
   o = cjson.encode o if type(o) == "table"
   nacl.post_message o
@@ -21,22 +23,41 @@ printer = (channel="std_out") ->
     post_message { channel, str }
 
 async_print = printer"std_out"
+ap = async_print
 async_print_err = printer"std_err"
 async_err = (msg) ->
   async_print_err debug.traceback msg, 2
   coroutine.yield "error"
 
+async_assert = (thing, msg="Assertion failed") ->
+  if thing == nil
+    async_err msg
+  else
+    thing
+
 -- need the thread
 async_require = (module_name) ->
-  thread = coroutine.running!
-  post_and_respond { "require", module_name }, (msg) ->
-    status, code = unpack msg
-    if status == "error"
-      async_print_err code
-    else
-      coroutine.resume thread, code
+  mod = package.loaded[module_name]
+  return mod if mod
 
-  coroutine.yield "wait"
+  loader = if package.preload[module_name]
+    package.preload[module_name]
+  else
+    thread = coroutine.running!
+    post_and_respond { "require", module_name }, (msg) ->
+      status, code = unpack msg
+      if status == "error"
+        async_print_err code
+      else
+        coroutine.resume thread, code
+
+    code = coroutine.yield "wait"
+    async_assert loadstring code, module_name
+
+  setfenv loader, getfenv 2
+  mod = loader module_name
+  package.loaded[module_name] = mod
+  mod
 
 async_scope = setmetatable {
     print: async_print

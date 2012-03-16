@@ -19,6 +19,7 @@ get = (url, on_finish, on_fail) ->
 
 
 module_to_url = (module_name) ->
+  module_name = module_name.replace /\./g, '/'
   "#{module_name}.lua"
 
 class Aroma

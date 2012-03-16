@@ -86,7 +86,7 @@
         }
       });
 
-      $("input").value = escape_html('code = require "test_include"\nprint(code)');
+      $("input").value = escape_html('require "game.main"\n');
 
       $("run").onclick = function() {
         var code = $("input").value;
