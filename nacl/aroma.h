@@ -55,6 +55,7 @@ namespace aroma {
 			void resize(const pp::Size& s);
 			void flush();
 			void Graphics3DContextLost();
+			void render(); // tell the renderer to tick
 
 			int width();
 			int height();

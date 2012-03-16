@@ -6,7 +6,7 @@ namespace aroma {
 
   void default_flush_callback(void *data, int32_t result) {
     OpenGLContext* context = (OpenGLContext*)data;
-    // context->render();
+    context->render();
   }
 
 	OpenGLContext::OpenGLContext(pp::Instance* instance, Renderer* renderer) :
@@ -64,6 +64,10 @@ namespace aroma {
 
 	void OpenGLContext::Graphics3DContextLost() {
 		assert(!"++ Lost graphics context");
+	}
+
+	void OpenGLContext::render() {
+		renderer->tick();
 	}
 
 	int OpenGLContext::width() {
