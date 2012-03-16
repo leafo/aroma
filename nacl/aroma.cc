@@ -1,159 +1,106 @@
 
-#include <cstdio>
-#include <string>
-#include "ppapi/cpp/instance.h"
-#include "ppapi/cpp/module.h"
-#include "ppapi/cpp/var.h"
-
-#include "ppapi/cpp/rect.h"
-
-extern "C" {
-#include "lua.h"
-#include "lualib.h"
-#include "lauxlib.h"
-}
-
+#include "aroma.h"
 #include "nacl.lua.h"
 
-#include <sys/time.h>
-#include <sys/nacl_syscalls.h>
-
-using namespace std;
-
-extern "C" int luaopen_cjson(lua_State *l);
-
-// opengl headers
-#include <GLES2/gl2.h>
-#include "ppapi/c/ppb_opengles2.h"
-#include "ppapi/cpp/graphics_3d_client.h"
-#include "ppapi/cpp/graphics_3d.h"
-#include "ppapi/gles2/gl2ext_ppapi.h"
-
-#include "ppapi/cpp/completion_callback.h"
-#include "ppapi/cpp/rect.h"
-// ~
-
-
 namespace aroma {
-  class OpenGLContext;
-  class AromaInstance;
-  class Renderer;
 
   void default_flush_callback(void *data, int32_t result) {
     OpenGLContext* context = (OpenGLContext*)data;
     // context->render();
   }
 
-  class OpenGLContext : public pp::Graphics3DClient {
-    protected:
-      Renderer *renderer;
-      const struct PPB_OpenGLES2* gles2_interface;
-      pp::Instance *instance;
-      pp::Graphics3D graphics;
-      pp::Size size;
+	OpenGLContext::OpenGLContext(pp::Instance* instance, Renderer* renderer) :
+			pp::Graphics3DClient(instance),
+			renderer(renderer),
+			instance(instance)
+		{
+			pp::Module *module = pp::Module::Get();
+			assert(module);
+			gles2_interface = static_cast<const struct PPB_OpenGLES2*>(
+				module->GetBrowserInterface(PPB_OPENGLES2_INTERFACE));
+			assert(gles2_interface);
+		}
 
-    public:
-      OpenGLContext(pp::Instance* instance, Renderer* renderer) :
-        renderer(renderer),
-        pp::Graphics3DClient(instance),
-        instance(instance)
-      {
-        pp::Module *module = pp::Module::Get();
-        assert(module);
-        gles2_interface = static_cast<const struct PPB_OpenGLES2*>(
-          module->GetBrowserInterface(PPB_OPENGLES2_INTERFACE));
-        assert(gles2_interface);
-      }
+	OpenGLContext::~OpenGLContext() {
+		glSetCurrentContextPPAPI(0);
+	}
 
-      virtual ~OpenGLContext() {
-        glSetCurrentContextPPAPI(0);
-      }
+	bool OpenGLContext::make_current() {
+		if (graphics.is_null()) {
+			printf("-- initializing graphics3d\n");
+			int32_t attribs[] = {
+				PP_GRAPHICS3DATTRIB_ALPHA_SIZE, 8,
+				PP_GRAPHICS3DATTRIB_DEPTH_SIZE, 24,
+				PP_GRAPHICS3DATTRIB_STENCIL_SIZE, 8,
+				PP_GRAPHICS3DATTRIB_SAMPLES, 0,
+				PP_GRAPHICS3DATTRIB_SAMPLE_BUFFERS, 0,
+				PP_GRAPHICS3DATTRIB_WIDTH, size.width(),
+				PP_GRAPHICS3DATTRIB_HEIGHT, size.height(),
+				PP_GRAPHICS3DATTRIB_NONE
+			};
+			graphics = pp::Graphics3D(instance, pp::Graphics3D(), attribs);
+			if (graphics.is_null()) {
+				glSetCurrentContextPPAPI(0);
+				return false;
+			}
+			instance->BindGraphics(graphics);
+		}
 
-      void invalidate() {
-        glSetCurrentContextPPAPI(0);
-      }
+		glSetCurrentContextPPAPI(graphics.pp_resource());
+		return true;
+	}
 
-      bool make_current() {
-        if (graphics.is_null()) {
-          printf("-- initializing graphics3d\n");
-          int32_t attribs[] = {
-            PP_GRAPHICS3DATTRIB_ALPHA_SIZE, 8,
-            PP_GRAPHICS3DATTRIB_DEPTH_SIZE, 24,
-            PP_GRAPHICS3DATTRIB_STENCIL_SIZE, 8,
-            PP_GRAPHICS3DATTRIB_SAMPLES, 0,
-            PP_GRAPHICS3DATTRIB_SAMPLE_BUFFERS, 0,
-            PP_GRAPHICS3DATTRIB_WIDTH, size.width(),
-            PP_GRAPHICS3DATTRIB_HEIGHT, size.height(),
-            PP_GRAPHICS3DATTRIB_NONE
-          };
-          graphics = pp::Graphics3D(instance, pp::Graphics3D(), attribs);
-          if (graphics.is_null()) {
-            glSetCurrentContextPPAPI(0);
-            return false;
-          }
-          instance->BindGraphics(graphics);
-        }
+	void OpenGLContext::resize(const pp::Size& s) {
+		printf("-- resizing buffers\n");
+		size = s;
+		if (!graphics.is_null()) {
+			graphics.ResizeBuffers(s.width(), s.height());
+		}
+	}
 
-        glSetCurrentContextPPAPI(graphics.pp_resource());
-        return true;
-      }
+	void OpenGLContext::flush() {
+		graphics.SwapBuffers(pp::CompletionCallback(&default_flush_callback, this));
+	}
 
-      void resize(const pp::Size& s) {
-        printf("-- resizing buffers\n");
-        size = s;
-        if (!graphics.is_null()) {
-          graphics.ResizeBuffers(s.width(), s.height());
-        }
-      }
+	void OpenGLContext::Graphics3DContextLost() {
+		assert(!"++ Lost graphics context");
+	}
 
-      void flush() {
-        graphics.SwapBuffers(pp::CompletionCallback(&default_flush_callback, this));
-      }
+	int OpenGLContext::width() {
+		return size.width();
+	}
 
-      void Graphics3DContextLost() {
-        assert(!"++ Lost graphics context");
-      }
+	int OpenGLContext::height() {
+		return size.height();
+	}
 
-      int width() {
-        return size.width();
-      }
+	//
+	// Renderer
+	//
 
-      int height() {
-        return size.height();
-      }
-  };
+	Renderer::Renderer(pp::Instance* instance) : instance(instance) {
+		context = new OpenGLContext(instance, this);
+	}
 
+	void Renderer::draw() {
+		glClear(GL_COLOR_BUFFER_BIT);
+	}
 
-  class Renderer {
-    protected:
-      OpenGLContext* context;
-      AromaInstance* instance;
+	// called for every frame
+	void Renderer::tick() {
+		context->make_current();
 
-    public:
-      Renderer(AromaInstance* instance) : instance(instance) {
-        context = new OpenGLContext((pp::Instance*)instance, this);
-      }
+		glViewport(0, 0, context->width(), context->height());
+		glClearColor(0.1, 0.1, 0.1, 1.0);
 
-      void draw() {
-        glClear(GL_COLOR_BUFFER_BIT);
-      }
+		draw();
+		context->flush();
+	}
 
-      // called for every frame
-      void tick() {
-        context->make_current();
-
-        glViewport(0, 0, context->width(), context->height());
-        glClearColor(0.1, 0.1, 0.1, 1.0);
-
-        draw();
-        context->flush();
-      }
-
-      void did_change_view(const pp::Rect& pos, const pp::Rect& clip) {
-        context->resize(pos.size());
-        tick();
-      }
-  };
+	void Renderer::did_change_view(const pp::Rect& pos, const pp::Rect& clip) {
+		context->resize(pos.size());
+		tick();
+	}
 
 
   void push_var(lua_State* l, pp::Var var) {
