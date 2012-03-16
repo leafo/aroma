@@ -37,6 +37,6 @@ sources = lua_files + lua_cjson_files + [
     'aroma.cc',
 ]
 
-nacl_env.Append(LIBS=["nosys"])
+nacl_env.Append(LIBS=["nosys", "ppapi_gles2"])
 nacl_env.Append(CPPPATH=[lua_src, lua_cjson_src])
 nacl_env.AllNaClModules(sources, 'aroma')
