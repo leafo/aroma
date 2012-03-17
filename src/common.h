@@ -10,7 +10,7 @@ extern "C" {
 }
 
 #ifdef AROMA_NACL
-#include "nacl/nacl_gl.h"
+#include "nacl/gl.h"
 #else
 #define GL_GLEXT_PROTOTYPES
 #include <GL/glfw.h>

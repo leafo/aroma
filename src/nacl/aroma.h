@@ -22,7 +22,7 @@ using namespace std;
 
 extern "C" int luaopen_cjson(lua_State *l);
 
-#include "nacl_gl.h"
+#include "nacl/gl.h"
 #include "shader.h"
 
 namespace aroma {
