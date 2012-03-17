@@ -15,6 +15,10 @@ def lib_files(src_dir, exclude=[], patt="*.c"):
     skip = lambda f: any((re.search(patt, f) for patt in exclude))
     return [f for f in c_files if not skip(f)]
 
+def prefix_files(prefix, files):
+    return [path.join(prefix, f) for f in files]
+
+
 lua_src = path.join("lua-5.1.5", "src")
 lua_files = lib_files(lua_src, [
     r"lua\.c$",
@@ -28,9 +32,10 @@ lua_cjson_files = lib_files(lua_cjson_src, [
 ])
 
 aroma_src = "src"
-aroma_files = [
-    "src/shader.cpp"
-]
+aroma_files = prefix_files(aroma_src, [
+    "nacl/aroma.cpp",
+    "shader.cpp"
+])
 
 import make_nacl_env
 import nacl_utils
@@ -41,7 +46,7 @@ nacl_env = make_nacl_env.NaClEnvironment(
 
 # nacl_env.AllNaClStaticLibraries(lua_files, "lua")
 
-sources = lua_files + lua_cjson_files + aroma_files + [ "aroma.cc" ]
+sources = lua_files + lua_cjson_files + aroma_files
 
 nacl_env.Append(CPPPATH=[lua_src, lua_cjson_src, aroma_src, "."])
 nacl_env.Append(CPPDEFINES=["AROMA_NACL"])
