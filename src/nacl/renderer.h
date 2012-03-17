@@ -1,5 +1,6 @@
 
 #include "nacl/aroma.h"
+#include "nacl/gl_context.h"
 #include "shader.h"
 
 namespace aroma {
