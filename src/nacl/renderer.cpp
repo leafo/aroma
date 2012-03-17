@@ -82,7 +82,8 @@ namespace aroma {
 	}
 
 	void Renderer::did_change_view(const pp::Rect& pos, const pp::Rect& clip) {
-		context->resize(pos.size());
+		pp::Size s = pos.size();
+		context->resize(s.width(), s.height());
 		tick();
 	}
 

@@ -58,11 +58,11 @@ namespace aroma {
 		return true;
 	}
 
-	void OpenGLContext::resize(const pp::Size& s) {
+	void OpenGLContext::resize(const int width, const int height) {
 		log("resize buffers\n");
-		size = s;
+		size = pp::Size(width, height);
 		if (!graphics.is_null()) {
-			graphics.ResizeBuffers(s.width(), s.height());
+			graphics.ResizeBuffers(width, height);
 		}
 	}
 
