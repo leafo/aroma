@@ -23,7 +23,6 @@ using namespace std;
 extern "C" int luaopen_cjson(lua_State *l);
 
 #include "nacl/gl.h"
-#include "shader.h"
 
 namespace aroma {
   void push_var(lua_State* l, pp::Var var);
@@ -50,23 +49,6 @@ namespace aroma {
 
 			int width();
 			int height();
-	};
-
-	class Renderer {
-    protected:
-      OpenGLContext* context;
-      pp::Instance* instance;
-      Shader* default_shader;
-
-		public:
-      Renderer(pp::Instance* instance);
-
-			void init();
-      void draw();
-      void tick();
-      void did_change_view(const pp::Rect& pos, const pp::Rect& clip);
-
-			void rect(float x1, float y1, float x2, float y2);
 	};
 }
 
