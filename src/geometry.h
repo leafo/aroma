@@ -1,6 +1,5 @@
 
 #pragma once
-
 #include "common.h"
 
 namespace aroma {
@@ -17,9 +16,10 @@ namespace aroma {
 		void bind(); // bind color to opengl current
 
 		// return the floating point values
-		double rf();
-		double gf();
-		double bf();
+		float rf();
+		float gf();
+		float bf();
+		float af();
 
 		static Color pop(lua_State *l);
 		static void Push(lua_State *l, byte r, byte g, byte b);

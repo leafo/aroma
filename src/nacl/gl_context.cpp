@@ -50,8 +50,8 @@ namespace aroma {
 
 		glSetCurrentContextPPAPI(graphics.pp_resource());
 
-		if (is_init) {
-			renderer->init();
+		if (is_init && !renderer->init()) {
+			return false;
 		}
 
 		return true;

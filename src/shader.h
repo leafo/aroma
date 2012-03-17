@@ -18,6 +18,7 @@ public:
 	void bind();
 
 	GLuint attr_loc(const char* name);
+	GLuint uniform_loc(const char* name);
 
 	static int _new(lua_State *l);
 

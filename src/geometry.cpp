@@ -44,7 +44,7 @@ namespace aroma {
 	}
 
 	void Point::print() {
-		printf("point(%f, %f, %f)\n", x, y, z);
+		log("Point <%f, %f, %f>\n", x, y, z);
 	}
 
 
@@ -87,8 +87,7 @@ namespace aroma {
 	}
 
 	int Point::_print(lua_State *l) {
-		Point p = pop(l);
-		cout << "Point: " << p.x << ", " << p.y << endl;
+		pop(l).print();
 		return 0;
 	}
 
@@ -134,7 +133,7 @@ namespace aroma {
 		: r(r), g(g), b(b), a(a) { }
 
 	void Color::print() {
-		printf("color(%d,%d,%d,%d)\n", r,g,b,a);
+		log("Color <%d, %d, %d, %d>\n", r,g,b,a);
 	}
 
 	Color Color::pop(lua_State *l) {
@@ -162,17 +161,20 @@ namespace aroma {
 	Color Color::Blue = Color(0,0,255);
 	Color Color::Gray = Color(200,200,200);
 
-	double Color::rf() {
+	float Color::rf() {
 		return 1.0 * r / MAX;
 	}
 
-	double Color::gf() {
+	float Color::gf() {
 		return 1.0 * g / MAX;
 	}
 
-	double Color::bf() {
+	float Color::bf() {
 		return 1.0 * b / MAX;
 	}
 
+	float Color::af() {
+		return 1.0 * a / MAX;
+	}
 }
 

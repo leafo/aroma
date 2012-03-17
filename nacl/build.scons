@@ -35,6 +35,8 @@ aroma_src = "src"
 aroma_files = prefix_files(aroma_src, [
     "nacl/aroma.cpp",
     "nacl/gl_context.cpp",
+    "lua_binding.cpp",
+    "geometry.cpp",
     "renderer.cpp",
     "shader.cpp"
 ])

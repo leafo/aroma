@@ -38,11 +38,17 @@ typedef void(*AromaRegister)(lua_State *l);
 #define newuserdata(type) ((type*)lua_newuserdata(l, sizeof(type)))
 #define getself(type) ((type*)luaL_checkudata(l, 1, #type))
 
+#define set_new_func(name, func) lua_pushlightuserdata(l, this);\
+	lua_pushcclosure(l, func, 1);\
+	lua_setfield(l, -2, name)
+
+#define upvalue_self(type) (type*)lua_touserdata(l, lua_upvalueindex(1))
+
 #define $(val) #val ": " << val << " "
 
 #define __strx(x) #x
 #define __str(x) __strx(x)
-#define log(...) fprintf(stderr, " [" __FILE__  ":" __str(__LINE__) "] >> " __VA_ARGS__)
+#define log(...) fprintf(stderr, " [" __FILE__  ":" __str(__LINE__) "] \033[1;33m>>\033[0m " __VA_ARGS__)
 
 // void stackDump(lua_State *L);
 void readIntArray(lua_State *l, int *array, int count);

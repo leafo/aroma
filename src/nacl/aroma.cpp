@@ -3,6 +3,7 @@
 
 #include "nacl/aroma.h"
 #include "nacl/gl_context.h"
+#include "lua_binding.h"
 #include "renderer.h"
 
 namespace aroma {
@@ -48,39 +49,23 @@ namespace aroma {
 		nanosleep(&req, NULL);
 	}
 
-	class AromaInstance : public pp::Instance {
+	class NaClLuaBinding : public LuaBinding {
 		protected:
-			lua_State* l;
-			Renderer *renderer;
+			pp::Instance* instance;
 
-			void bind_function(const char *name, lua_CFunction func) {
+			void bind_function(const char* name, lua_CFunction func) {
 				lua_getglobal(l, "nacl");
-				lua_pushlightuserdata(l, this);
+				lua_pushlightuserdata(l, instance);
 				lua_pushcclosure(l, func, 1);
 				lua_setfield(l, -2, name);
 				lua_pop(l, 1);
 			}
 
-			// takes value on top of stack and puts it in package.loaded[name]
-			// pops value
-			void preload_library(const char *name) {
-				int i = lua_gettop(l);
-				lua_getglobal(l, "package");
-				lua_getfield(l, -1, "loaded");
-				lua_pushvalue(l, i);
-				lua_setfield(l, -2, name);
-				lua_settop(l, i - 1);
-			}
-
 		public:
-			AromaInstance(PP_Instance instance) :
-				pp::Instance(instance),
-				renderer(NULL) { }
+			NaClLuaBinding(pp::Instance* instance) : instance(instance) { }
 
-			bool Init(uint32_t argc, const char** argn, const char** argv) {
-				l = luaL_newstate();
-				luaL_openlibs(l);
-
+			bool bind_all() {
+				log("binding nacl to lua\n");
 				luaopen_cjson(l);
 				preload_library("cjson");
 
@@ -102,6 +87,44 @@ namespace aroma {
 					return false;
 				}
 
+				return LuaBinding::bind_all();
+			}
+
+			bool handle_message(const pp::Var& var) {
+				lua_getglobal(l, "nacl");
+				lua_getfield(l, -1, "handle_message");
+				if (lua_isnil(l, -1)) {
+					log("Ignoring message, missing `nacl.handle_message`\n");
+					return false;
+				}
+				push_var(l, var);
+
+				if (lua_pcall(l, 1, 0, 0) != 0) {
+					log("%s\n", luaL_checkstring(l, -1));
+					return false;
+				}
+
+				return true;
+			}
+	};
+
+	class AromaInstance : public pp::Instance {
+		protected:
+			NaClLuaBinding* binding;
+			Renderer* renderer;
+
+		public:
+			AromaInstance(PP_Instance instance) :
+				pp::Instance(instance),
+				renderer(NULL) { }
+
+			bool Init(uint32_t argc, const char** argn, const char** argv) {
+				binding = new NaClLuaBinding(this);
+				if (!binding->bind_all()) {
+					log("Failed to init lua\n");
+					return false;
+				}
+
 				PostMessage(pp::Var("Lua loaded"));
 				return true;
 			}
@@ -109,14 +132,7 @@ namespace aroma {
 			virtual ~AromaInstance() { }
 
 			void HandleMessage(const pp::Var& var) {
-				lua_getglobal(l, "nacl");
-				lua_getfield(l, -1, "handle_message");
-				if (lua_isnil(l, -1)) {
-					log("Ignoring message, missing `nacl.handle_message`\n");
-					return;
-				}
-				push_var(l, var);
-				lua_call(l, 1, 0);
+				binding->handle_message(var);
 			}
 
 			void DidChangeView(const pp::Rect& pos, const pp::Rect& clip) {
@@ -128,10 +144,6 @@ namespace aroma {
 
 				pp::Size size = pos.size();
 				renderer->reshape(size.width(), size.height());
-			}
-
-			lua_State* lua() {
-				return l;
 			}
 	};
 

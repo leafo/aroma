@@ -125,7 +125,7 @@ int Shader::_uniform(lua_State *l) {
 	lua_pushnil(l);
 	while (lua_next(l, -2) != 0) {
 		const char *key = luaL_checkstring(l, -2);
-		GLuint uloc = glGetUniformLocation(self->program, key);
+		GLuint uloc = self->uniform_loc(key);
 
 		int type = lua_type(l, -1);
 		switch (type) {
@@ -187,7 +187,11 @@ void Shader::bind() {
 }
 
 GLuint Shader::attr_loc(const char* name) {
-	return glGetAttribLocation(program, "P");
+	return glGetAttribLocation(program, name);
+}
+
+GLuint Shader::uniform_loc(const char* name) {
+	return glGetUniformLocation(program, name);
 }
 
 }
