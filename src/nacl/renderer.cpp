@@ -41,7 +41,7 @@ namespace aroma {
 	{
 		context = new OpenGLContext(instance, this);
 	}
-	
+
 	void Renderer::init() {
 		log("init renderer\n");
 		glClearColor(0.1, 0.1, 0.1, 1.0);

@@ -25,18 +25,18 @@ extern "C" int luaopen_cjson(lua_State *l);
 #include "nacl/gl.h"
 
 namespace aroma {
-  void push_var(lua_State* l, pp::Var var);
-  pp::Var to_var(lua_State* l, int index);
-	
+	void push_var(lua_State* l, pp::Var var);
+	pp::Var to_var(lua_State* l, int index);
+
 	class Renderer;
 
-  class OpenGLContext : public pp::Graphics3DClient {
-    protected:
-      Renderer *renderer;
-      const struct PPB_OpenGLES2* gles2_interface;
-      pp::Instance *instance;
-      pp::Graphics3D graphics;
-      pp::Size size;
+	class OpenGLContext : public pp::Graphics3DClient {
+		protected:
+			Renderer *renderer;
+			const struct PPB_OpenGLES2* gles2_interface;
+			pp::Instance *instance;
+			pp::Graphics3D graphics;
+			pp::Size size;
 
 		public:
 			OpenGLContext(pp::Instance* instance, Renderer* renderer);
