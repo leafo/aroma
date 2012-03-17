@@ -15,9 +15,11 @@ namespace aroma {
 			pp::Size size;
 
 		public:
-			OpenGLContext(pp::Instance* instance, Renderer* renderer);
+			OpenGLContext(pp::Instance* instance);
 			virtual ~OpenGLContext();
 			void Graphics3DContextLost();
+
+			void set_renderer(Renderer *renderer);
 
 			bool make_current();
 			// void resize(const pp::Size& s);

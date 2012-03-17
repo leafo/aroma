@@ -2,7 +2,8 @@
 #include "nacl.lua.h"
 
 #include "nacl/aroma.h"
-#include "nacl/renderer.h"
+#include "nacl/gl_context.h"
+#include "renderer.h"
 
 namespace aroma {
 
@@ -121,8 +122,12 @@ namespace aroma {
 			void DidChangeView(const pp::Rect& pos, const pp::Rect& clip) {
 				// PostMessage(pp::Var("DidChangeView"));
 				log("didchangeview\n");
-				if (!renderer) renderer = new Renderer(this);
-				renderer->did_change_view(pos, clip);
+				if (!renderer) {
+					renderer = new Renderer(new OpenGLContext(this));
+				}
+
+				pp::Size size = pos.size();
+				renderer->reshape(size.width(), size.height());
 			}
 
 			lua_State* lua() {

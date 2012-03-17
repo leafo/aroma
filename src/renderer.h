@@ -1,22 +1,21 @@
 
-#include "nacl/aroma.h"
-#include "nacl/gl_context.h"
+#include "context.h"
 #include "shader.h"
 
 namespace aroma {
 	class Renderer {
 		protected:
-			OpenGLContext* context;
-			pp::Instance* instance;
+			GLContext* context;
 			Shader* default_shader;
 
 		public:
-			Renderer(pp::Instance* instance);
+			Renderer(GLContext* context);
 
 			void init();
 			void draw();
 			void tick();
-			void did_change_view(const pp::Rect& pos, const pp::Rect& clip);
+
+			void reshape(const int w, const int h);
 
 			void rect(float x1, float y1, float x2, float y2);
 	};

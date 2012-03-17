@@ -34,8 +34,8 @@ lua_cjson_files = lib_files(lua_cjson_src, [
 aroma_src = "src"
 aroma_files = prefix_files(aroma_src, [
     "nacl/aroma.cpp",
-    "nacl/renderer.cpp",
     "nacl/gl_context.cpp",
+    "renderer.cpp",
     "shader.cpp"
 ])
 

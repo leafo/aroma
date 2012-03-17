@@ -1,5 +1,5 @@
 
-#include "nacl/renderer.h"
+#include "renderer.h"
 
 namespace aroma {
 	void Renderer::rect(float x1, float y1, float x2, float y2) {
@@ -35,11 +35,11 @@ namespace aroma {
 		glDeleteBuffers(1, &vert_buffer);
 	}
 
-	Renderer::Renderer(pp::Instance* instance) :
-		instance(instance),
+	Renderer::Renderer(GLContext *context) :
+		context(context),
 		default_shader(NULL)
 	{
-		context = new OpenGLContext(instance, this);
+		context->set_renderer(this);
 	}
 
 	void Renderer::init() {
@@ -81,10 +81,9 @@ namespace aroma {
 		context->flush();
 	}
 
-	void Renderer::did_change_view(const pp::Rect& pos, const pp::Rect& clip) {
-		pp::Size s = pos.size();
-		context->resize(s.width(), s.height());
-		tick();
+	void Renderer::reshape(const int w, const int h) {
+		context->resize(w, h);
+		tick(); // why  tick here?
 	}
 
 }

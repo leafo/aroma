@@ -1,7 +1,7 @@
 
 #include "nacl/aroma.h"
 #include "nacl/gl_context.h"
-#include "nacl/renderer.h"
+#include "renderer.h"
 #include "common.h"
 
 namespace aroma {
@@ -11,9 +11,8 @@ namespace aroma {
 		context->render();
 	}
 
-	OpenGLContext::OpenGLContext(pp::Instance* instance, Renderer* renderer) :
+	OpenGLContext::OpenGLContext(pp::Instance* instance) :
 		pp::Graphics3DClient(instance),
-		renderer(renderer),
 		instance(instance)
 	{
 		pp::Module *module = pp::Module::Get();
@@ -86,4 +85,7 @@ namespace aroma {
 		return size.height();
 	}
 
+	void OpenGLContext::set_renderer(Renderer *r) {
+		renderer = r;
+	}
 }

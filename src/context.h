@@ -1,6 +1,8 @@
 #pragma once
 
 namespace aroma {
+	class Renderer;
+
 	class GLContext {
 		public:
 			virtual bool make_current() = 0;
@@ -10,6 +12,8 @@ namespace aroma {
 
 			virtual int width() = 0;
 			virtual int height() = 0;
+
+			virtual void set_renderer(Renderer *r) { }
 	};
 
 #ifndef AROMA_NACL
