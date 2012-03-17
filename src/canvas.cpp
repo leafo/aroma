@@ -94,8 +94,8 @@ void Viewport::reshape() {
 }
 
 
-Canvas::Canvas(Window &window)
-	: window(window), view(window.width, window.height)
+Canvas::Canvas(GLContext* context)
+	: context(context), view(context->width(), context->height())
 {
 	view.reshape();
 	glfwSetKeyCallback(key_listener);
@@ -114,10 +114,12 @@ int Canvas::_new(lua_State *l) {
 		title = luaL_checkstring(l, 4);
 	}
 
-	Window *win = Window::create_window(width, height, title);
-	if (!win) return luaL_error(l, "fatal error: failed to open window");
+	GLContext* context = new GLFWContext(width, height, title);
+	if (!context->make_current()) {
+		return luaL_error(l, "fatal error: failed to open window");
+	}
 
-	_canvas = new Canvas(*win);
+	_canvas = new Canvas(context);
 
 	Viewport &view = _canvas->view;
 
@@ -216,6 +218,14 @@ int Canvas::_new(lua_State *l) {
 	return 1;
 }
 
+int Canvas::width() {
+	return context->width();
+}
+
+int Canvas::height() {
+	return context->height();
+}
+
 // args: canvas, settings:table
 // uses every string key as a function name in the canvas object
 // to be called with the value as the only argument
@@ -308,8 +318,8 @@ int Canvas::_viewport(lua_State *l) {
 	Viewport view(0,0);
 	if (lua_isnumber(l, -1)) {
 		double scale = lua_tonumber(l, -1);
-		view.right = _canvas->window.width / scale;
-		view.bottom = _canvas->window.height / scale;
+		view.right = _canvas->width() / scale;
+		view.bottom = _canvas->height() / scale;
 	} else if (lua_istable(l, -1)) {
 		int i = 1;
 		switch (lua_objlen(l, -1)) {
@@ -459,14 +469,13 @@ int Canvas::_flush(lua_State *l) {
 	double cx, cy; // canvas mouse coordinates
 	glfwGetMousePos(&x, &y);
 
-	Window &win = _canvas->window;
 	Viewport &view = _canvas->view;
 	if (view.is2d) {
 		double vwidth = view.right - view.left;
 		double vheight = view.bottom - view.top;
 
-		cx = view.left + (x * vwidth / win.width);
-		cy = view.top + (y * vheight / win.height);
+		cx = view.left + (x * vwidth / _canvas->width());
+		cy = view.top + (y * vheight / _canvas->height());
 	} else {
 		cx = (double)x;
 		cy = (double)y;
@@ -508,15 +517,14 @@ int Canvas::_flush(lua_State *l) {
 int Canvas::_setMouse(lua_State *l) {
 	Point p = Point::pop(l);
 
-	Window &win = _canvas->window;
 	Viewport &view = _canvas->view;
 	if (view.is2d) {
 		double vwidth = view.right - view.left;
 		double vheight = view.bottom - view.top;
 
 		// convert from canvas to window coordinates
-		double wx = (p.x - view.left) * (win.width / vwidth);
-		double wy = (p.y - view.top) * (win.height / vheight);
+		double wx = (p.x - view.left) * (_canvas->width() / vwidth);
+		double wy = (p.y - view.top) * (_canvas->height() / vheight);
 		glfwSetMousePos((int)wx, (int)wy);
 	} else {
 		glfwSetMousePos((int)p.x, (int)p.y);

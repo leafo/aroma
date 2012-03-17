@@ -41,10 +41,11 @@ namespace aroma {
 		public:
 			OpenGLContext(pp::Instance* instance, Renderer* renderer);
 			virtual ~OpenGLContext();
+			void Graphics3DContextLost();
+
 			bool make_current();
 			void resize(const pp::Size& s);
 			void flush();
-			void Graphics3DContextLost();
 			void render(); // tell the renderer to tick
 
 			int width();

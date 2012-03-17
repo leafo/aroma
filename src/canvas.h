@@ -4,7 +4,7 @@
 
 #include "common.h"
 #include "geometry.h"
-#include "window.h"
+#include "context.h"
 
 namespace aroma {
 
@@ -24,11 +24,14 @@ struct Viewport {
 
 class Canvas {
 public:
-	Canvas(Window &window);
+	Canvas(GLContext* context);
 	void push(lua_State *l); // push this canvas to top of stack
 	void reshape(); // shape the projection matrix
 
-	Window &window;
+	int width();
+	int height();
+
+	GLContext* context;
 	Viewport view;
 
 	// double width, height;
