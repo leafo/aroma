@@ -15,7 +15,6 @@ extern "C" {
 #include "lauxlib.h"
 }
 
-
 #include <sys/time.h>
 #include <sys/nacl_syscalls.h>
 
@@ -23,16 +22,8 @@ using namespace std;
 
 extern "C" int luaopen_cjson(lua_State *l);
 
-// opengl headers
-#include <GLES2/gl2.h>
-#include "ppapi/c/ppb_opengles2.h"
-#include "ppapi/cpp/graphics_3d_client.h"
-#include "ppapi/cpp/graphics_3d.h"
-#include "ppapi/gles2/gl2ext_ppapi.h"
-
-#include "ppapi/cpp/completion_callback.h"
-#include "ppapi/cpp/rect.h"
-// ~
+#include "nacl_gl.h"
+#include "shader.h"
 
 namespace aroma {
   void push_var(lua_State* l, pp::Var var);
@@ -64,13 +55,18 @@ namespace aroma {
 	class Renderer {
     protected:
       OpenGLContext* context;
-			pp::Instance* instance;
+      pp::Instance* instance;
+      Shader* default_shader;
 
 		public:
       Renderer(pp::Instance* instance);
+
+			void init();
       void draw();
       void tick();
       void did_change_view(const pp::Rect& pos, const pp::Rect& clip);
+
+			void rect(float x1, float y1, float x2, float y2);
 	};
 }
 

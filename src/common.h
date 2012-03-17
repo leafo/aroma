@@ -1,5 +1,4 @@
-#ifndef COMMON_H_
-#define COMMON_H_
+#pragma once
 
 #include <stdio.h>
 #include <string.h>
@@ -10,10 +9,14 @@ extern "C" {
 	#include <lauxlib.h>
 }
 
+#ifdef AROMA_NACL
+#include "nacl_gl.h"
+#else
 #define GL_GLEXT_PROTOTYPES
 #include <GL/glfw.h>
-
 #include <iostream>
+#endif
+
 using namespace std;
 
 typedef unsigned char byte;
@@ -37,6 +40,10 @@ typedef void(*AromaRegister)(lua_State *l);
 
 #define $(val) #val ": " << val << " "
 
+#define __strx(x) #x
+#define __str(x) __strx(x)
+#define log(...) fprintf(stderr, " [" __FILE__  ":" __str(__LINE__) "] >> " __VA_ARGS__)
+
 // void stackDump(lua_State *L);
 void readIntArray(lua_State *l, int *array, int count);
 void readArray(lua_State *l, double *array, int count);
@@ -47,6 +54,4 @@ void stackDump(lua_State *L);
 namespace aroma {
 	extern const char *aroma_current_dir;
 }
-
-#endif /* COMMON_H_ */
 

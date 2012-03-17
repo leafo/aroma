@@ -1,5 +1,3 @@
-#include <iostream>
-#include <fstream>
 
 #include "shader.h"
 #include "image.h"
@@ -10,24 +8,6 @@ void register_Shader(lua_State *l) {
 	setfunction("shader", Shader::_new);
 }
 
-// read entire file
-// probably not going to use this
-char* readFile(const char *fname) {
-	int length;
-	ifstream in(fname);
-	if (!in) return 0;
-
-	in.seekg(0, ios::end);
-	length = in.tellg();
-	in.seekg(0, ios::beg);
-
-	char *buffer = new char[length];
-	in.read(buffer, length);
-	in.close();
-
-	return buffer;
-}
-
 void dumpShaderLog(GLuint shader) {
 	int len;
 	glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &len);
@@ -35,7 +15,7 @@ void dumpShaderLog(GLuint shader) {
 		int written;
 		char log[len];
 		glGetShaderInfoLog(shader, len, &written, log);
-		printf("%s", log);
+		fprintf(stderr, "%s\n", log);
 	}
 }
 
@@ -46,11 +26,12 @@ void dumpProgramLog(GLuint program) {
 		int written;
 		char log[len];
 		glGetProgramInfoLog(program, len, &written, log);
-		printf("%s", log);
+		fprintf(stderr, "%s\n", log);
 	}
 }
 
 Shader::Shader() : linked(false) {
+	program = glCreateProgram();
 }
 
 /**
@@ -60,17 +41,15 @@ int Shader::_new(lua_State *l) {
 	int argc = lua_gettop(l);
 
 	Shader s;
-	s.program = glCreateProgram();
-
 	bool success = true;
 	if (argc > 0) {
-		cout << "compiling fragment shader" << endl;
+		log("compiling fragment shader\n");
 		const char *frag = luaL_checkstring(l, -1);
 		success &= s.add(GL_FRAGMENT_SHADER, frag);
 	}
 
 	if (argc > 1) {
-		cout << "compiling vertex shader" << endl;
+		log("compiling vertex shader\n");
 		const char *vert = luaL_checkstring(l, -2);
 		success &= s.add(GL_VERTEX_SHADER, vert);
 	}
@@ -118,19 +97,12 @@ int Shader::_vert(lua_State *l) {
 
 int Shader::_bind(lua_State *l) {
 	Shader *self = getself(Shader);
-	if (!self->linked) {
-		glLinkProgram(self->program);
-		int success;
-		glGetProgramiv(self->program, GL_LINK_STATUS, &success);
-		if (!success) {
-			dumpProgramLog(self->program);
-			luaL_error(l, "Shader: failed to link shader");
-		}
-
-		self->linked = true;
+	if (!self->linked && !self->link()) {
+		luaL_error(l, "Shader: failed to link shader");
 	}
 
-	glUseProgram(self->program);
+	self->bind();
+
 
 	if (LUA_TTABLE == lua_type(l, -1)) {
 		return _uniform(l);
@@ -169,7 +141,7 @@ int Shader::_uniform(lua_State *l) {
 				break;
 			}
 			default:
-				cout << "unknown uniform type: " << type << endl;
+				log("unknown uniform type: %d\n", type);
 		}
 
 		lua_pop(l, 1);
@@ -193,6 +165,29 @@ bool Shader::add(GLuint type, const char *src) {
 	glAttachShader(program, sid);
 
 	return true;
+}
+
+bool Shader::link() {
+	if (linked) return true;
+
+	glLinkProgram(program);
+	int success;
+	glGetProgramiv(program, GL_LINK_STATUS, &success);
+	if (!success) {
+		dumpProgramLog(program);
+		return false;
+	}
+
+	linked = true;
+	return true;
+}
+
+void Shader::bind() {
+	glUseProgram(program);
+}
+
+GLuint Shader::attr_loc(const char* name) {
+	return glGetAttribLocation(program, "P");
 }
 
 }

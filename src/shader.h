@@ -1,6 +1,5 @@
 
-#ifndef SHADER_H_
-#define SHADER_H_
+#pragma once
 
 #include "common.h"
 
@@ -15,6 +14,10 @@ public:
 
 	Shader();
 	bool add(GLuint type, const char *src);
+	bool link();
+	void bind();
+
+	GLuint attr_loc(const char* name);
 
 	static int _new(lua_State *l);
 
@@ -28,6 +31,4 @@ public:
 };
 
 }
-
-#endif /* SHADER_H_ */
 

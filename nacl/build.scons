@@ -27,16 +27,23 @@ lua_cjson_files = lib_files(lua_cjson_src, [
     r"dtoa\.c$"
 ])
 
+aroma_src = "src"
+aroma_files = [
+    "src/shader.cpp"
+]
+
 import make_nacl_env
 import nacl_utils
 
 nacl_env = make_nacl_env.NaClEnvironment(
     use_c_plus_plus_libs=True, nacl_platform=os.getenv('NACL_TARGET_PLATFORM'))
 
-sources = lua_files + lua_cjson_files + [
-    'aroma.cc',
-]
 
+# nacl_env.AllNaClStaticLibraries(lua_files, "lua")
+
+sources = lua_files + lua_cjson_files + aroma_files + [ "aroma.cc" ]
+
+nacl_env.Append(CPPPATH=[lua_src, lua_cjson_src, aroma_src, "."])
+nacl_env.Append(CPPDEFINES=["AROMA_NACL"])
 nacl_env.Append(LIBS=["nosys", "ppapi_gles2"])
-nacl_env.Append(CPPPATH=[lua_src, lua_cjson_src])
 nacl_env.AllNaClModules(sources, 'aroma')
