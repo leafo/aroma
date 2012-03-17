@@ -76,9 +76,9 @@ int Mesh::_new(lua_State *l) {
 		printf("calculating normals for mesh\n");
 		m->normalArray = new double[count];
 		for (int f = 0; f < m->count; f++) {
-			Point v1 = Point::fromArray(m->vertexArray+f*dim,dim);
-			Point v2 = Point::fromArray(m->vertexArray+f*dim+1,dim);
-			Point v3 = Point::fromArray(m->vertexArray+f*dim+2,dim);
+			Point v1 = Point::from_array(m->vertexArray+f*dim,dim);
+			Point v2 = Point::from_array(m->vertexArray+f*dim+1,dim);
+			Point v3 = Point::from_array(m->vertexArray+f*dim+2,dim);
 			v2.subtract(v1).print();
 
 			// assuming they are counterclockwise	

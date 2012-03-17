@@ -28,7 +28,7 @@ void TileSet::tile(Point dest, int id)
 	src.w = tw;
 	src.h = th;
 
-	tiles.blit(src, Rect::fromPoint(dest, tw, th));
+	tiles.blit(src, Rect::from_point(dest, tw, th));
 }
 
 
