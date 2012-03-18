@@ -85,6 +85,10 @@ namespace aroma {
 		return glfwGetTime();
 	}
 
+	bool GLFWContext::is_flushing() {
+		return true; // not used
+	}
+
 #endif
 
 }

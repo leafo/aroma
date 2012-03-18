@@ -12,6 +12,7 @@ namespace aroma {
 	}
 
 	OpenGLContext::OpenGLContext(pp::Instance* instance) :
+		flushing(false),
 		pp::Graphics3DClient(instance),
 		instance(instance)
 	{
@@ -66,6 +67,7 @@ namespace aroma {
 	}
 
 	void OpenGLContext::flush() {
+		flushing = true;
 		graphics.SwapBuffers(pp::CompletionCallback(&default_flush_callback, this));
 	}
 
@@ -74,6 +76,7 @@ namespace aroma {
 	}
 
 	void OpenGLContext::render() {
+		flushing = false;
 		renderer->tick();
 	}
 
@@ -91,5 +94,9 @@ namespace aroma {
 
 	void OpenGLContext::set_renderer(Renderer *r) {
 		renderer = r;
+	}
+
+	bool OpenGLContext::is_flushing() {
+		return flushing;
 	}
 }

@@ -8,6 +8,8 @@ namespace aroma {
 
 	class OpenGLContext : public pp::Graphics3DClient, public GLContext {
 		protected:
+			bool flushing;
+
 			Renderer *renderer;
 			const struct PPB_OpenGLES2* gles2_interface;
 			pp::Instance *instance;
@@ -26,6 +28,8 @@ namespace aroma {
 			void resize(const int w, const int h);
 			void flush();
 			void render(); // tell the renderer to tick
+
+			bool is_flushing();
 
 			int width();
 			int height();

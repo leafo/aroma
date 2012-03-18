@@ -16,6 +16,7 @@ namespace aroma {
 			virtual double get_time() = 0;
 
 			virtual void set_renderer(Renderer *r) { }
+			virtual bool is_flushing() = 0;
 	};
 
 #ifndef AROMA_NACL
@@ -39,6 +40,8 @@ namespace aroma {
 			int width();
 			int height();
 			double get_time();
+
+			bool is_flushing();
 	};
 
 #endif

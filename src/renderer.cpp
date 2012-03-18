@@ -121,7 +121,9 @@ namespace aroma {
 
 	void Renderer::reshape(const int w, const int h) {
 		context->resize(w, h);
-		tick(); // why  tick here?
+		if (!context->is_flushing()) {
+			tick(); // start it up
+		}
 	}
 
 	const char* Renderer::module_name() {
