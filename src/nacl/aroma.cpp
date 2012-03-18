@@ -139,7 +139,7 @@ namespace aroma {
 				// PostMessage(pp::Var("DidChangeView"));
 				log("didchangeview\n");
 				if (!renderer) {
-					renderer = new Renderer(new OpenGLContext(this));
+					renderer = new Renderer(new OpenGLContext(this), binding);
 				}
 
 				pp::Size size = pos.size();

@@ -39,11 +39,13 @@ namespace aroma {
 		glDeleteBuffers(1, &vert_buffer);
 	}
 
-	Renderer::Renderer(GLContext *context) :
+	Renderer::Renderer(GLContext *context, LuaBinding* binding) :
 		context(context),
+		binding(binding),
 		default_shader(NULL)
 	{
 		context->set_renderer(this);
+		binding->bind_module(this);
 	}
 
 	bool Renderer::init() {
@@ -95,6 +97,10 @@ namespace aroma {
 	void Renderer::reshape(const int w, const int h) {
 		context->resize(w, h);
 		tick(); // why  tick here?
+	}
+
+	const char* Renderer::module_name() {
+		return "graphics";
 	}
 
 	// write all the funcs into the current table

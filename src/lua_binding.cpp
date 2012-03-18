@@ -1,7 +1,9 @@
 
 #include "lua_binding.h"
+#include "renderer.h"
 
 namespace aroma {
+	static const char* aroma_name = "aroma";
 
 	LuaBinding::LuaBinding() {
 		l = luaL_newstate();
@@ -10,8 +12,18 @@ namespace aroma {
 	}
 
 	bool LuaBinding::bind_all() {
-		log("suck my pisser!\n");
+		lua_newtable(l);
+		lua_setglobal(l, aroma_name);
 		return true;
+	}
+
+	void LuaBinding::bind_module(Bindable *b) {
+		lua_getglobal(l, aroma_name);
+		lua_newtable(l);
+		int i = lua_gettop(l);
+		b->bind_all(l);
+		lua_settop(l, i);
+		lua_setfield(l, -2, b->module_name());
 	}
 
 	lua_State* LuaBinding::lua() {

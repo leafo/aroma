@@ -64,13 +64,14 @@ async_scope = setmetatable {
     require: async_require
     error: async_err
   }, {
-    index: _G
+    __index: _G
   }
 
 
 nacl.handle_message = (msg) ->
   error "unknown msg: " .. msg if type(msg) != "string"
   print ">>", msg
+
   msg = cjson.decode msg
   switch msg[1]
     when "execute"
