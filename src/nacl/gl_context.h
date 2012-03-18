@@ -29,6 +29,7 @@ namespace aroma {
 
 			int width();
 			int height();
+			double get_time();
 	};
 }
 

@@ -13,6 +13,8 @@ namespace aroma {
 			virtual int width() = 0;
 			virtual int height() = 0;
 
+			virtual double get_time() = 0;
+
 			virtual void set_renderer(Renderer *r) { }
 	};
 
@@ -36,6 +38,7 @@ namespace aroma {
 
 			int width();
 			int height();
+			double get_time();
 	};
 
 #endif

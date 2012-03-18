@@ -43,6 +43,12 @@ namespace aroma {
 		return 0;
 	}
 
+	int _time_ticks(lua_State *l) {
+		pp::Core* core = pp::Module::Get()->core();
+		lua_pushnumber(l, core->GetTimeTicks());
+		return 1;
+	}
+
 	void sleep(float seconds) {
 		long nanoseconds = (long)(seconds * 1000000000);
 		timespec req = { 0, nanoseconds };
@@ -74,6 +80,7 @@ namespace aroma {
 
 				bind_function("post_message", _post_message);
 				bind_function("sleep", _sleep);
+				bind_function("time_ticks", _time_ticks);
 
 				lua_settop(l, 0);
 

@@ -81,6 +81,10 @@ namespace aroma {
 		return h;
 	}
 
+	double GLFWContext::get_time() {
+		return glfwGetTime();
+	}
+
 #endif
 
 }

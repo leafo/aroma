@@ -75,10 +75,11 @@ namespace aroma {
 		default_shader->add(GL_FRAGMENT_SHADER, fragment_src);
 		default_shader->link();
 
+		last_time = context->get_time();
 		return true;
 	}
 
-	void Renderer::draw() {
+	void Renderer::draw(double dt) {
 		glClear(GL_COLOR_BUFFER_BIT);
 		default_shader->bind();
 
@@ -86,9 +87,20 @@ namespace aroma {
 
 		int i = lua_gettop(l);
 		binding->push_self();
+
+		lua_getfield(l, -1, "update");
+		if (!lua_isnil(l, -1)) {
+			lua_pushnumber(l, dt);
+			lua_call(l, 1, 0);
+		} else {
+			lua_pop(l, 1); // pop nil
+		}
+
 		lua_getfield(l, -1, "draw");
 		if (!lua_isnil(l, -1)) {
 			lua_call(l, 0, 0);
+		} else {
+			lua_pop(l, 1); // pop nil
 		}
 
 		lua_settop(l, i);
@@ -100,7 +112,10 @@ namespace aroma {
 
 		glViewport(0, 0, context->width(), context->height());
 
-		draw();
+		double time = context->get_time();
+		draw(time - last_time);
+		last_time = time;
+
 		context->flush();
 	}
 

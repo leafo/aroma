@@ -10,6 +10,7 @@ namespace aroma {
 			GLContext* context;
 			LuaBinding* binding;
 			Shader* default_shader;
+			double last_time;
 
 		public:
 			Color current_color;
@@ -17,7 +18,7 @@ namespace aroma {
 			Renderer(GLContext* context, LuaBinding* binding);
 
 			bool init();
-			void draw();
+			void draw(double dt);
 			void tick();
 
 			void reshape(const int w, const int h);

@@ -88,8 +88,16 @@
 
       $("input").value = escape_html([
         "local g = aroma.graphics",
+        "",
+        "local x, t = 0, 0",
+        "",
+        "function aroma.update(dt)",
+        "  t = t + dt*3",
+        "  x = (math.sin(t) - 1)/2",
+        "end",
+        "",
         "function aroma.draw()",
-        "  g.rectangle(0,0,1,1)",
+        "  g.rectangle(x,x,1,1)",
         "end"
       ].join("\n"));
 

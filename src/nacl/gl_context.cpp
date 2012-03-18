@@ -85,6 +85,10 @@ namespace aroma {
 		return size.height();
 	}
 
+	double OpenGLContext::get_time() {
+		return pp::Module::Get()->core()->GetTimeTicks();
+	}
+
 	void OpenGLContext::set_renderer(Renderer *r) {
 		renderer = r;
 	}
