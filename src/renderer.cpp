@@ -81,7 +81,17 @@ namespace aroma {
 	void Renderer::draw() {
 		glClear(GL_COLOR_BUFFER_BIT);
 		default_shader->bind();
-		rect(0,0, 1,1);
+
+		lua_State* l = binding->lua();
+
+		int i = lua_gettop(l);
+		binding->push_self();
+		lua_getfield(l, -1, "draw");
+		if (!lua_isnil(l, -1)) {
+			lua_call(l, 0, 0);
+		}
+
+		lua_settop(l, i);
 	}
 
 	// called for every frame

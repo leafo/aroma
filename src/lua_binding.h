@@ -21,6 +21,8 @@ namespace aroma {
 			void bind_module(Bindable *b);
 
 			virtual bool bind_all(); // set up the lua env
+
+			void push_self();
 	};
 }
 

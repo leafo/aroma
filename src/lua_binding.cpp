@@ -14,6 +14,7 @@ namespace aroma {
 	bool LuaBinding::bind_all() {
 		lua_newtable(l);
 		lua_setglobal(l, aroma_name);
+
 		return true;
 	}
 
@@ -28,6 +29,10 @@ namespace aroma {
 
 	lua_State* LuaBinding::lua() {
 		return l;
+	}
+
+	void LuaBinding::push_self() {
+		lua_getglobal(l, aroma_name);
 	}
 
 	// takes value on top of stack and puts it in package.loaded[name]
