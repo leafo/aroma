@@ -5,8 +5,30 @@
 #include "nacl/gl_context.h"
 #include "lua_binding.h"
 #include "renderer.h"
+#include "nacl/image.h"
 
 namespace aroma {
+
+	byte* decode_byte_string(const char *str, size_t str_len, size_t num_bytes) {
+		byte* bytes = new byte[num_bytes];
+		size_t bi = 0;
+		for (size_t i = 0; i < str_len; i++) {
+			byte b = str[i];
+			if (b < 128) {
+				bytes[bi] = b;
+			} else {
+				byte b2 = str[++i];
+				if (b == 194) {
+					bytes[bi] = b2;
+				} else {
+					bytes[bi] = b2 + 64;
+				}
+			}
+			bi++;
+		}
+
+		return bytes;
+	}
 
 	void push_var(lua_State* l, pp::Var var) {
 		if (var.is_null()) {
@@ -49,6 +71,22 @@ namespace aroma {
 		return 1;
 	}
 
+	int _image_from_byte_string(lua_State *l) {
+		size_t str_len;
+		const char* str = lua_tolstring(l, 1, &str_len);
+		int width = luaL_checknumber(l, 2);
+		int height = luaL_checknumber(l, 3);
+
+		int num_bytes = width*height*4;
+		byte* bytes = decode_byte_string(str, str_len, num_bytes);
+
+		Image i = Image::from_bytes(bytes, width, height, 4);
+		i.push(l);
+
+		delete bytes;
+		return 1;
+	}
+
 	void sleep(float seconds) {
 		long nanoseconds = (long)(seconds * 1000000000);
 		timespec req = { 0, nanoseconds };
@@ -81,6 +119,7 @@ namespace aroma {
 				bind_function("post_message", _post_message);
 				bind_function("sleep", _sleep);
 				bind_function("time_ticks", _time_ticks);
+				bind_function("image_from_byte_string", _image_from_byte_string);
 
 				lua_settop(l, 0);
 
@@ -94,7 +133,19 @@ namespace aroma {
 					return false;
 				}
 
-				return LuaBinding::bind_all();
+				if (!LuaBinding::bind_all()) return false;
+
+				lua_getglobal(l, "nacl");
+				lua_getfield(l, -1, "init");
+				if (!lua_isnil(l, -1)) {
+					push_self();
+					if (lua_pcall(l, 1, 0, 0) != 0) {
+						log("%s\n", luaL_checkstring(l, -1));
+						return false;
+					}
+				}
+
+				return true;
 			}
 
 			bool handle_message(const pp::Var& var) {

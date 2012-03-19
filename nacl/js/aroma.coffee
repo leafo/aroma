@@ -25,7 +25,7 @@ module_to_url = (module_name) ->
 
 
 # bytes can be array like
-encode_byte_array = (bytes, size) ->
+encode_byte_array = (bytes, size=null) ->
   count = size || bytes.length
   chunk_size = 1024
   parts = Math.floor(count / chunk_size) + 1
@@ -55,7 +55,7 @@ get_image_data = (url, callback) ->
     ctx.drawImage img, 0, 0
 
     image_data = ctx.getImageData 0, 0, img.width, img.height
-    callback encode_byte_array image_data.data
+    callback encode_byte_array(image_data.data), img.width, img.height
 
   img.onerror = ->
     callback null
@@ -76,7 +76,11 @@ class Aroma
 
     image: (msg, callback) ->
       [_, path] = msg
-      get_image_data msg, (image_data) ->
+      get_image_data path, (image_bytes, width, height) ->
+        if !image_bytes
+          callback ["error", "Failed to find image: #{path}"]
+        else
+          callback ["success", image_bytes, width, height]
   }
 
   message_handlers: {

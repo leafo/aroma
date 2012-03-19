@@ -69,10 +69,11 @@ async_scope = setmetatable {
 
 
 nacl.handle_message = (msg) ->
-  error "unknown msg: " .. msg if type(msg) != "string"
-  print ">>", msg
+  error "unknown msg: " .. tostring(msg) if type(msg) != "string"
+  -- print ">>", msg
 
   msg = cjson.decode msg
+
   switch msg[1]
     when "execute"
       fn, err = loadstring msg[2], "execute"
@@ -94,5 +95,23 @@ nacl.handle_message = (msg) ->
         msg_responders[id] = nil
         handler data
     else
-      error "Don't know how to handle message: " .. msg[1]
+      error "Don't know how to handle message: " .. (msg[1] or msg)
+
+-- TODO something like this
+nacl.init = {
+  graphics: (aroma) ->
+}
+
+
+nacl.init = (aroma) ->
+  aroma.newImage = (url) ->
+    thread = coroutine.running!
+    post_and_respond { "image", url }, (msg) ->
+      status, bytes, width, height = unpack msg
+      if status == "success"
+        coroutine.resume thread, nacl.image_from_byte_string bytes, width, height
+      else
+        async_print_err bytes
+
+    coroutine.yield "wait"
 
