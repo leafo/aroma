@@ -1,4 +1,5 @@
 
+
 $ = (id) -> document.getElementById id
 
 log = -> console.log.apply console, arguments
@@ -22,6 +23,48 @@ module_to_url = (module_name) ->
   module_name = module_name.replace /\./g, '/'
   "#{module_name}.lua"
 
+
+# bytes can be array like
+encode_byte_array = (bytes, size) ->
+  count = size || bytes.length
+  chunk_size = 1024
+  parts = Math.floor(count / chunk_size) + 1
+
+  strings = new Array parts
+  slice = Function.prototype.call.bind Array.prototype.slice
+  char_encode = Function.prototype.apply.bind String.fromCharCode, null
+
+  pi = 0
+  while pi < parts
+    strings[pi] = char_encode slice bytes, pi * chunk_size, (pi + 1) * chunk_size
+    pi++
+
+  strings.join ""
+
+get_image_data = (url, callback) ->
+  img = new Image()
+  img.src = url
+
+  img.onload = ->
+    canvas = document.createElement "canvas"
+    console.log "loaded image #{url} [#{img.width}, #{img.height}]"
+    canvas.width = img.width
+    canvas.height = img.height
+
+    ctx = canvas.getContext "2d"
+    ctx.drawImage img, 0, 0
+
+    image_data = ctx.getImageData 0, 0, img.width, img.height
+    callback encode_byte_array image_data.data
+
+  img.onerror = ->
+    callback null
+
+  null
+
+window.get_image_data = get_image_data
+window.encode_byte_array = encode_byte_array
+
 class Aroma
   async_handlers: {
     require: (msg, callback) ->
@@ -30,6 +73,10 @@ class Aroma
       pass = (req) -> callback ["success", req.responseText]
       fail = (req) -> callback ["error", "Failed to find module: tried #{url}"]
       get url, pass, fail
+
+    image: (msg, callback) ->
+      [_, path] = msg
+      get_image_data msg, (image_data) ->
   }
 
   message_handlers: {
