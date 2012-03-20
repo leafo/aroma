@@ -194,5 +194,24 @@ GLuint Shader::uniform_loc(const char* name) {
 	return glGetUniformLocation(program, name);
 }
 
+void Shader::set_uniform(const char* name, const Mat4 & matrix) {
+	GLuint loc = glGetUniformLocation(program, name);
+	glUniformMatrix4fv(loc, 1, GL_FALSE, (const GLfloat*)&matrix);
 }
 
+void Shader::set_uniform(const char* name, const Color & color) {
+	GLuint loc = glGetUniformLocation(program, name);
+	glUniform4f(loc, color.rf(), color.gf(), color.bf(), color.af());
+}
+
+void Shader::set_uniform(const char* name, const float num) {
+	GLuint loc = glGetUniformLocation(program, name);
+	glUniform1f(loc, num);
+}
+
+void Shader::set_uniform(const char* name, const int num) {
+	GLuint loc = glGetUniformLocation(program, name);
+	glUniform1i(loc, num);
+}
+
+}

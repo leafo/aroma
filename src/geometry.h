@@ -16,10 +16,10 @@ namespace aroma {
 		void bind(); // bind color to opengl current
 
 		// return the floating point values
-		float rf();
-		float gf();
-		float bf();
-		float af();
+		float rf() const;
+		float gf() const;
+		float bf() const;
+		float af() const;
 
 		static Color pop(lua_State *l);
 		static void Push(lua_State *l, byte r, byte g, byte b);

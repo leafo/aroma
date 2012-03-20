@@ -161,19 +161,19 @@ namespace aroma {
 	Color Color::Blue = Color(0,0,255);
 	Color Color::Gray = Color(200,200,200);
 
-	float Color::rf() {
+	float Color::rf() const {
 		return 1.0 * r / MAX;
 	}
 
-	float Color::gf() {
+	float Color::gf() const {
 		return 1.0 * g / MAX;
 	}
 
-	float Color::bf() {
+	float Color::bf() const {
 		return 1.0 * b / MAX;
 	}
 
-	float Color::af() {
+	float Color::af() const {
 		return 1.0 * a / MAX;
 	}
 }
