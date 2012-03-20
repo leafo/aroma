@@ -10,7 +10,7 @@
 
     textarea {
       width: 400px;
-      height: 200px;
+      height: 300px;
     }
 
     body {
@@ -53,7 +53,9 @@
     <textarea id="input"></textarea>
     <div class="buttons">
       <span class="loading">Loading...</span>
-      <button id="run">Execute</button>
+
+      <select id="example_list"></select>
+      <button id="run" disabled="disabled">Execute</button>
     </div>
   </div>
 
@@ -61,9 +63,60 @@
 
   <script type="text/javascript" src="js/aroma.js"></script>
   <script type="text/javascript">
+     function get(url, callback) {
+       var req = new XMLHttpRequest;
+       req.onreadystatechange = function() {
+         if (req.readyState == 4) callback(req.responseText);
+       };
+       req.open("GET", url, true);
+       req.send(null);
+     }
+
     (function() {
       $ = function(name) { return document.getElementById(name); }
       A = function(thing) { return Array.prototype.slice.apply(thing) };
+
+      var example_dir = "examples/";
+      var example_list = $("example_list");
+      var default_example = "rectangle.lua";
+
+      function get_example_names(callback) {
+        get(example_dir, function(html) {
+          var fnames = html.match(/\b([\w._-]*?\.lua)\b/g);
+          var set = {};
+          callback(fnames.filter(function(name) {
+            return !set[name] && (set[name] = true);
+          }));
+        });
+      }
+
+      window.load_example = function load_example(name) {
+        get(example_dir + name, function(text) {
+          $("input").value = text;
+        });
+
+        A(example_list.querySelectorAll("option")).forEach(function(opt) {
+          if (opt.innerHTML == name) {
+            opt.selected = true;
+          }
+        });
+      }
+
+      get_example_names(function(names) {
+        names.forEach(function(fname) {
+          var n = document.createElement("option");
+          n.innerHTML = fname;
+          example_list.appendChild(n);
+        });
+
+        example_list.onchange = function() {
+          var name = this.value;
+          if (!name.match(/\.lua$/)) return;
+          load_example(name);
+        }
+
+        load_example(default_example);
+      });
 
       var output = $("output");
 
@@ -76,6 +129,7 @@
           A(document.querySelectorAll(".loading")).map(function(e) {
             e.style.display = "none";
           });
+          $("run").disabled = false;
         },
         std_out: function(str) {
           output.innerHTML += escape_html(str) + "\n";
@@ -85,22 +139,6 @@
             escape_html(str) + "</span>\n";
         }
       });
-
-      $("input").value = escape_html([
-        "local g = aroma.graphics",
-        "",
-        "local x, t = 0, 0",
-        "local tex = aroma.newImage('game/hi.png')",
-        "",
-        "function aroma.update(dt)",
-        "  t = t + dt*3",
-        "  x = (math.sin(t) - 1)/2",
-        "end",
-        "",
-        "function aroma.draw()",
-        "  g.rectangle(x,x,1,1)",
-        "end"
-      ].join("\n"));
 
       $("run").onclick = function() {
         var code = $("input").value;
