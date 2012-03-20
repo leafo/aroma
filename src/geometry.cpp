@@ -69,9 +69,20 @@ namespace aroma {
 	}
 
 
+	Point Point::operator*(const Mat4 & mat) const {
+		Point p = {0};
+
+		p.x = x * mat.data[0] + y * mat.data[4] + z * mat.data[8] + w * mat.data[12];
+		p.y = x * mat.data[1] + y * mat.data[5] + z * mat.data[9] + w * mat.data[13];
+		p.z = x * mat.data[2] + y * mat.data[6] + z * mat.data[10] + w * mat.data[14];
+		p.w = x * mat.data[3] + y * mat.data[7] + z * mat.data[11] + w * mat.data[15];
+
+		return p;
+	}
+
 	Point Point::from_array(double *values, int count) {
-		Point p = {};
-		switch(count) {
+		Point p;
+		switch (count) {
 			case 4: p.w = values[3];
 			case 3: p.z = values[2];
 			case 2: p.y = values[1];

@@ -1,6 +1,7 @@
 
 #pragma once
 #include "common.h"
+#include "matrix.h"
 
 namespace aroma {
 
@@ -41,6 +42,8 @@ namespace aroma {
 		Point dot(Point other);
 		Point subtract(Point other);
 		Point add(Point other);
+
+		Point operator*(const Mat4 & mat) const;
 
 		void print();
 
