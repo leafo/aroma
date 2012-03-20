@@ -129,23 +129,48 @@ namespace aroma {
 				}
 
 				if (lua_pcall(l, 0, 0, 0) != 0) {
-					log("%s\n", luaL_checkstring(l, -1));
+					err("%s\n", luaL_checkstring(l, -1));
 					return false;
 				}
 
 				if (!LuaBinding::bind_all()) return false;
 
 				lua_getglobal(l, "nacl");
-				lua_getfield(l, -1, "init");
+				lua_getfield(l, -1, "init_all");
 				if (!lua_isnil(l, -1)) {
 					push_self();
 					if (lua_pcall(l, 1, 0, 0) != 0) {
-						log("%s\n", luaL_checkstring(l, -1));
+						err("%s\n", luaL_checkstring(l, -1));
 						return false;
 					}
 				}
 
 				return true;
+			}
+
+			void bind_module(Bindable *b) {
+				LuaBinding::bind_module(b);
+
+				// run any lua initialization if it exists
+				int i = lua_gettop(l);
+				lua_getglobal(l, "nacl");
+				lua_getfield(l, -1, "init");
+				if (lua_istable(l, -1)) {
+					const char* module_name = b->module_name();
+					lua_getfield(l, -1, module_name);
+					if (!lua_isnil(l, -1)) {
+						push_self();
+						lua_getfield(l, -1, module_name);
+						push_self();
+						lua_remove(l, -3);
+
+						if (lua_pcall(l, 2, 0, 0) != 0) {
+							err("%s\n", luaL_checkstring(l, -1));
+						}
+					}
+				}
+
+				lua_settop(l, i);
 			}
 
 			bool handle_message(const pp::Var& var) {
@@ -158,7 +183,7 @@ namespace aroma {
 				push_var(l, var);
 
 				if (lua_pcall(l, 1, 0, 0) != 0) {
-					log("%s\n", luaL_checkstring(l, -1));
+					err("%s\n", luaL_checkstring(l, -1));
 					return false;
 				}
 

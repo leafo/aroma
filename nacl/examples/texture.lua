@@ -1,7 +1,7 @@
 local g = aroma.graphics
 
 local x, t = 0, 0
-local tex = aroma.newImage('game/hi.png')
+local tex = g.newImage('game/hi.png')
 
 function aroma.update(dt)
   t = t + dt*3

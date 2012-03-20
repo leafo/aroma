@@ -17,9 +17,8 @@ namespace aroma {
 		public:
 			LuaBinding();
 			lua_State* lua();
-			// void register_bindable(Bindable *b);
-			void bind_module(Bindable *b);
 
+			virtual void bind_module(Bindable *b);
 			virtual bool bind_all(); // set up the lua env
 
 			void push_self();

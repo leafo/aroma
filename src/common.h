@@ -49,6 +49,7 @@ typedef void(*AromaRegister)(lua_State *l);
 #define __strx(x) #x
 #define __str(x) __strx(x)
 #define log(...) fprintf(stderr, " [" __FILE__  ":" __str(__LINE__) "] \033[1;33m>>\033[0m " __VA_ARGS__)
+#define err(...) fprintf(stderr, " [" __FILE__  ":" __str(__LINE__) "] \033[1;31m>>\033[0m " __VA_ARGS__)
 
 // void stackDump(lua_State *L);
 void readIntArray(lua_State *l, int *array, int count);

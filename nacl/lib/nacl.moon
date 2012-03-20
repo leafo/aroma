@@ -97,21 +97,19 @@ nacl.handle_message = (msg) ->
     else
       error "Don't know how to handle message: " .. (msg[1] or msg)
 
--- TODO something like this
 nacl.init = {
-  graphics: (aroma) ->
+  graphics: =>
+    @newImage = (url) ->
+      thread = coroutine.running!
+      post_and_respond { "image", url }, (msg) ->
+        status, bytes, width, height = unpack msg
+        if status == "success"
+          coroutine.resume thread, nacl.image_from_byte_string bytes, width, height
+        else
+          async_print_err bytes
+
+      coroutine.yield "wait"
 }
 
-
-nacl.init = (aroma) ->
-  aroma.newImage = (url) ->
-    thread = coroutine.running!
-    post_and_respond { "image", url }, (msg) ->
-      status, bytes, width, height = unpack msg
-      if status == "success"
-        coroutine.resume thread, nacl.image_from_byte_string bytes, width, height
-      else
-        async_print_err bytes
-
-    coroutine.yield "wait"
+-- nacl.init_all = (aroma) -> -- called when aroma is first created
 
