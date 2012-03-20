@@ -80,7 +80,7 @@ namespace aroma {
 		int num_bytes = width*height*4;
 		byte* bytes = decode_byte_string(str, str_len, num_bytes);
 
-		Image i = Image::from_bytes(bytes, width, height, 4);
+		Image i = Image::from_bytes(bytes, width, height);
 		i.push(l);
 
 		delete bytes;

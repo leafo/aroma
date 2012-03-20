@@ -8,7 +8,11 @@ namespace aroma {
 		GLuint texid;
 		int width, height;
 
-		static Image from_bytes(byte* bytes, int w, int h, int channels);
+		void bind();
+
+		static Image from_bytes(const byte* bytes, int width, int height, GLenum
+				format = GL_RGBA, GLenum type = GL_UNSIGNED_BYTE);
+
 		static int _getWidth(lua_State *l);
 		static int _getHeight(lua_State *l);
 

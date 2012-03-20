@@ -3,10 +3,32 @@
 
 namespace aroma {
 
-	Image Image::from_bytes(byte* bytes, int w, int h, int channels) {
+	struct Pixel {
+		byte r, g, b, a;
+
+		Pixel() {}
+		Pixel(byte r, byte g, byte b) : r(r), g(g), b(b), a(255) { }
+
+		bool operator==(const Pixel &other) const {
+			return r == other.r &&g == other.g && b == other.b;
+		}
+	};
+
+	Image Image::from_bytes(const byte* bytes, int w, int h, GLenum format, GLenum type) {
 		Image img = {0};
 		img.width = w;
 		img.height = h;
+
+		glGenTextures(1, &img.texid);
+		glBindTexture(GL_TEXTURE_2D, img.texid);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, format, type, bytes);
+
 		return img;
 	}
 
