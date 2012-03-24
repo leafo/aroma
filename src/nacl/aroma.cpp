@@ -1,5 +1,5 @@
 
-#include "nacl.lua.h"
+#include "lib/nacl.lua.h"
 
 #include "nacl/aroma.h"
 #include "nacl/gl_context.h"
@@ -123,7 +123,7 @@ namespace aroma {
 
 				lua_settop(l, 0);
 
-				if (luaL_loadbuffer(l, (const char*)lib_nacl_lua, lib_nacl_lua_len, "nacl.lua") != 0) {
+				if (luaL_loadbuffer(l, (const char*)nacl_lua, nacl_lua_len, "nacl.lua") != 0) {
 					log("%s\n", luaL_checkstring(l, -1));
 					return false;
 				}

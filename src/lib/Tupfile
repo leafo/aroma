@@ -1,0 +1,5 @@
+.gitignore
+
+: foreach *.moon |> moonc %f |> %B.lua
+: foreach *.lua |> xxd -i %f > %f.h |> %f.h
+

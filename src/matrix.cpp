@@ -93,7 +93,7 @@ namespace aroma {
 
 	void MatrixStack::pop(Mat4 mat) {
 		if (matrices.size() == 1) {
-			err("matrix stack underflow");
+			err("matrix stack underflow\n");
 		} else {
 			matrices.pop();
 		}
