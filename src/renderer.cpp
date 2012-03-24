@@ -13,14 +13,9 @@ namespace aroma {
 		return buffer;
 	}
 
-	void Renderer::rect(float x1, float y1, float x2, float y2) {
-		// float colors[] = {
-		// 	1,1,1,
-		// 	1,1,1,
-		// 	1,1,1,
-		// 	1,1,1,
-		// };
-
+	void Renderer::img_rect(const Image* img, float x, float y, float r, float sx,
+			float sy, float ox, float oy)
+	{
 		float tex_coords[] = {
 			0,0,
 			1,0,
@@ -28,27 +23,25 @@ namespace aroma {
 			1,1
 		};
 
+		float x2 = x + img->width;
+		float y2 = y + img->height;
+
 		float verts[] = {
-			x1,y1,
-			x2,y1,
-			x1,y2,
+			x,y,
+			x2,y,
+			x,y2,
 			x2,y2
 		};
 
-		// GLuint buffs[2];
 		GLuint vert_buffer = make_float_buffer(verts, 8);
 		GLuint tex_buffer = make_float_buffer(tex_coords, 8);
 
+		default_shader->set_uniform("texturing", 1u);
+		img->bind();
+		default_shader->set_uniform("tex", 0u);
+
 		GLuint P = default_shader->attr_loc("P");
 		GLuint T = default_shader->attr_loc("T");
-
-		GLuint C = default_shader->uniform_loc("C");
-		GLuint tex = default_shader->uniform_loc("tex");
-
-		glUniform4f(C, current_color.rf(), current_color.gf(), current_color.bf(),
-				current_color.af());
-
-		glUniform1i(tex, 0); // default texture
 
 		glEnableVertexAttribArray(P);
 		glBindBuffer(GL_ARRAY_BUFFER, vert_buffer);
@@ -64,6 +57,33 @@ namespace aroma {
 
 		glDeleteBuffers(1, &vert_buffer);
 		glDeleteBuffers(1, &tex_buffer);
+	}
+
+	void Renderer::rect(float x1, float y1, float x2, float y2) {
+		float verts[] = {
+			x1,y1,
+			x2,y1,
+			x1,y2,
+			x2,y2
+		};
+
+		GLuint vert_buffer = make_float_buffer(verts, 8);
+
+		default_shader->set_uniform("texturing", 0u);
+
+		GLuint P = default_shader->attr_loc("P");
+
+		glDisableVertexAttribArray(default_shader->attr_loc("T"));
+
+		glEnableVertexAttribArray(P);
+		glBindBuffer(GL_ARRAY_BUFFER, vert_buffer);
+		glVertexAttribPointer(P, 2, GL_FLOAT, false, 0, 0);
+
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+		glDeleteBuffers(1, &vert_buffer);
 	}
 
 	Renderer::Renderer(GLContext* context, LuaBinding* binding) :
@@ -104,6 +124,7 @@ namespace aroma {
 
 		// load uniforms
 		default_shader->bind();
+		default_shader->set_uniform("C", current_color);
 		default_shader->set_uniform("PMatrix",
 				Mat4::ortho2d(0, context->width(), 0, context->height()));
 
@@ -162,6 +183,7 @@ namespace aroma {
 	void Renderer::bind_all(lua_State *l) {
 		set_new_func("setColor", _setColor);
 		set_new_func("rectangle", _rectangle);
+		set_new_func("draw", _draw);
 		set_new_func("setDefaultShader", _setDefaultShader);
 
 		set_new_func("newShader", Shader::_new);
@@ -183,13 +205,21 @@ namespace aroma {
 	// thing, x, y, r, sx, sy, ox, oy
 	int Renderer::_draw(lua_State *l) {
 		Renderer *self = upvalue_self(Renderer);
+		if (self->binding->is_type(1, "Image")) {
+			Image* img = getself(Image);
+			float x = lua_tonumber(l, 2);
+			float y = lua_tonumber(l, 3);
+			self->img_rect(img, x, y);
+		} else {
+			return luaL_error(l, "unknown value passed to draw");
+		}
 		// right now argument 1 can only be an image
 		return 0;
 	}
 
 	int Renderer::_setDefaultShader(lua_State *l) {
-		Renderer *self = upvalue_self(Renderer);
-		Shader *shader = getself(Shader);
+		Renderer* self = upvalue_self(Renderer);
+		Shader* shader = getself(Shader);
 		if (shader->link()) {
 			self->default_shader = shader;
 		}

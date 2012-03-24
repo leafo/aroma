@@ -59,5 +59,15 @@ namespace aroma {
 
 		return true;
 	}
+
+	// check if the ith item on the stack has metatable called type
+	bool LuaBinding::is_type(int i, const char* type) {
+		int top = lua_gettop(l);
+		lua_getmetatable(l, i);
+		lua_getfield(l, LUA_REGISTRYINDEX, type);
+		bool eq  = (bool)lua_rawequal(l, -1, -2);
+		lua_settop(l, top);
+		return eq;
+	}
 }
 

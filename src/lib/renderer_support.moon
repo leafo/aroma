@@ -14,7 +14,7 @@ vert = [[
   varying mediump vec2 vTex;
 
   void main(void) {
-    vTex = T;
+    if (texturing) vTex = T;
     vColor = C;
     gl_Position = PMatrix * vec4(P, 0.0, 1.0);
   }
@@ -22,13 +22,17 @@ vert = [[
 
 frag = [[
   uniform sampler2D tex;
+  uniform bool texturing;
 
   varying lowp vec4 vColor;
   varying mediump vec2 vTex;
 
   void main(void) {
-    gl_FragColor = vColor;
-    // gl_FragColor = texture2D(tex, vTex);
+    if (texturing) {
+      gl_FragColor = texture2D(tex, vTex);
+    } else {
+      gl_FragColor = vColor;
+    }
   }
 ]]
 

@@ -32,6 +32,10 @@ namespace aroma {
 		return img;
 	}
 
+	void Image::bind() const {
+		glBindTexture(GL_TEXTURE_2D, texid);
+	}
+
 	int Image::_getWidth(lua_State *l) {
 		lua_pushnumber(l, getself(Image)->width);
 		return 1;
@@ -42,7 +46,7 @@ namespace aroma {
 		return 1;
 	}
 
-	void Image::push(lua_State *l) {
+	void Image::push(lua_State *l) const {
 		Image *self = newuserdata(Image);
 
 		if (luaL_newmetatable(l, "Image")) {

@@ -25,7 +25,8 @@ public:
 	void set_uniform(const char* name, const Mat4 & matrix);
 	void set_uniform(const char* name, const Color & color);
 	void set_uniform(const char* name, const float num);
-	void set_uniform(const char* name, const int num);
+	void set_uniform(const char* name, const GLuint num);
+	// void set_uniform(const char* name, const bool flag);
 
 	static int _new(lua_State *l);
 

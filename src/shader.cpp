@@ -208,7 +208,7 @@ void Shader::set_uniform(const char* name, const float num) {
 	glUniform1f(loc, num);
 }
 
-void Shader::set_uniform(const char* name, const int num) {
+void Shader::set_uniform(const char* name, const GLuint num) {
 	GLuint loc = glGetUniformLocation(program, name);
 	glUniform1i(loc, num);
 }

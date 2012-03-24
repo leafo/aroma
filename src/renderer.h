@@ -3,6 +3,7 @@
 #include "lua_binding.h"
 #include "geometry.h"
 #include "shader.h"
+#include "nacl/image.h"
 
 namespace aroma {
 	class Renderer : public Bindable {
@@ -26,6 +27,9 @@ namespace aroma {
 			void reshape(const int w, const int h);
 
 			void rect(float x1, float y1, float x2, float y2);
+			void img_rect(const Image* i, float x, float y, float r=0, float sx=1,
+					float sy=1, float ox=0, float oy=0);
+
 			void texturing(bool enabled);
 
 			void bind_all(lua_State *l);
