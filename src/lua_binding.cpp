@@ -45,5 +45,19 @@ namespace aroma {
 		lua_setfield(l, -2, name);
 		lua_settop(l, i - 1);
 	}
+
+	bool LuaBinding::load_and_run(void* buffer, size_t buff_len, const char* name) {
+		if (luaL_loadbuffer(l, (const char*)buffer, buff_len, name) != 0) {
+			err("%s\n", luaL_checkstring(l, -1));
+			return false;
+		}
+
+		if (lua_pcall(l, 0, 0, 0) != 0) {
+			err("%s\n", luaL_checkstring(l, -1));
+			return false;
+		}
+
+		return true;
+	}
 }
 

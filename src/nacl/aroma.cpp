@@ -123,13 +123,7 @@ namespace aroma {
 
 				lua_settop(l, 0);
 
-				if (luaL_loadbuffer(l, (const char*)nacl_lua, nacl_lua_len, "nacl.lua") != 0) {
-					log("%s\n", luaL_checkstring(l, -1));
-					return false;
-				}
-
-				if (lua_pcall(l, 0, 0, 0) != 0) {
-					err("%s\n", luaL_checkstring(l, -1));
+				if (!load_and_run(nacl_lua, nacl_lua_len, "nacl.lua")) {
 					return false;
 				}
 

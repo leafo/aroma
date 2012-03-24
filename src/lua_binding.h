@@ -21,6 +21,7 @@ namespace aroma {
 			virtual void bind_module(Bindable *b);
 			virtual bool bind_all(); // set up the lua env
 
+			bool load_and_run(void* buffer, size_t buff_len, const char* name);
 			void push_self();
 	};
 }

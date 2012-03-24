@@ -34,9 +34,8 @@ Shader::Shader() : linked(false) {
 	program = glCreateProgram();
 }
 
-/**
- * load shader source form arguments
- */
+// create a new shader
+// aroma.graphics.newShader([vertex_src], frag_src);
 int Shader::_new(lua_State *l) {
 	int argc = lua_gettop(l);
 

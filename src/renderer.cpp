@@ -1,5 +1,6 @@
 
 #include "renderer.h"
+#include "lib/renderer_support.lua.h"
 
 namespace aroma {
 
@@ -68,7 +69,8 @@ namespace aroma {
 	Renderer::Renderer(GLContext* context, LuaBinding* binding) :
 		context(context),
 		binding(binding),
-		default_shader(NULL)
+		default_shader(NULL),
+		_texturing(false)
 	{
 		context->set_renderer(this);
 		binding->bind_module(this);
@@ -78,35 +80,18 @@ namespace aroma {
 		log("init renderer\n");
 		glClearColor(0.1, 0.1, 0.1, 1.0);
 
-		const char *vertex_src =
-			"uniform vec4 C;\n" // color
-			"attribute vec2 P;\n" // vertex
-			"attribute vec2 T;\n" // texture coords
-			"\n"
-			"varying lowp vec4 vColor;\n"
-			"varying vec2 vTex;\n"
-			"void main(void) {\n"
-			"  vTex = T;\n"
-			"  vColor = C;\n"
-			"  gl_Position = vec4(P, 0.0, 1.0);\n"
-			"}\n"
-			;
+		if (!binding->load_and_run(
+					renderer_support_lua,
+					renderer_support_lua_len,
+					"renderer_support.lua"))
+		{
+			return false;
+		}
 
-		const char *fragment_src =
-			"uniform sampler2D tex;\n"
-			"varying lowp vec4 vColor;\n"
-			"varying mediump vec2 vTex;\n"
-			"\n"
-			"void main(void) {\n"
-			// "  gl_FragColor = vColor;\n"
-			"  gl_FragColor = texture2D(tex, vTex);\n"
-			"}\n"
-			;
-
-		default_shader = new Shader();
-		default_shader->add(GL_VERTEX_SHADER, vertex_src);
-		default_shader->add(GL_FRAGMENT_SHADER, fragment_src);
-		default_shader->link();
+		if (!default_shader) {
+			err("you forgot to create a default shader!\n");
+			return false;
+		}
 
 		last_time = context->get_time();
 		return true;
@@ -114,7 +99,13 @@ namespace aroma {
 
 	void Renderer::draw(double dt) {
 		glClear(GL_COLOR_BUFFER_BIT);
+
+		if (!default_shader) return;
+
+		// load uniforms
 		default_shader->bind();
+		default_shader->set_uniform("PMatrix",
+				Mat4::ortho2d(0, context->width(), 0, context->height()));
 
 		lua_State* l = binding->lua();
 
@@ -163,10 +154,17 @@ namespace aroma {
 		return "graphics";
 	}
 
+	void Renderer::texturing(bool enabled) {
+		_texturing = enabled;
+	}
+
 	// write all the funcs into the current table
 	void Renderer::bind_all(lua_State *l) {
 		set_new_func("setColor", _setColor);
 		set_new_func("rectangle", _rectangle);
+		set_new_func("setDefaultShader", _setDefaultShader);
+
+		set_new_func("newShader", Shader::_new);
 	}
 
 	int Renderer::_setColor(lua_State *l) {
@@ -181,4 +179,21 @@ namespace aroma {
 		self->rect(r.x, r.y, r.x + r.w, r.y + r.h);
 		return 0;
 	}
+
+	// thing, x, y, r, sx, sy, ox, oy
+	int Renderer::_draw(lua_State *l) {
+		Renderer *self = upvalue_self(Renderer);
+		// right now argument 1 can only be an image
+		return 0;
+	}
+
+	int Renderer::_setDefaultShader(lua_State *l) {
+		Renderer *self = upvalue_self(Renderer);
+		Shader *shader = getself(Shader);
+		if (shader->link()) {
+			self->default_shader = shader;
+		}
+		return 0;
+	}
+
 }

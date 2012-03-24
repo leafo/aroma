@@ -35,7 +35,6 @@ public:
 
 	static int _frag(lua_State *l);
 	static int _vert(lua_State *l);
-
 };
 
 }

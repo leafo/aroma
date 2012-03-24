@@ -70,7 +70,7 @@ async_scope = setmetatable {
 
 nacl.handle_message = (msg) ->
   error "unknown msg: " .. tostring(msg) if type(msg) != "string"
-  -- print ">>", msg
+  print ">>", msg
 
   msg = cjson.decode msg
 

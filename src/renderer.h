@@ -12,6 +12,8 @@ namespace aroma {
 			Shader* default_shader;
 			double last_time;
 
+			bool _texturing;
+
 		public:
 			Color current_color;
 
@@ -24,11 +26,16 @@ namespace aroma {
 			void reshape(const int w, const int h);
 
 			void rect(float x1, float y1, float x2, float y2);
+			void texturing(bool enabled);
 
 			void bind_all(lua_State *l);
 			const char* module_name();
 
+
 			static int _setColor(lua_State *l);
 			static int _rectangle(lua_State *l);
+			static int _draw(lua_State *l);
+
+			static int _setDefaultShader(lua_State *l);
 	};
 }
