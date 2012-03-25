@@ -237,6 +237,13 @@ namespace aroma {
 		if (shader->link()) {
 			self->default_shader = shader;
 		}
+
+		// store the shader in the aroma entry in the registry
+		// so it's not garbage collected
+		luaL_newmetatable(l, "aroma");
+		lua_pushvalue(l, 1);
+		lua_setfield(l, -2, "default_shader");
+
 		return 0;
 	}
 

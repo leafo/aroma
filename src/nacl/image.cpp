@@ -36,6 +36,13 @@ namespace aroma {
 		glBindTexture(GL_TEXTURE_2D, texid);
 	}
 
+	int Image::_gc(lua_State *l) {
+		Image *self = newuserdata(Image);
+		glDeleteTextures(1, &self->texid);
+		self->texid = -1;
+		return 0;
+	}
+
 	int Image::_getWidth(lua_State *l) {
 		lua_pushnumber(l, getself(Image)->width);
 		return 1;
@@ -55,6 +62,8 @@ namespace aroma {
 			setfunction("getHeight", _getHeight);
 
 			lua_setfield(l, -2, "__index");
+
+			setfunction("__gc", _gc);
 		}
 
 		lua_setmetatable(l, -2);

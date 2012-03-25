@@ -26,9 +26,9 @@ public:
 	void set_uniform(const char* name, const Color & color);
 	void set_uniform(const char* name, const float num);
 	void set_uniform(const char* name, const GLuint num);
-	// void set_uniform(const char* name, const bool flag);
 
 	static int _new(lua_State *l);
+	static int _gc(lua_State *l);
 
 	static int _bind(lua_State *l);
 	static int _release(lua_State *l);

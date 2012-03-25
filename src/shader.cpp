@@ -68,11 +68,22 @@ int Shader::_new(lua_State *l) {
 		setfunction("frag", Shader::_frag);
 
 		lua_setfield(l, -2, "__index");
+
+		setfunction("__gc", Shader::_gc);
 	}
 	lua_setmetatable(l, -2);
 
 	return 1;
 }
+
+
+int Shader::_gc(lua_State *l) {
+	Shader *self = getself(Shader);
+	glDeleteProgram(self->program);
+	self->program = -1;
+	return 0;
+}
+
 
 int Shader::_frag(lua_State *l) {
 	Shader *self = getself(Shader);
@@ -114,7 +125,6 @@ int Shader::_release(lua_State *l) {
 	glUseProgram(0);
 	return 0;
 }
-
 
 /**
  * set some uniform values
