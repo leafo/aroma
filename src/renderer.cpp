@@ -34,10 +34,11 @@ namespace aroma {
 		};
 
 		bool pop_mat = false;
-		if (r != 0) {
+		if (r != 0 || ox != 0 || oy != 0 || sx != 1 || sy != 1) {
 			projection.push(Mat4::translate(x, y)); // back
-			projection.mul(Mat4::rotate2d(r));
-			projection.mul(Mat4::translate(-x, -y)); // to origin
+			if (r != 0) projection.mul(Mat4::rotate2d(r));
+			if (sx != 1 || sy != 1) projection.mul(Mat4::scale(sx, sy));
+			projection.mul(Mat4::translate(-(x + ox), -(y+ oy))); // to origin
 			projection.apply(default_shader);
 			pop_mat = true;
 		}
@@ -215,19 +216,27 @@ namespace aroma {
 	// thing, x, y, r, sx, sy, ox, oy
 	int Renderer::_draw(lua_State *l) {
 		Renderer *self = upvalue_self(Renderer);
+
+		int nargs = lua_gettop(l);
+		float x = lua_tonumber(l, 2);
+		float y = lua_tonumber(l, 3);
+
+		nargs = nargs > 8 ? 8 : nargs;
+
+		float r = 0, sx = 1, sy = 1, ox = 0, oy = 0;
+		switch (nargs) {
+			case 8: if (!lua_isnil(l, 8)) oy = lua_tonumber(l, 8);
+			case 7: if (!lua_isnil(l, 7)) ox = lua_tonumber(l, 7);
+			case 6: if (!lua_isnil(l, 6)) sy = lua_tonumber(l, 6);
+			case 5: if (!lua_isnil(l, 5)) sx = lua_tonumber(l, 5);
+			case 4: if (!lua_isnil(l, 4)) r = lua_tonumber(l, 4);
+		}
+
 		if (self->binding->is_type(1, "Image")) {
-			int nargs = lua_gettop(l);
-
-			Image* img = getself(Image);
-			float x = lua_tonumber(l, 2);
-			float y = lua_tonumber(l, 3);
-			float r = nargs > 3 ? lua_tonumber(l, 4) : 0;
-
-			self->img_rect(img, x, y, r);
+			self->img_rect(getself(Image), x, y, r, sx, sy, ox, oy);
 		} else {
 			return luaL_error(l, "unknown value passed to draw");
 		}
-		// right now argument 1 can only be an image
 		return 0;
 	}
 
