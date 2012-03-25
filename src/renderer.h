@@ -6,6 +6,21 @@
 #include "nacl/image.h"
 
 namespace aroma {
+	struct Quad {
+		double x1, y1, x2, y2;
+		static int _new(lua_State* l);
+	};
+
+	// the transformation used by draw and drawq
+	struct Transform {
+		double x, y, r, sx, sy, ox, oy;
+
+		bool needs_mat() const;
+		void push(MatrixStack& proj) const;
+
+		static Transform read(lua_State* l, int i);
+	};
+
 	class Renderer : public Bindable {
 		protected:
 			GLContext* context;
@@ -29,8 +44,7 @@ namespace aroma {
 
 			void rect(float x1, float y1, float x2, float y2);
 
-			void img_rect(const Image* i, float x, float y, float r=0, float sx=1,
-					float sy=1, float ox=0, float oy=0);
+			void img_rect(const Image* i, const Transform& t);
 
 			void texturing(bool enabled);
 

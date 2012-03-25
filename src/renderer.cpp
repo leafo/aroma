@@ -13,9 +13,7 @@ namespace aroma {
 		return buffer;
 	}
 
-	void Renderer::img_rect(const Image* img, float x, float y, float r, float sx,
-			float sy, float ox, float oy)
-	{
+	void Renderer::img_rect(const Image* img, const Transform& t) {
 		float tex_coords[] = {
 			0,0,
 			1,0,
@@ -23,22 +21,19 @@ namespace aroma {
 			1,1
 		};
 
-		float x2 = x + img->width;
-		float y2 = y + img->height;
+		float x2 = t.x + img->width;
+		float y2 = t.y + img->height;
 
 		float verts[] = {
-			x,y,
-			x2,y,
-			x,y2,
-			x2,y2
+			t.x, t.y,
+			x2,  t.y,
+			t.x, y2,
+			x2,  y2
 		};
 
 		bool pop_mat = false;
-		if (r != 0 || ox != 0 || oy != 0 || sx != 1 || sy != 1) {
-			projection.push(Mat4::translate(x, y)); // back
-			if (r != 0) projection.mul(Mat4::rotate2d(r));
-			if (sx != 1 || sy != 1) projection.mul(Mat4::scale(sx, sy));
-			projection.mul(Mat4::translate(-(x + ox), -(y+ oy))); // to origin
+		if (t.needs_mat()) {
+			t.push(projection);
 			pop_mat = true;
 		}
 
@@ -74,10 +69,10 @@ namespace aroma {
 
 	void Renderer::rect(float x1, float y1, float x2, float y2) {
 		float verts[] = {
-			x1,y1,
-			x2,y1,
-			x1,y2,
-			x2,y2
+			x1, y1,
+			x2, y1,
+			x1, y2,
+			x2, y2
 		};
 
 		default_shader->set_uniform("C", current_color);
@@ -206,6 +201,8 @@ namespace aroma {
 		set_new_func("scale", _scale);
 		set_new_func("rotate", _rotate);
 
+		set_new_func("newQuad", Quad::_new);
+
 		set_new_func("newShader", Shader::_new);
 	}
 
@@ -226,28 +223,18 @@ namespace aroma {
 	int Renderer::_draw(lua_State *l) {
 		Renderer *self = upvalue_self(Renderer);
 
-		int nargs = lua_gettop(l);
-		float x = lua_tonumber(l, 2);
-		float y = lua_tonumber(l, 3);
-
-		nargs = nargs > 8 ? 8 : nargs;
-
-		float r = 0, sx = 1, sy = 1, ox = 0, oy = 0;
-		switch (nargs) {
-			case 8: if (!lua_isnil(l, 8)) oy = lua_tonumber(l, 8);
-			case 7: if (!lua_isnil(l, 7)) ox = lua_tonumber(l, 7);
-			case 6: if (!lua_isnil(l, 6)) sy = lua_tonumber(l, 6);
-			case 5: if (!lua_isnil(l, 5)) sx = lua_tonumber(l, 5);
-			case 4: if (!lua_isnil(l, 4)) r = lua_tonumber(l, 4);
-		}
+		Transform t = Transform::read(l, 2);
 
 		if (self->binding->is_type(1, "Image")) {
-			self->img_rect(getself(Image), x, y, r, sx, sy, ox, oy);
+			self->img_rect(getself(Image), t);
 		} else {
 			return luaL_error(l, "unknown value passed to draw");
 		}
 		return 0;
 	}
+
+	// int Renderer::
+
 
 	int Renderer::_setDefaultShader(lua_State *l) {
 		Renderer* self = upvalue_self(Renderer);
@@ -291,6 +278,72 @@ namespace aroma {
 		double theta = luaL_checknumber(l, 1);
 		upvalue_self(Renderer)->projection.mul(Mat4::rotate2d(theta));
 		return 0;
+	}
+
+	int Quad::_new(lua_State* l) {
+		Quad q;
+
+		double x = luaL_checknumber(l, 1);
+		double y = luaL_checknumber(l, 2);
+		double w = luaL_checknumber(l, 3);
+		double h = luaL_checknumber(l, 4);
+
+		double sw = luaL_checknumber(l, 5);
+		double sh = luaL_checknumber(l, 6);
+
+		if (sw <= 0 || sh <= 0) {
+			return luaL_error(l, "Reference width and height must be greater than 0");
+		}
+
+		q.x1 = x / sw;
+		q.y1 = y / sw;
+
+		q.x2 = (x + w) / sw;
+		q.y2 = (y + h) / sw;
+
+		*newuserdata(Quad) = q;
+
+		if (luaL_newmetatable(l, "Quad")) {
+			lua_newtable(l);
+			lua_setfield(l, -2, "__index");
+		}
+
+		return 1;
+	}
+
+
+	// used for draw and drawq
+	Transform Transform::read(lua_State* l, int i) {
+		int nargs = lua_gettop(l);
+		int max_i = i + 6; // reads 7 items
+
+		Transform t = { 0, 0, 0, 1, 1, 0, 0 };
+
+		t.x = lua_tonumber(l, i);
+		t.y = lua_tonumber(l, i + 1);
+
+		nargs = nargs > max_i ? max_i : nargs;
+
+		switch (nargs - i) {
+			case 6: if (!lua_isnil(l, i + 6)) t.oy = lua_tonumber(l, i + 6);
+			case 5: if (!lua_isnil(l, i + 5)) t.ox = lua_tonumber(l, i + 5);
+			case 4: if (!lua_isnil(l, i + 4)) t.sy = lua_tonumber(l, i + 4);
+			case 3: if (!lua_isnil(l, i + 3)) t.sx = lua_tonumber(l, i + 3);
+			case 2: if (!lua_isnil(l, i + 2)) t.r =  lua_tonumber(l, i + 2);
+		}
+
+		return t;
+	}
+
+	bool Transform::needs_mat() const {
+		return r != 0 || ox != 0 || oy != 0 || sx != 1 || sy != 1;
+	}
+
+	void Transform::push(MatrixStack& proj) const {
+		proj.push(Mat4::translate(x, y)); // back
+		if (r != 0) proj.mul(Mat4::rotate2d(r));
+		if (sx != 1 || sy != 1) proj.mul(Mat4::scale(sx, sy));
+		proj.mul(Mat4::translate(-(x + ox), -(y+ oy))); // to origin
 	}
 
 }
