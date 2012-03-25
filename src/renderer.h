@@ -42,6 +42,12 @@ namespace aroma {
 			static int _rectangle(lua_State *l);
 			static int _draw(lua_State *l);
 
+			static int _push(lua_State* l);
+			static int _pop(lua_State* l);
+			static int _translate(lua_State* l);
+			static int _scale(lua_State* l);
+			static int _rotate(lua_State* l);
+
 			static int _setDefaultShader(lua_State *l);
 	};
 }

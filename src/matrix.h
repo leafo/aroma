@@ -32,6 +32,7 @@ namespace aroma {
 
 			void reset(Mat4 mat);
 			void push(Mat4 mat);
+			void push();
 			void set(Mat4 mat);
 			void mul(Mat4 mat);
 

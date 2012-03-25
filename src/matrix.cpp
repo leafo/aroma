@@ -100,8 +100,11 @@ namespace aroma {
 	}
 
 	void MatrixStack::push(Mat4 mat) {
-		// matrices.push(current() * mat);
 		matrices.push(mat * current());
+	}
+
+	void MatrixStack::push() {
+		matrices.push(current());
 	}
 
 	void MatrixStack::set(Mat4 mat) {

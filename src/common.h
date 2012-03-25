@@ -42,7 +42,7 @@ typedef void(*AromaRegister)(lua_State *l);
 	lua_pushcclosure(l, func, 1);\
 	lua_setfield(l, -2, name)
 
-#define upvalue_self(type) (type*)lua_touserdata(l, lua_upvalueindex(1))
+#define upvalue_self(type) ((type*)lua_touserdata(l, lua_upvalueindex(1)))
 
 #define $(val) #val ": " << val << " "
 

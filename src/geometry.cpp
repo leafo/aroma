@@ -102,7 +102,7 @@ namespace aroma {
 		return 0;
 	}
 
-	// read either two numbers from table, or 2 integers
+	// read either two numbers from table, or 2 arguments from top of stack
 	Point Point::pop(lua_State *l) {
 		pop_tuple(l, 2);
 		Point p = { pool[0], pool[1], 0, 0};

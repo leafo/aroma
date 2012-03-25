@@ -39,9 +39,11 @@ namespace aroma {
 			if (r != 0) projection.mul(Mat4::rotate2d(r));
 			if (sx != 1 || sy != 1) projection.mul(Mat4::scale(sx, sy));
 			projection.mul(Mat4::translate(-(x + ox), -(y+ oy))); // to origin
-			projection.apply(default_shader);
 			pop_mat = true;
 		}
+
+		default_shader->set_uniform("C", current_color);
+		projection.apply(default_shader);
 
 		GLuint vert_buffer = make_float_buffer(verts, 8);
 		GLuint tex_buffer = make_float_buffer(tex_coords, 8);
@@ -77,6 +79,9 @@ namespace aroma {
 			x1,y2,
 			x2,y2
 		};
+
+		default_shader->set_uniform("C", current_color);
+		projection.apply(default_shader);
 
 		GLuint vert_buffer = make_float_buffer(verts, 8);
 
@@ -135,8 +140,6 @@ namespace aroma {
 
 		// load uniforms
 		default_shader->bind();
-		default_shader->set_uniform("C", current_color);
-		default_shader->set_uniform("PMatrix", projection.current());
 
 		lua_State* l = binding->lua();
 
@@ -197,6 +200,12 @@ namespace aroma {
 		set_new_func("draw", _draw);
 		set_new_func("setDefaultShader", _setDefaultShader);
 
+		set_new_func("push", _push);
+		set_new_func("pop", _pop);
+		set_new_func("translate", _translate);
+		set_new_func("scale", _scale);
+		set_new_func("rotate", _rotate);
+
 		set_new_func("newShader", Shader::_new);
 	}
 
@@ -253,6 +262,34 @@ namespace aroma {
 		lua_pushvalue(l, 1);
 		lua_setfield(l, -2, "default_shader");
 
+		return 0;
+	}
+
+	int Renderer::_push(lua_State* l) {
+		upvalue_self(Renderer)->projection.push();
+		return 0;
+	}
+
+	int Renderer::_pop(lua_State* l) {
+		upvalue_self(Renderer)->projection.pop();
+		return 0;
+	}
+
+	int Renderer::_translate(lua_State* l) {
+		Point p = Point::pop(l);
+		upvalue_self(Renderer)->projection.mul(Mat4::translate(p.x, p.y));
+		return 0;
+	}
+
+	int Renderer::_scale(lua_State* l) {
+		Point p = Point::pop(l);
+		upvalue_self(Renderer)->projection.mul(Mat4::scale(p.x, p.y));
+		return 0;
+	}
+
+	int Renderer::_rotate(lua_State* l) {
+		double theta = luaL_checknumber(l, 1);
+		upvalue_self(Renderer)->projection.mul(Mat4::rotate2d(theta));
 		return 0;
 	}
 
