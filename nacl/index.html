@@ -4,6 +4,10 @@
   <meta charset="UTF-8">
   <title>hi</title>
   <style type="text/css">
+    body {
+      font-family: sans-serif;
+    }
+
     embed {
       border: 4px dashed #666;
     }
@@ -18,6 +22,12 @@
       background: #eee;
     }
 
+    #quick_list li {
+      text-decoration: underline;
+      cursor: pointer;
+      color: #333;
+    }
+
     .editor, .game, .box {
       vertical-align: top;
       background: white;
@@ -25,6 +35,10 @@
       margin: 0px 8px;
       display: inline-block;
       box-shadow: 0px 0px 8px rgba(0,0,0, 0.3);
+    }
+
+    .list {
+      display: inline-block;
     }
 
     .editor .buttons {
@@ -59,6 +73,11 @@
     </div>
   </div>
 
+  <div class="list">
+    <ul id="quick_list">
+    </ul>
+  </div>
+
   <pre id="output"></pre>
 
   <script type="text/javascript" src="js/aroma.js"></script>
@@ -78,6 +97,7 @@
 
       var example_dir = "examples/";
       var example_list = $("example_list");
+      var quick_list = $("quick_list");
       var default_example = "rectangle.lua";
 
       function get_example_names(callback) {
@@ -90,9 +110,10 @@
         });
       }
 
-      window.load_example = function load_example(name) {
+      window.load_example = function load_example(name, callback) {
         get(example_dir + name, function(text) {
           $("input").value = text;
+          if (callback) callback();
         });
 
         A(example_list.querySelectorAll("option")).forEach(function(opt) {
@@ -116,6 +137,17 @@
         }
 
         load_example(default_example);
+
+        // create quick list
+        names.forEach(function(name) {
+          quick_list.innerHTML += "<li>" + name + "</li>";
+        });
+
+        quick_list.onclick = function(e) {
+          load_example(e.target.innerHTML, function() {
+            if (!$("run").disabled) run();
+          });
+        }
       });
 
       var output = $("output");
@@ -140,11 +172,13 @@
         }
       });
 
-      $("run").onclick = function() {
+      function run() {
         var code = $("input").value;
         output.innerHTML = "";
         game.execute(code);
       }
+
+      $("run").onclick = run;
     })();
   </script>
 </body>

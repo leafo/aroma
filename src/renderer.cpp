@@ -33,6 +33,15 @@ namespace aroma {
 			x2,y2
 		};
 
+		bool pop_mat = false;
+		if (r != 0) {
+			projection.push(Mat4::translate(x, y)); // back
+			projection.mul(Mat4::rotate2d(r));
+			projection.mul(Mat4::translate(-x, -y)); // to origin
+			projection.apply(default_shader);
+			pop_mat = true;
+		}
+
 		GLuint vert_buffer = make_float_buffer(verts, 8);
 		GLuint tex_buffer = make_float_buffer(tex_coords, 8);
 
@@ -57,6 +66,7 @@ namespace aroma {
 
 		glDeleteBuffers(1, &vert_buffer);
 		glDeleteBuffers(1, &tex_buffer);
+		if (pop_mat) projection.pop();
 	}
 
 	void Renderer::rect(float x1, float y1, float x2, float y2) {
@@ -125,8 +135,7 @@ namespace aroma {
 		// load uniforms
 		default_shader->bind();
 		default_shader->set_uniform("C", current_color);
-		default_shader->set_uniform("PMatrix",
-				Mat4::ortho2d(0, context->width(), 0, context->height()));
+		default_shader->set_uniform("PMatrix", projection.current());
 
 		lua_State* l = binding->lua();
 
@@ -156,6 +165,7 @@ namespace aroma {
 		context->make_current();
 
 		glViewport(0, 0, context->width(), context->height());
+		projection.reset(Mat4::ortho2d(0, context->width(), 0, context->height()));
 
 		double time = context->get_time();
 		draw(time - last_time);
@@ -206,10 +216,14 @@ namespace aroma {
 	int Renderer::_draw(lua_State *l) {
 		Renderer *self = upvalue_self(Renderer);
 		if (self->binding->is_type(1, "Image")) {
+			int nargs = lua_gettop(l);
+
 			Image* img = getself(Image);
 			float x = lua_tonumber(l, 2);
 			float y = lua_tonumber(l, 3);
-			self->img_rect(img, x, y);
+			float r = nargs > 3 ? lua_tonumber(l, 4) : 0;
+
+			self->img_rect(img, x, y, r);
 		} else {
 			return luaL_error(l, "unknown value passed to draw");
 		}

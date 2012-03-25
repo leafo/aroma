@@ -1,13 +1,15 @@
 
+#include <cmath>
 #include "matrix.h"
+#include "shader.h"
 
 namespace aroma {
 
 	Mat4 Mat4::identity() {
 		Mat4 out = { {
-			1, 0, 0, 0, 
-			0, 1, 0, 0, 
-			0, 0, 1, 0, 
+			1, 0, 0, 0,
+			0, 1, 0, 0,
+			0, 0, 1, 0,
 			0, 0, 0, 1,
 		} };
 		return out;
@@ -22,9 +24,9 @@ namespace aroma {
 		float tz = - (far + near) / (far - near);
 
 		Mat4 out = {
-			2.0/(right - left), 0, 0, 0, 
-			0, 2.0/(top - bottom), 0, 0, 
-			0, 0, -2.0/(far - near), 0, 
+			2.0/(right - left), 0, 0, 0,
+			0, 2.0/(top - bottom), 0, 0,
+			0, 0, -2.0/(far - near), 0,
 			tx, ty, tz, 1,
 		};
 		return out;
@@ -32,9 +34,9 @@ namespace aroma {
 
 	Mat4 Mat4::scale(float sx, float sy, float sz) {
 		Mat4 out = { {
-			sx, 0, 0, 0, 
-			0, sy, 0, 0, 
-			0, 0, sz, 0, 
+			sx, 0, 0, 0,
+			0, sy, 0, 0,
+			0, 0, sz, 0,
 			0, 0, 0, 1,
 		} };
 		return out;
@@ -43,10 +45,21 @@ namespace aroma {
 
 	Mat4 Mat4::translate(float tx, float ty, float tz) {
 		Mat4 out = { {
-			1, 0, 0, 0, 
-			0, 1, 0, 0, 
-			0, 0, 1, 0, 
+			1, 0, 0, 0,
+			0, 1, 0, 0,
+			0, 0, 1, 0,
 			tx, ty, tz, 1,
+		} };
+		return out;
+	}
+
+	Mat4 Mat4::rotate2d(float d) {
+		float theta = (d / 180) * M_PI;
+		Mat4 out = { {
+			cos(theta), sin(theta), 0, 0,
+			-sin(theta), cos(theta), 0, 0,
+			0, 0, 1, 0,
+			0, 0, 0, 1,
 		} };
 		return out;
 	}
@@ -88,10 +101,26 @@ namespace aroma {
 	}
 
 	void MatrixStack::push(Mat4 mat) {
-		matrices.push(current() * mat);
+		// matrices.push(current() * mat);
+		matrices.push(mat * current());
 	}
 
-	void MatrixStack::pop(Mat4 mat) {
+	void MatrixStack::set(Mat4 mat) {
+		matrices.push(mat);
+	}
+
+	void MatrixStack::mul(Mat4 mat) {
+		Mat4 top = current();
+		pop();
+		matrices.push(mat * top);
+	}
+
+	void MatrixStack::reset(Mat4 mat) {
+		matrices = mstack();
+		matrices.push(mat);
+	}
+
+	void MatrixStack::pop() {
 		if (matrices.size() == 1) {
 			err("matrix stack underflow\n");
 		} else {
@@ -103,6 +132,8 @@ namespace aroma {
 		return matrices.top();
 	}
 
-
+	void MatrixStack::apply(Shader *shader, const char* name) {
+		shader->set_uniform(name, current());
+	}
 }
 

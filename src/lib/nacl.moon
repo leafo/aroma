@@ -97,14 +97,20 @@ nacl.handle_message = (msg) ->
     else
       error "Don't know how to handle message: " .. (msg[1] or msg)
 
+img_cache = {}
+
 nacl.init = {
   graphics: =>
     @newImage = (url) ->
+      return img_cache[url] if img_cache[url]
+
       thread = coroutine.running!
       post_and_respond { "image", url }, (msg) ->
         status, bytes, width, height = unpack msg
         if status == "success"
-          coroutine.resume thread, nacl.image_from_byte_string bytes, width, height
+          img = nacl.image_from_byte_string bytes, width, height
+          img_cache[url] = img
+          coroutine.resume thread, img
         else
           async_print_err bytes
 
