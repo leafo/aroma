@@ -29,7 +29,6 @@ namespace aroma {
 
 			void rect(float x1, float y1, float x2, float y2);
 
-			// r: rotation angle in degrees
 			void img_rect(const Image* i, float x, float y, float r=0, float sx=1,
 					float sy=1, float ox=0, float oy=0);
 

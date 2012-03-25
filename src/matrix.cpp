@@ -53,8 +53,7 @@ namespace aroma {
 		return out;
 	}
 
-	Mat4 Mat4::rotate2d(float d) {
-		float theta = (d / 180) * M_PI;
+	Mat4 Mat4::rotate2d(float theta) {
 		Mat4 out = { {
 			cos(theta), sin(theta), 0, 0,
 			-sin(theta), cos(theta), 0, 0,
