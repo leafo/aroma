@@ -14,15 +14,15 @@ namespace aroma {
 	}
 
 	void Renderer::img_rect(const Image* img, const Transform& t) {
-		float tex_coords[] = {
-			0,0,
-			1,0,
-			0,1,
-			1,1
-		};
+		Quad q = {0,0, 1,1};
+		img_rect_blit(img, q, t);
+	}
 
-		float x2 = t.x + img->width;
-		float y2 = t.y + img->height;
+	void Renderer::img_rect_blit(const Image* img, const Quad& q, const Transform& t) {
+		QuadCoords tex_coords = q.quad_coords();
+
+		float x2 = t.x + img->width * q.width();
+		float y2 = t.y + img->height * q.height();
 
 		float verts[] = {
 			t.x, t.y,
@@ -41,7 +41,7 @@ namespace aroma {
 		projection.apply(default_shader);
 
 		GLuint vert_buffer = make_float_buffer(verts, 8);
-		GLuint tex_buffer = make_float_buffer(tex_coords, 8);
+		GLuint tex_buffer = make_float_buffer((float*)&tex_coords.coords, 8);
 
 		default_shader->set_uniform("texturing", 1u);
 		img->bind();
@@ -193,6 +193,7 @@ namespace aroma {
 		set_new_func("setColor", _setColor);
 		set_new_func("rectangle", _rectangle);
 		set_new_func("draw", _draw);
+		set_new_func("drawq", _drawq);
 		set_new_func("setDefaultShader", _setDefaultShader);
 
 		set_new_func("push", _push);
@@ -207,13 +208,13 @@ namespace aroma {
 	}
 
 	int Renderer::_setColor(lua_State *l) {
-		Renderer *self = upvalue_self(Renderer);
+		Renderer* self = upvalue_self(Renderer);
 		self->current_color = Color::pop(l);
 		return 0;
 	}
 
 	int Renderer::_rectangle(lua_State *l) {
-		Renderer *self = upvalue_self(Renderer);
+		Renderer* self = upvalue_self(Renderer);
 		Rect r = Rect::pop(l);
 		self->rect(r.x, r.y, r.x + r.w, r.y + r.h);
 		return 0;
@@ -221,8 +222,7 @@ namespace aroma {
 
 	// thing, x, y, r, sx, sy, ox, oy
 	int Renderer::_draw(lua_State *l) {
-		Renderer *self = upvalue_self(Renderer);
-
+		Renderer* self = upvalue_self(Renderer);
 		Transform t = Transform::read(l, 2);
 
 		if (self->binding->is_type(1, "Image")) {
@@ -233,8 +233,18 @@ namespace aroma {
 		return 0;
 	}
 
-	// int Renderer::
+	int Renderer::_drawq(lua_State *l) {
+		Renderer* self = upvalue_self(Renderer);
+		Quad* q = getselfi(Quad, 2);
+		Transform t = Transform::read(l, 3);
 
+		if (self->binding->is_type(1, "Image")) {
+			self->img_rect_blit(getself(Image), *q, t);
+		} else {
+			return luaL_error(l, "unknown value passed to drawq");
+		}
+		return 0;
+	}
 
 	int Renderer::_setDefaultShader(lua_State *l) {
 		Renderer* self = upvalue_self(Renderer);
@@ -308,9 +318,28 @@ namespace aroma {
 			lua_setfield(l, -2, "__index");
 		}
 
+		lua_setmetatable(l, -2);
+
 		return 1;
 	}
 
+	double Quad::width() const {
+		return x2 - x1;
+	}
+
+	double Quad::height() const {
+		return y2 - y1;
+	}
+
+	QuadCoords Quad::quad_coords() const {
+		QuadCoords out = {{
+			x1, y1,
+			x2, y1,
+			x1, y2,
+			x2, y2
+		}};
+		return out;
+	}
 
 	// used for draw and drawq
 	Transform Transform::read(lua_State* l, int i) {

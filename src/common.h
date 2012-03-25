@@ -37,6 +37,7 @@ typedef void(*AromaRegister)(lua_State *l);
 
 #define newuserdata(type) ((type*)lua_newuserdata(l, sizeof(type)))
 #define getself(type) ((type*)luaL_checkudata(l, 1, #type))
+#define getselfi(type, i) ((type*)luaL_checkudata(l, i, #type))
 
 #define set_new_func(name, func) lua_pushlightuserdata(l, this);\
 	lua_pushcclosure(l, func, 1);\

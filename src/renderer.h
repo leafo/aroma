@@ -6,8 +6,17 @@
 #include "nacl/image.h"
 
 namespace aroma {
+	struct QuadCoords {
+		GLfloat coords[8];
+	};
+
 	struct Quad {
 		double x1, y1, x2, y2;
+
+		double width() const;
+		double height() const;
+
+		QuadCoords quad_coords() const;
 		static int _new(lua_State* l);
 	};
 
@@ -45,6 +54,7 @@ namespace aroma {
 			void rect(float x1, float y1, float x2, float y2);
 
 			void img_rect(const Image* i, const Transform& t);
+			void img_rect_blit(const Image* i, const Quad& q, const Transform& t);
 
 			void texturing(bool enabled);
 
@@ -55,6 +65,7 @@ namespace aroma {
 			static int _setColor(lua_State *l);
 			static int _rectangle(lua_State *l);
 			static int _draw(lua_State *l);
+			static int _drawq(lua_State *l);
 
 			static int _push(lua_State* l);
 			static int _pop(lua_State* l);
