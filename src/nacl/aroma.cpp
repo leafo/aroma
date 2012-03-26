@@ -3,9 +3,11 @@
 
 #include "nacl/aroma.h"
 #include "nacl/gl_context.h"
+#include "nacl/image.h"
+
 #include "lua_binding.h"
 #include "renderer.h"
-#include "nacl/image.h"
+#include "input.h"
 
 namespace aroma {
 
@@ -189,11 +191,17 @@ namespace aroma {
 		protected:
 			NaClLuaBinding* binding;
 			Renderer* renderer;
+			InputHandler* input_handler;
 
 		public:
 			AromaInstance(PP_Instance instance) :
 				pp::Instance(instance),
-				renderer(NULL) { }
+				renderer(NULL)
+			{
+				if (PP_OK != RequestInputEvents(PP_INPUTEVENT_CLASS_MOUSE | PP_INPUTEVENT_CLASS_KEYBOARD)) {
+					log("Could not register input events\n");
+				}
+			}
 
 			bool Init(uint32_t argc, const char** argn, const char** argv) {
 				binding = new NaClLuaBinding(this);
@@ -202,6 +210,7 @@ namespace aroma {
 					return false;
 				}
 
+				input_handler = new InputHandler(binding);
 				PostMessage(pp::Var("Lua loaded"));
 				return true;
 			}
@@ -210,6 +219,24 @@ namespace aroma {
 
 			void HandleMessage(const pp::Var& var) {
 				binding->handle_message(var);
+			}
+
+			bool HandleInputEvent(const pp::InputEvent& event) {
+				if (event.GetType() == PP_INPUTEVENT_TYPE_MOUSEUP) {
+					return true;
+				}
+
+				if (event.GetType() == PP_INPUTEVENT_TYPE_KEYDOWN) {
+					pp::KeyboardInputEvent key = pp::KeyboardInputEvent(event);
+					input_handler->key_down(key.GetKeyCode());
+					return true;
+				} else if (event.GetType() == PP_INPUTEVENT_TYPE_KEYUP) {
+					pp::KeyboardInputEvent key = pp::KeyboardInputEvent(event);
+					input_handler->key_up(key.GetKeyCode());
+					return true;
+				}
+
+				return false;
 			}
 
 			void DidChangeView(const pp::Rect& pos, const pp::Rect& clip) {

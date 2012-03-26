@@ -3,7 +3,7 @@
 #include "renderer.h"
 
 namespace aroma {
-	static const char* aroma_name = "aroma";
+	static const char* AROMA_NAME = "aroma";
 
 	LuaBinding::LuaBinding() {
 		l = luaL_newstate();
@@ -13,13 +13,13 @@ namespace aroma {
 
 	bool LuaBinding::bind_all() {
 		lua_newtable(l);
-		lua_setglobal(l, aroma_name);
+		lua_setglobal(l, AROMA_NAME);
 
 		return true;
 	}
 
 	void LuaBinding::bind_module(Bindable *b) {
-		lua_getglobal(l, aroma_name);
+		lua_getglobal(l, AROMA_NAME);
 		lua_newtable(l);
 		int i = lua_gettop(l);
 		b->bind_all(l);
@@ -32,7 +32,7 @@ namespace aroma {
 	}
 
 	void LuaBinding::push_self() {
-		lua_getglobal(l, aroma_name);
+		lua_getglobal(l, AROMA_NAME);
 	}
 
 	// takes value on top of stack and puts it in package.loaded[name]

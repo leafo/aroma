@@ -9,6 +9,8 @@
 
 #include "ppapi/cpp/rect.h"
 
+#include "ppapi/cpp/input_event.h"
+
 extern "C" {
 #include "lua.h"
 #include "lualib.h"

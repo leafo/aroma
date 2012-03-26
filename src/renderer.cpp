@@ -144,6 +144,7 @@ namespace aroma {
 		lua_getfield(l, -1, "update");
 		if (!lua_isnil(l, -1)) {
 			lua_pushnumber(l, dt);
+			// TODO pcall this
 			lua_call(l, 1, 0);
 		} else {
 			lua_pop(l, 1); // pop nil
@@ -151,6 +152,7 @@ namespace aroma {
 
 		lua_getfield(l, -1, "draw");
 		if (!lua_isnil(l, -1)) {
+			// TODO pcall this
 			lua_call(l, 0, 0);
 		} else {
 			lua_pop(l, 1); // pop nil
