@@ -61,6 +61,7 @@ namespace aroma {
 			case 8: return "backspace";
 			case 9: return "tab";
 
+			case 13: return "return";
 			case 16: return "lshift";
 			case 17: return "lctrl";
 			case 18: return "lalt";

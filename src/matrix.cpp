@@ -112,9 +112,13 @@ namespace aroma {
 	}
 
 	void MatrixStack::mul(Mat4 mat) {
-		Mat4 top = current();
-		pop();
-		matrices.push(mat * top);
+		Mat4 top = mat * current();
+		if (matrices.size() == 1) {
+			reset(top);
+		} else {
+			pop();
+			matrices.push(top);
+		}
 	}
 
 	void MatrixStack::reset(Mat4 mat) {

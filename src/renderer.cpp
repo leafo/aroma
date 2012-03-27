@@ -193,6 +193,7 @@ namespace aroma {
 	// write all the funcs into the current table
 	void Renderer::bind_all(lua_State *l) {
 		set_new_func("setColor", _setColor);
+		set_new_func("getColor", _getColor);
 		set_new_func("rectangle", _rectangle);
 		set_new_func("draw", _draw);
 		set_new_func("drawq", _drawq);
@@ -213,6 +214,10 @@ namespace aroma {
 		Renderer* self = upvalue_self(Renderer);
 		self->current_color = Color::pop(l);
 		return 0;
+	}
+
+	int Renderer::_getColor(lua_State *l) {
+		return upvalue_self(Renderer)->current_color.push(l);
 	}
 
 	int Renderer::_rectangle(lua_State *l) {

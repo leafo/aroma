@@ -22,8 +22,9 @@ namespace aroma {
 		float bf() const;
 		float af() const;
 
+		int push(lua_State* l);
+
 		static Color pop(lua_State *l);
-		static void Push(lua_State *l, byte r, byte g, byte b);
 
 		static byte MAX;
 

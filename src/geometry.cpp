@@ -187,5 +187,14 @@ namespace aroma {
 	float Color::af() const {
 		return 1.0 * a / MAX;
 	}
+
+	int Color::push(lua_State* l) {
+		lua_pushnumber(l, r);
+		lua_pushnumber(l, g);
+		lua_pushnumber(l, b);
+		lua_pushnumber(l, a);
+		return 4;
+	}
+
 }
 
