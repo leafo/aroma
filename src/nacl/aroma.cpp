@@ -198,7 +198,7 @@ namespace aroma {
 				lua_getfield(thread, -1, "traceback");
 				lua_pushthread(thread);
 				lua_pushvalue(thread, top);
-				lua_call(thread, 2, 1);
+				lua_call(thread, 2, 1); // :)
 
 				lua_getglobal(l, "nacl");
 				lua_getfield(l, -1, "show_error");

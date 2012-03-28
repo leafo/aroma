@@ -2,8 +2,8 @@
 #include "input.h"
 
 namespace aroma {
-	static const char* KEY_RELEASED_FN = "keyreleased";
-	static const char* KEY_PRESSED_FN = "keypressed";
+	static const char* KEY_RELEASED_EVENT = "keyreleased";
+	static const char* KEY_PRESSED_EVENT = "keypressed";
 
 	InputHandler::InputHandler(LuaBinding* binding) : binding(binding) {
 		for (int i = 32; i < 127; i++) {
@@ -14,36 +14,31 @@ namespace aroma {
 		binding->bind_module(this);
 	}
 
-	void InputHandler::dispatch_key_event(const char* func, int key) {
+	void InputHandler::dispatch_key_event(const char* event_name, int key) {
 		lua_State* l = binding->lua();
 		int top = lua_gettop(l);
 		binding->push_self();
 
 		const char* name = key_name(key);
-		if (func == KEY_RELEASED_FN) {
+		if (event_name == KEY_RELEASED_EVENT) {
 			keys_down.erase(name);
-		} else if (func == KEY_PRESSED_FN) {
+		} else if (event_name == KEY_PRESSED_EVENT) {
 			keys_down.insert(name);
 		}
 
-		lua_getfield(l, -1, func);
-		if (!lua_isnil(l, -1)) {
-			lua_pushstring(l, name);
-			lua_pushnumber(l, key);
-			lua_call(l, 2, 0);
-		} else {
-			lua_pop(l, 1); // pop nil
-		}
+		lua_pushstring(l, name);
+		lua_pushnumber(l, key);
+		binding->send_event(event_name, 2);
 
 		lua_settop(l, top);
 	}
 
 	void InputHandler::key_down(int key) {
-		dispatch_key_event(KEY_PRESSED_FN, key);
+		dispatch_key_event(KEY_PRESSED_EVENT, key);
 	}
 
 	void InputHandler::key_up(int key) {
-		dispatch_key_event(KEY_RELEASED_FN, key);
+		dispatch_key_event(KEY_RELEASED_EVENT, key);
 	}
 
 	bool InputHandler::is_key_down(const char* name) {
