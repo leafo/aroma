@@ -95,28 +95,37 @@ nacl.handle_message = (msg) ->
 
 img_cache = {}
 
+image_data_from_url = (url) ->
+  msg = request_response { "image", url }
+  status, bytes, width, height = unpack msg
+  if status == "success"
+    nacl.image_data_from_byte_string bytes, width, height
+  else
+    error bytes
+
 nacl.init = {
   graphics: =>
-    @newImage = (url) ->
+    old_new_image = @newImage
+    @newImage = (url, ...) ->
+      return old_new_image url, ... if type(url) != "string"
       return img_cache[url] if img_cache[url]
 
-      msg = request_response { "image", url}
-      status, bytes, width, height = unpack msg
-      if status == "success"
-        img = nacl.image_from_byte_string bytes, width, height
-        img_cache[url] = img
-        img
-      else
-        async_err bytes
+      img_data = image_data_from_url url
+      img = old_new_image img_data
+      img_cache[url] = img
+      img
+
+  image: =>
+    old_new_image_data = @newImageData
+    @newImageData = (...) ->
+      args = {...}
+      old_new_image_data ... if type(args[1]) != "string"
+      image_data_from_url args[1]
 }
 
 functions_to_reset = {"draw", "update", "keypressed", "keyreleased"}
 
 nacl.init_all = (aroma) ->
-  -- aroma.image = {
-  --   newImageData
-  -- }
-
   aroma.run = (setup_fn) ->
     blank = ->
     aroma[key] = blank for key in *functions_to_reset

@@ -86,13 +86,8 @@ namespace aroma {
 		Image i = from_bytes(d->bytes, d->width, d->height, IMAGE_DATA_FORMAT,
 				IMAGE_DATA_TYPE);
 
-		i.push(l);
-		return 1;
-	}
-
-	// TODO merge this into new
-	void Image::push(lua_State *l) const {
 		Image *self = newuserdata(Image);
+		*self = i;
 
 		if (luaL_newmetatable(l, "Image")) {
 			lua_newtable(l); // the index table
@@ -107,7 +102,7 @@ namespace aroma {
 
 		lua_setmetatable(l, -2);
 
-		*self = *this;
+		return 1;
 	}
 
 	ImageData::ImageData(int width, int height, byte* bytes)
@@ -169,6 +164,8 @@ namespace aroma {
 
 			setfunction("__gc", _gc);
 		}
+
+		lua_setmetatable(l, -2);
 
 		return 1;
 	}

@@ -22,10 +22,6 @@ namespace aroma {
 		static int _setWrap(lua_State* l);
 
 		static int _new(lua_State* l);
-
-		// only push once, or add refernce counting so gc doesn't remove texture
-		// being used by other images
-		void push(lua_State* l) const;
 	};
 
 	struct ImageData {

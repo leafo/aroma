@@ -73,7 +73,7 @@ namespace aroma {
 		return 1;
 	}
 
-	int _image_from_byte_string(lua_State *l) {
+	int _image_data_from_byte_string(lua_State *l) {
 		size_t str_len;
 		const char* str = lua_tolstring(l, 1, &str_len);
 		int width = luaL_checknumber(l, 2);
@@ -82,11 +82,7 @@ namespace aroma {
 		int num_bytes = width*height*4;
 		byte* bytes = decode_byte_string(str, str_len, num_bytes);
 
-		Image i = Image::from_bytes(bytes, width, height);
-		i.push(l);
-
-		delete bytes;
-		return 1;
+		return ImageData(width, height, bytes).push(l);
 	}
 
 	int _set_game_thread(lua_State *l);
@@ -123,7 +119,7 @@ namespace aroma {
 				bind_function("post_message", _post_message);
 				bind_function("sleep", _sleep);
 				bind_function("time_ticks", _time_ticks);
-				bind_function("image_from_byte_string", _image_from_byte_string);
+				bind_function("image_data_from_byte_string", _image_data_from_byte_string);
 				bind_function("set_game_thread", _set_game_thread);
 
 				lua_settop(l, 0);
