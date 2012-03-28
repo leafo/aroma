@@ -65,6 +65,8 @@ namespace aroma {
 			static int _setColor(lua_State *l);
 			static int _getColor(lua_State *l);
 
+			static int _reset(lua_State *l);
+
 			static int _rectangle(lua_State *l);
 			static int _draw(lua_State *l);
 			static int _drawq(lua_State *l);

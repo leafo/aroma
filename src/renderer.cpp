@@ -180,6 +180,8 @@ namespace aroma {
 	void Renderer::bind_all(lua_State *l) {
 		set_new_func("setColor", _setColor);
 		set_new_func("getColor", _getColor);
+		set_new_func("reset", _reset);
+
 		set_new_func("rectangle", _rectangle);
 		set_new_func("draw", _draw);
 		set_new_func("drawq", _drawq);
@@ -280,6 +282,12 @@ namespace aroma {
 	int Renderer::_rotate(lua_State* l) {
 		double theta = luaL_checknumber(l, 1);
 		upvalue_self(Renderer)->projection.mul(Mat4::rotate2d(theta));
+		return 0;
+	}
+
+	int Renderer::_reset(lua_State *l) {
+		Renderer* r = upvalue_self(Renderer);
+		r->current_color = Color(255,255,255);
 		return 0;
 	}
 

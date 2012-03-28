@@ -13,7 +13,6 @@ printer = (channel="std_out") ->
 
 async_print = printer"std_out"
 async_err = printer"std_err"
--- async_err debug.traceback msg, 2
 
 msg_id = 0
 msg_responses = {}
@@ -117,6 +116,7 @@ nacl.init_all = (aroma) ->
   aroma.run = (setup_fn) ->
     blank = ->
     aroma[key] = blank for key in *functions_to_reset
+    aroma.graphics.reset!
 
     setup_fn!
 
