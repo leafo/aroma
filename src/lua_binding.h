@@ -12,7 +12,9 @@ namespace aroma {
 	class LuaBinding {
 		protected:
 			lua_State* l;
+			lua_State* game_thread;
 			void preload_library(const char* name);
+			virtual void handle_error(lua_State *thread, const char* name);
 
 		public:
 			LuaBinding();
@@ -21,10 +23,17 @@ namespace aroma {
 			virtual void bind_module(Bindable *b);
 			virtual bool bind_all(); // set up the lua env
 
-			bool is_type(int i, const char* type);
+			bool is_type(lua_State* l, int i, const char* type);
+
+			void set_game_thread(lua_State* thread);
+
+			// pops nargs from top and send event to name on game_thread
+			void send_event(const char* name, int nargs);
 
 			bool load_and_run(void* buffer, size_t buff_len, const char* name);
 			void push_self();
 	};
+
+	void stack_dump(lua_State *L);
 }
 

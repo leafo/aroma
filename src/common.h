@@ -56,9 +56,6 @@ typedef void(*AromaRegister)(lua_State *l);
 void readIntArray(lua_State *l, int *array, int count);
 void readArray(lua_State *l, double *array, int count);
 
-// got this from someplace on lua mailing list
-void stackDump(lua_State *L);
-
 namespace aroma {
 	extern const char *aroma_current_dir;
 }

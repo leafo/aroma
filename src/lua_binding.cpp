@@ -5,7 +5,7 @@
 namespace aroma {
 	static const char* AROMA_NAME = "aroma";
 
-	LuaBinding::LuaBinding() {
+	LuaBinding::LuaBinding() : game_thread(NULL) {
 		l = luaL_newstate();
 		luaL_openlibs(l);
 		log("created a lua\n");
@@ -46,6 +46,31 @@ namespace aroma {
 		lua_settop(l, i - 1);
 	}
 
+	void LuaBinding::set_game_thread(lua_State* thread) {
+		game_thread = thread;
+	}
+
+	void LuaBinding::send_event(const char* name, int nargs) {
+		if (!game_thread) return;
+
+		lua_pushstring(game_thread, name);
+		lua_xmove(l, game_thread, nargs);
+		int status = lua_resume(game_thread, nargs + 1);
+
+		if (status != 0 && status != LUA_YIELD) {
+			handle_error(game_thread, name);
+			game_thread = NULL;
+			return;
+		}
+
+		lua_settop(game_thread, 0); // don't care!
+	}
+
+	void LuaBinding::handle_error(lua_State *thread, const char* name) {
+		err("event `%s` failed:\n", name);
+		stack_dump(thread);
+	}
+
 	bool LuaBinding::load_and_run(void* buffer, size_t buff_len, const char* name) {
 		if (luaL_loadbuffer(l, (const char*)buffer, buff_len, name) != 0) {
 			err("%s\n", luaL_checkstring(l, -1));
@@ -61,7 +86,7 @@ namespace aroma {
 	}
 
 	// check if the ith item on the stack has metatable called type
-	bool LuaBinding::is_type(int i, const char* type) {
+	bool LuaBinding::is_type(lua_State* l, int i, const char* type) {
 		int top = lua_gettop(l);
 		lua_getmetatable(l, i);
 		lua_getfield(l, LUA_REGISTRYINDEX, type);
@@ -69,5 +94,37 @@ namespace aroma {
 		lua_settop(l, top);
 		return eq;
 	}
+
+
+	// got this someplace off lua wiki/mailing list
+	void stack_dump(lua_State *L) {
+		int i;
+		int top = lua_gettop(L);
+		for (i = 1; i <= top; i++) {  /* repeat for each level */
+			printf("%d: ", i);
+			int t = lua_type(L, i);
+			switch (t) {
+				case LUA_TSTRING:  /* strings */
+					printf("`%s'", lua_tostring(L, i));
+					break;
+
+				case LUA_TBOOLEAN:  /* booleans */
+					printf(lua_toboolean(L, i) ? "true" : "false");
+					break;
+
+				case LUA_TNUMBER:  /* numbers */
+					printf("%g", lua_tonumber(L, i));
+					break;
+
+				default:  /* other values */
+					printf("%s", lua_typename(L, t));
+					break;
+
+			}
+			printf("\n");  /* put a separator */
+		}
+		printf("\n");  /* end the listing */
+	}
+
 }
 

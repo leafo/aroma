@@ -138,27 +138,13 @@ namespace aroma {
 
 		lua_State* l = binding->lua();
 
-		int i = lua_gettop(l);
-		binding->push_self();
+		int top = lua_gettop(l);
 
-		lua_getfield(l, -1, "update");
-		if (!lua_isnil(l, -1)) {
-			lua_pushnumber(l, dt);
-			// TODO pcall this
-			lua_call(l, 1, 0);
-		} else {
-			lua_pop(l, 1); // pop nil
-		}
+		lua_pushnumber(l, dt);
+		binding->send_event("update", 1);
+		binding->send_event("draw", 0);
 
-		lua_getfield(l, -1, "draw");
-		if (!lua_isnil(l, -1)) {
-			// TODO pcall this
-			lua_call(l, 0, 0);
-		} else {
-			lua_pop(l, 1); // pop nil
-		}
-
-		lua_settop(l, i);
+		lua_settop(l, top);
 	}
 
 	// called for every frame
@@ -210,17 +196,17 @@ namespace aroma {
 		set_new_func("newShader", Shader::_new);
 	}
 
-	int Renderer::_setColor(lua_State *l) {
+	int Renderer::_setColor(lua_State* l) {
 		Renderer* self = upvalue_self(Renderer);
 		self->current_color = Color::pop(l);
 		return 0;
 	}
 
-	int Renderer::_getColor(lua_State *l) {
+	int Renderer::_getColor(lua_State* l) {
 		return upvalue_self(Renderer)->current_color.push(l);
 	}
 
-	int Renderer::_rectangle(lua_State *l) {
+	int Renderer::_rectangle(lua_State* l) {
 		Renderer* self = upvalue_self(Renderer);
 		Rect r = Rect::pop(l);
 		self->rect(r.x, r.y, r.x + r.w, r.y + r.h);
@@ -228,11 +214,11 @@ namespace aroma {
 	}
 
 	// thing, x, y, r, sx, sy, ox, oy
-	int Renderer::_draw(lua_State *l) {
+	int Renderer::_draw(lua_State* l) {
 		Renderer* self = upvalue_self(Renderer);
 		Transform t = Transform::read(l, 2);
 
-		if (self->binding->is_type(1, "Image")) {
+		if (self->binding->is_type(l, 1, "Image")) {
 			self->img_rect(getself(Image), t);
 		} else {
 			return luaL_error(l, "unknown value passed to draw");
@@ -245,7 +231,7 @@ namespace aroma {
 		Quad* q = getselfi(Quad, 2);
 		Transform t = Transform::read(l, 3);
 
-		if (self->binding->is_type(1, "Image")) {
+		if (self->binding->is_type(l, 1, "Image")) {
 			self->img_rect_blit(getself(Image), *q, t);
 		} else {
 			return luaL_error(l, "unknown value passed to drawq");

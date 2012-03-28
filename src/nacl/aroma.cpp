@@ -57,7 +57,7 @@ namespace aroma {
 	}
 
 	int _post_message(lua_State *l) {
-		pp::Instance *instance  = (pp::Instance*)lua_touserdata(l, lua_upvalueindex(1));
+		pp::Instance *instance  = upvalue_self(pp::Instance);
 		instance->PostMessage(to_var(l, 1));
 		return 0;
 	}
@@ -88,6 +88,8 @@ namespace aroma {
 		delete bytes;
 		return 1;
 	}
+
+	int _set_game_thread(lua_State *l);
 
 	void sleep(float seconds) {
 		long nanoseconds = (long)(seconds * 1000000000);
@@ -122,6 +124,7 @@ namespace aroma {
 				bind_function("sleep", _sleep);
 				bind_function("time_ticks", _time_ticks);
 				bind_function("image_from_byte_string", _image_from_byte_string);
+				bind_function("set_game_thread", _set_game_thread);
 
 				lua_settop(l, 0);
 
@@ -185,6 +188,19 @@ namespace aroma {
 
 				return true;
 			}
+
+			void handle_error(lua_State *thread, const char* name) {
+				lua_getglobal(l, "nacl");
+				lua_getfield(l, -1, "show_error");
+				if (!lua_isnil(l, -1)) {
+					lua_xmove(thread, l, 1);
+
+					if (lua_pcall(l, 1, 0, 0) != 0) {
+						err("%s\n", luaL_checkstring(l, -1));
+						return;
+					}
+				}
+			}
 	};
 
 	class AromaInstance : public pp::Instance {
@@ -201,6 +217,10 @@ namespace aroma {
 				if (PP_OK != RequestInputEvents(PP_INPUTEVENT_CLASS_MOUSE | PP_INPUTEVENT_CLASS_KEYBOARD)) {
 					log("Could not register input events\n");
 				}
+			}
+
+			LuaBinding* get_binding() {
+				return binding;
 			}
 
 			bool Init(uint32_t argc, const char** argn, const char** argv) {
@@ -264,6 +284,12 @@ namespace aroma {
 				return new AromaInstance(instance);
 			}
 	};
+
+	int _set_game_thread(lua_State *l) {
+		upvalue_self(AromaInstance)->get_binding()->set_game_thread(lua_tothread(l, 1));
+		return 0;
+	}
+
 }
 
 namespace pp {
