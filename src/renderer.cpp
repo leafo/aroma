@@ -200,7 +200,7 @@ namespace aroma {
 
 	int Renderer::_setColor(lua_State* l) {
 		Renderer* self = upvalue_self(Renderer);
-		self->current_color = Color::pop(l);
+		self->current_color = Color::read(l, 1);
 		return 0;
 	}
 

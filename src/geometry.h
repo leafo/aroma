@@ -24,7 +24,9 @@ namespace aroma {
 
 		int push(lua_State* l);
 
-		static Color pop(lua_State *l);
+		static Color pop(lua_State* l);
+
+		static Color read(lua_State* l, int i);
 
 		static byte MAX;
 

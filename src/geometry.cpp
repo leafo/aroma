@@ -26,6 +26,27 @@ namespace aroma {
 		lua_pop(l, popc);
 	}
 
+	// attempts to read n nums
+	int read_tuple(lua_State* l, int i, int max_items) {
+		if (max_items > POOL_SIZE) max_items = POOL_SIZE;
+		int top = lua_gettop(l);
+
+		if (lua_istable(l, i)) {
+			return luaL_error(l, "reading tuple from table unsupported");
+		} else {
+			if (i + max_items - 1 > top) {
+				max_items = top - i + 1;
+			}
+		}
+
+		for (int k = 0; k < max_items; k++) {
+			pool[k] = luaL_checknumber(l, i + k);
+		}
+
+		lua_settop(l, top);
+		return max_items;
+	}
+
 	// create a new rectangle from a point
 	Rect Rect::from_point(Point p, double _w, double _h) {
 		Rect r;
@@ -156,6 +177,18 @@ namespace aroma {
 
 		pop_tuple(l, 3);
 		return Color(pool[0], pool[1], pool[2]);
+	}
+
+	Color Color::read(lua_State* l, int i) {
+		int count = read_tuple(l, i, 4);
+
+		if (count < 3) {
+			luaL_error(l, "expeting at least 3 numbers, got %d", count);
+		}
+
+		Color c(pool[0], pool[1], pool[2]);
+		if (count > 3) c.a = pool[3];
+		return c;
 	}
 
 	void Color::bind() {
