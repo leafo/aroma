@@ -1,7 +1,11 @@
 
 #include "nacl/image.h"
+#include "geometry.h"
 
 namespace aroma {
+
+	const GLenum IMAGE_DATA_FORMAT = GL_RGBA;
+	const GLenum IMAGE_DATA_TYPE = GL_UNSIGNED_BYTE;
 
 	GLenum get_wrap_mode(const char* name) {
 		if (strcmp(name, "repeat") == 0) {
@@ -11,17 +15,6 @@ namespace aroma {
 		}
 		return -1;
 	}
-
-	struct Pixel {
-		byte r, g, b, a;
-
-		Pixel() {}
-		Pixel(byte r, byte g, byte b) : r(r), g(g), b(b), a(255) { }
-
-		bool operator==(const Pixel &other) const {
-			return r == other.r &&g == other.g && b == other.b;
-		}
-	};
 
 	Image Image::from_bytes(const byte* bytes, int w, int h, GLenum format, GLenum type) {
 		Image img = {0};
@@ -87,6 +80,17 @@ namespace aroma {
 		return 0;
 	}
 
+	// take image data as first arguments
+	int Image::_new(lua_State* l) {
+		ImageData* d = getself(ImageData);
+		Image i = from_bytes(d->bytes, d->width, d->height, IMAGE_DATA_FORMAT,
+				IMAGE_DATA_TYPE);
+
+		i.push(l);
+		return 1;
+	}
+
+	// TODO merge this into new
 	void Image::push(lua_State *l) const {
 		Image *self = newuserdata(Image);
 
@@ -106,5 +110,76 @@ namespace aroma {
 		*self = *this;
 	}
 
+	ImageData::ImageData(int width, int height, byte* bytes)
+		: width(width), height(height), bytes(bytes) { }
+
+	int ImageData::_gc(lua_State* l) {
+		delete getself(ImageData)->bytes;
+		return 0;
+	}
+
+	int ImageData::_getWidth(lua_State* l) {
+		lua_pushnumber(l, getself(ImageData)->width);
+		return 1;
+	}
+
+	int ImageData::_getHeight(lua_State* l) {
+		lua_pushnumber(l, getself(ImageData)->height);
+		return 1;
+	}
+
+	int ImageData::_getPixel(lua_State* l) {
+		ImageData* d = getself(ImageData);
+		Color *pixels = (Color*)d->bytes;
+
+		Point p = Point::read2d(l, 2);
+		return pixels[(int)p.y * d->width + (int)p.x].push(l);
+	}
+
+	int ImageData::_setPixel(lua_State* l) {
+		ImageData* d = getself(ImageData);
+		Point p = Point::read2d(l, 2);
+		Color c = Color::read(l, 4);
+
+		Color *pixels = (Color*)d->bytes;
+		pixels[(int)p.y * d->width + (int)p.x] = c;
+		return 0;
+	}
+
+	int ImageData::_new(lua_State* l) {
+		Point p = Point::read2d(l, 1);
+		int x = p.x;
+		int y = p.y;
+
+		return ImageData(x, y, new byte[x*y*4]).push(l);
+	}
+
+	int ImageData::push(lua_State* l) const {
+		ImageData* d = newuserdata(ImageData);
+		*d = *this;
+
+		if (luaL_newmetatable(l, "ImageData")) {
+			lua_newtable(l); // the index table
+			setfunction("getWidth", _getWidth);
+			setfunction("getHeight", _getHeight);
+			setfunction("getPixel", _getPixel);
+			setfunction("setPixel", _setPixel);
+
+			lua_setfield(l, -2, "__index");
+
+			setfunction("__gc", _gc);
+		}
+
+		return 1;
+	}
+
+
+	const char* ImageModule::module_name() {
+		return "image";
+	}
+
+	void ImageModule::bind_all(lua_State* l) {
+		setfunction("newImageData", ImageData::_new);
+	}
 }
 

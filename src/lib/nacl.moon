@@ -113,6 +113,10 @@ nacl.init = {
 functions_to_reset = {"draw", "update", "keypressed", "keyreleased"}
 
 nacl.init_all = (aroma) ->
+  -- aroma.image = {
+  --   newImageData
+  -- }
+
   aroma.run = (setup_fn) ->
     blank = ->
     aroma[key] = blank for key in *functions_to_reset

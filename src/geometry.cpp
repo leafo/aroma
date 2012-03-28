@@ -139,6 +139,16 @@ namespace aroma {
 		return p;
 	} 
 
+	Point Point::read2d(lua_State* l, int i) {
+		int count = read_tuple(l, i, 2);
+
+		if (count < 2) {
+			luaL_error(l, "expeting at least 2 numbers, got %d", count);
+		}
+
+		Point p = { pool[0], pool[1], 0 };
+		return p;
+	}
 
 	void Point::push(lua_State *l, double x, double y) {
 		lua_newtable(l);	
@@ -227,6 +237,11 @@ namespace aroma {
 		lua_pushnumber(l, b);
 		lua_pushnumber(l, a);
 		return 4;
+	}
+
+
+	bool Color::operator==(const Color &other) const {
+		return r == other.r &&g == other.g && b == other.b;
 	}
 
 }

@@ -243,6 +243,8 @@ namespace aroma {
 				}
 
 				input_handler = new InputHandler(binding);
+				binding->bind_module(&ImageModule());
+
 				PostMessage(pp::Var("Lua loaded"));
 				return true;
 			}

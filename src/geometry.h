@@ -24,6 +24,9 @@ namespace aroma {
 
 		int push(lua_State* l);
 
+
+		bool operator==(const Color &other) const;
+
 		static Color pop(lua_State* l);
 
 		static Color read(lua_State* l, int i);
@@ -57,6 +60,8 @@ namespace aroma {
 
 		static Point pop(lua_State *l);
 		static Point pop3(lua_State *l);
+
+		static Point read2d(lua_State *l, int i);
 
 		static void push(lua_State *l, double x, double y);
 		static void push(lua_State *l, Point p);
