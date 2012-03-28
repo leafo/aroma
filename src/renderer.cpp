@@ -110,6 +110,8 @@ namespace aroma {
 	bool Renderer::init() {
 		log("init renderer\n");
 		glClearColor(0.1, 0.1, 0.1, 1.0);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		if (!binding->load_and_run(
 					renderer_support_lua,
@@ -288,6 +290,7 @@ namespace aroma {
 	int Renderer::_reset(lua_State *l) {
 		Renderer* r = upvalue_self(Renderer);
 		r->current_color = Color(255,255,255);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		return 0;
 	}
 
