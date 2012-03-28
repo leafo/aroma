@@ -30,7 +30,7 @@ request_response = (msg) ->
 safe_resume = (co, ...) ->
   success, error_msg = coroutine.resume co, ...
   if not success
-    async_err error_msg
+    async_err debug.traceback co, error_msg
     nacl.set_game_thread nil
     false
   else

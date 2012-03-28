@@ -190,6 +190,16 @@ namespace aroma {
 			}
 
 			void handle_error(lua_State *thread, const char* name) {
+				LuaBinding::handle_error(thread, name);
+
+				// convert msg to traceback
+				int top = lua_gettop(thread);
+				lua_getglobal(thread, "debug");
+				lua_getfield(thread, -1, "traceback");
+				lua_pushthread(thread);
+				lua_pushvalue(thread, top);
+				lua_call(thread, 2, 1);
+
 				lua_getglobal(l, "nacl");
 				lua_getfield(l, -1, "show_error");
 				if (!lua_isnil(l, -1)) {
@@ -200,6 +210,8 @@ namespace aroma {
 						return;
 					}
 				}
+
+				lua_settop(thread, top);
 			}
 	};
 
