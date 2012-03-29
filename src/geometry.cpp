@@ -30,9 +30,18 @@ namespace aroma {
 	int read_tuple(lua_State* l, int i, int max_items) {
 		if (max_items > POOL_SIZE) max_items = POOL_SIZE;
 		int top = lua_gettop(l);
+		int start = i;
 
 		if (lua_istable(l, i)) {
-			return luaL_error(l, "reading tuple from table unsupported");
+			start = lua_gettop(l) + 1; // where to start reading from
+			for (int k = 0; k < max_items; k++) {
+				lua_rawgeti(l, i, k+1);
+				if (lua_isnil(l, -1)) {
+					lua_pop(l, 1);
+					max_items = k;
+					break;
+				}
+			}
 		} else {
 			if (i + max_items - 1 > top) {
 				max_items = top - i + 1;
@@ -40,7 +49,7 @@ namespace aroma {
 		}
 
 		for (int k = 0; k < max_items; k++) {
-			pool[k] = luaL_checknumber(l, i + k);
+			pool[k] = luaL_checknumber(l, start + k);
 		}
 
 		lua_settop(l, top);
