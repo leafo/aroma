@@ -111,8 +111,10 @@
       }
 
       window.load_example = function load_example(name, callback) {
+        $("input").disabled = "disabled";
         get(example_dir + name, function(text) {
           $("input").value = text;
+          $("input").removeAttribute("disabled");
           if (callback) callback();
         });
 
