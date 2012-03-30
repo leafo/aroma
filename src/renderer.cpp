@@ -4,9 +4,17 @@
 
 namespace aroma {
 
-	void set_float_buffer(GLuint buffer, float* parts, size_t size) {
+	GLuint init_float_buffer(size_t size) {
+		GLuint buffer;
+		glGenBuffers(1, &buffer);
 		glBindBuffer(GL_ARRAY_BUFFER, buffer);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(float) * size, parts, GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(float) * size, NULL, GL_DYNAMIC_DRAW);
+		return buffer;
+	}
+
+	void set_float_buffer(GLuint buffer, float* data, size_t size) {
+		glBindBuffer(GL_ARRAY_BUFFER, buffer);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * size, data);
 	}
 
 	void Renderer::img_rect(const Image* img, const Transform& t) {
@@ -122,8 +130,8 @@ namespace aroma {
 			return false;
 		}
 
-		glGenBuffers(1, &vert_buffer);
-		glGenBuffers(1, &tex_buffer);
+		vert_buffer = init_float_buffer(8);
+		tex_buffer = init_float_buffer(8);
 
 		last_time = context->get_time();
 		return true;
