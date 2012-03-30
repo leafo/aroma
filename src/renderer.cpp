@@ -107,6 +107,10 @@ namespace aroma {
 		binding->bind_module(this);
 	}
 
+	GLContext* Renderer::get_context() {
+		return context;
+	}
+
 	bool Renderer::init() {
 		log("init renderer\n");
 		glClearColor(0.1, 0.1, 0.1, 1.0);
@@ -182,6 +186,11 @@ namespace aroma {
 	void Renderer::bind_all(lua_State *l) {
 		set_new_func("setColor", _setColor);
 		set_new_func("getColor", _getColor);
+		set_new_func("setBackgroundColor", _setBackgroundColor);
+
+		set_new_func("getWidth", _getWidth);
+		set_new_func("getHeight", _getHeight);
+
 		set_new_func("reset", _reset);
 
 		set_new_func("rectangle", _rectangle);
@@ -210,6 +219,24 @@ namespace aroma {
 
 	int Renderer::_getColor(lua_State* l) {
 		return upvalue_self(Renderer)->current_color.push(l);
+	}
+
+	int Renderer::_setBackgroundColor(lua_State* l) {
+		Color c = Color::read(l, 1);
+		glClearColor(c.rf(), c.gf(), c.bf(), 1.0);
+		return 0;
+	}
+
+	int Renderer::_getWidth(lua_State* l) {
+		Renderer* self = upvalue_self(Renderer);
+		lua_pushnumber(l, self->get_context()->width());
+		return 1;
+	}
+
+	int Renderer::_getHeight(lua_State* l) {
+		Renderer* self = upvalue_self(Renderer);
+		lua_pushnumber(l, self->get_context()->height());
+		return 1;
 	}
 
 	int Renderer::_rectangle(lua_State* l) {

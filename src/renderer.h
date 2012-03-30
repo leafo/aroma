@@ -58,12 +58,19 @@ namespace aroma {
 
 			void texturing(bool enabled);
 
+			GLContext* get_context();
+
 			void bind_all(lua_State *l);
 			const char* module_name();
 
 
-			static int _setColor(lua_State *l);
-			static int _getColor(lua_State *l);
+			static int _setColor(lua_State* l);
+			static int _getColor(lua_State* l);
+
+			static int _setBackgroundColor(lua_State* l);
+
+			static int _getWidth(lua_State* l);
+			static int _getHeight(lua_State* l);
 
 			static int _reset(lua_State *l);
 
