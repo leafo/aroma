@@ -4,13 +4,9 @@
 
 namespace aroma {
 
-	GLuint make_float_buffer(float* parts, size_t size) {
-		GLuint buffer;
-		glGenBuffers(1, &buffer);
-
+	void set_float_buffer(GLuint buffer, float* parts, size_t size) {
 		glBindBuffer(GL_ARRAY_BUFFER, buffer);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(float) * size, parts, GL_STATIC_DRAW);
-		return buffer;
 	}
 
 	void Renderer::img_rect(const Image* img, const Transform& t) {
@@ -40,8 +36,8 @@ namespace aroma {
 		default_shader->set_uniform("C", current_color);
 		projection.apply(default_shader);
 
-		GLuint vert_buffer = make_float_buffer(verts, 8);
-		GLuint tex_buffer = make_float_buffer((float*)&tex_coords.coords, 8);
+		set_float_buffer(vert_buffer, verts, 8);
+		set_float_buffer(tex_buffer, (float*)&tex_coords.coords, 8);
 
 		default_shader->set_uniform("texturing", 1u);
 		img->bind();
@@ -62,8 +58,6 @@ namespace aroma {
 
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-		glDeleteBuffers(1, &vert_buffer);
-		glDeleteBuffers(1, &tex_buffer);
 		if (pop_mat) projection.pop();
 	}
 
@@ -78,7 +72,7 @@ namespace aroma {
 		default_shader->set_uniform("C", current_color);
 		projection.apply(default_shader);
 
-		GLuint vert_buffer = make_float_buffer(verts, 8);
+		set_float_buffer(vert_buffer, verts, 8);
 
 		default_shader->set_uniform("texturing", 0u);
 
@@ -93,8 +87,6 @@ namespace aroma {
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-		glDeleteBuffers(1, &vert_buffer);
 	}
 
 	Renderer::Renderer(GLContext* context, LuaBinding* binding) :
@@ -129,6 +121,9 @@ namespace aroma {
 			err("you forgot to create a default shader!\n");
 			return false;
 		}
+
+		glGenBuffers(1, &vert_buffer);
+		glGenBuffers(1, &tex_buffer);
 
 		last_time = context->get_time();
 		return true;

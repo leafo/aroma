@@ -40,6 +40,8 @@ namespace aroma {
 			bool _texturing;
 			MatrixStack projection;
 
+			GLuint vert_buffer;
+			GLuint tex_buffer;
 		public:
 			Color current_color;
 
