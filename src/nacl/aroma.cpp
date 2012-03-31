@@ -4,6 +4,7 @@
 #include "nacl/aroma.h"
 #include "nacl/gl_context.h"
 #include "nacl/image.h"
+#include "nacl/nacl_audio.h"
 
 #include "lua_binding.h"
 #include "renderer.h"
@@ -240,12 +241,17 @@ namespace aroma {
 
 				input_handler = new InputHandler(binding);
 				binding->bind_module(&ImageModule());
+				binding->bind_module(&NaClAudioModule());
 
 				PostMessage(pp::Var("Lua loaded"));
 				return true;
 			}
 
-			virtual ~AromaInstance() { }
+			virtual ~AromaInstance() {
+				log("destructing instance");
+				delete renderer;
+				delete input_handler;
+			}
 
 			void HandleMessage(const pp::Var& var) {
 				binding->handle_message(var);

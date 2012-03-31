@@ -110,6 +110,18 @@ image_data_from_url = (url) ->
   else
     error bytes
 
+
+class AudioSource
+  new: (@source_id, @url) =>
+  msg: (...) => post_message { "audio", @source_id, ... }
+
+  play: => @msg "play"
+  stop: => @msg "stop"
+  rewind: => @msg "rewind"
+  setLooping: (should_loop) => @msg "set_looping", should_loop
+
+  __tostring: => "HTMLAudioSource<" .. @url .. ">"
+
 nacl.init = {
   graphics: =>
     old_new_image = @newImage
@@ -121,6 +133,15 @@ nacl.init = {
       img = old_new_image img_data
       img_cache[url] = img
       img
+
+  audio: =>
+    @newSource = (url, kind="static") ->
+      msg = request_response { "audio", url, kind }
+      status, source_id, err_msg = unpack msg
+      if status == "success"
+        AudioSource source_id, url
+      else
+        error error_msg
 
   image: =>
     old_new_image_data = @newImageData

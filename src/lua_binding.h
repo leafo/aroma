@@ -6,7 +6,7 @@ namespace aroma {
 	class Bindable {
 		public:
 			virtual const char* module_name() = 0;
-			virtual void bind_all(lua_State *l) = 0;
+			virtual void bind_all(lua_State* l) = 0;
 	};
 
 	class LuaBinding {

@@ -83,6 +83,14 @@ class Aroma
           callback ["error", "Failed to find image: #{path}"]
         else
           callback ["success", image_bytes, width, height]
+
+    audio: (msg, callback) ->
+      [_, path, type] = msg
+      @audio.new_source path, type, (source_id) ->
+        if source_id isnt null
+          callback ["success", source_id]
+        else
+          callback ["error", "Failed to find audio: #{path}"]
   }
 
   message_handlers: {
@@ -92,10 +100,17 @@ class Aroma
       [_, id, data] = msg
       @dispatch @async_handlers, data[0], data, (res) =>
         @post_message ["response", id, res]
+
+    audio: (msg) ->
+      [_, source_id, fn] = msg
+      s = @audio.get_source source_id
+      s[fn].apply s, msg.slice 3 if s[fn]
   }
 
   constructor: (@container, @events) ->
     @module = null
+    @audio = new Aroma.Audio
+
     listen @container, "load", =>
       log "Loaded module"
       @fire "loaded"
@@ -104,11 +119,16 @@ class Aroma
     listen @container, "message", (e) =>
       @handle_message e
 
+  # reset any shared state
+  reset: ->
+    @audio.stop_all()
+
   fire: (name, args...) ->
     if @events[name]
       @events[name].apply null, args
 
   execute: (lua) ->
+    @reset()
     @post_message ['execute', lua]
 
   post_message: (o) ->
@@ -138,11 +158,22 @@ class StreamingSource
     listen elm, "loadedmetadata", -> callback source
     listen elm, "error", -> callback null
 
+    listen elm, "ended", =>
+      if source.looping
+        source.rewind()
+        source.play()
+
   constructor: (@audio_elm) ->
 
-  play: ->
-    log "playing streaming source"
-    @audio_elm.play()
+  play: -> @audio_elm.play()
+  pause: -> @audio_elm.pause()
+
+  set_looping: (@looping) ->
+
+  stop: ->
+    @pause()
+    @rewind()
+
   rewind: -> @audio_elm.currentTime = 0
 
 class StaticSource
@@ -171,8 +202,14 @@ class Aroma.Audio
     @url_to_source = {}
     @context = new webkitAudioContext
 
-  play_source: (id) ->
-    @sources[id].play()
+  stop_all: ->
+    for s in @sources
+      s.stop() if s.stop
+
+  get_source: (id) ->
+    s = @sources[id]
+    throw "Invalid source id #{id}" if s is undefined
+    s
 
   new_source: (url, type, callback) ->
     existing_id = @url_to_source[url]
