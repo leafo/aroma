@@ -6,18 +6,20 @@ log = -> console.log.apply console, arguments
 
 listen = (elm, name, fn) -> elm.addEventListener name, fn, true
 
-get = (url, on_finish, on_fail) ->
-   req = new XMLHttpRequest()
-   req.onreadystatechange = ->
-     if req.readyState == 4
-       if req.status == 200
-         on_finish req
-       else
-         on_fail req
+get = (url, on_finish, on_fail, send=yes) ->
+  req = new XMLHttpRequest()
+  req.onreadystatechange = ->
+    if req.readyState == 4
+      if req.status == 200
+        on_finish req
+      else
+        on_fail req
 
-   req.open "GET", url, true
-   req.send null
-
+  req.open "GET", url, true
+  if send
+    req.send null
+  else
+    req
 
 module_to_url = (module_name) ->
   module_name = module_name.replace /\./g, '/'
@@ -125,4 +127,80 @@ class Aroma
     if o
       @dispatch @message_handlers, o[0], o
 
+
+class StreamingSource
+  @from_url: (url, callback) ->
+    elm = document.createElement "audio"
+    elm.src = url
+    elm.autoplay = false
+    source = new StreamingSource elm
+
+    listen elm, "loadedmetadata", -> callback source
+    listen elm, "error", -> callback null
+
+  constructor: (@audio_elm) ->
+
+  play: ->
+    log "playing streaming source"
+    @audio_elm.play()
+  rewind: -> @audio_elm.currentTime = 0
+
+class StaticSource
+  @from_url: (context, url, callback) ->
+    pass = (req) =>
+      context.decodeAudioData req.response, (buffer) =>
+        callback new StaticSource context, buffer
+
+    fail = (req) -> callback null
+
+    req = get url, pass, fail, false
+    req.responseType = "arraybuffer"
+    req.send()
+
+  constructor: (@context, @buffer) ->
+
+  play: ->
+    source = @context.createBufferSource()
+    source.buffer = @buffer
+    source.connect @context.destination
+    source.noteOn 0
+
+class Aroma.Audio
+  constructor: ->
+    @sources = []
+    @url_to_source = {}
+    @context = new webkitAudioContext
+
+  play_source: (id) ->
+    @sources[id].play()
+
+  new_source: (url, type, callback) ->
+    existing_id = @url_to_source[url]
+    return callback existing_id if existing_id
+
+    handle_source = (source) =>
+      callback null unless source
+      id = @sources.length
+      @sources.push source
+      @url_to_source[url] = id
+      callback id
+
+    switch type
+      when "static"
+        StaticSource.from_url @context, url, handle_source
+      when "streaming"
+        StreamingSource.from_url url, handle_source
+      else
+        throw "Unknown source type: #{type}"
+
 window.Aroma = Aroma
+
+# # audio test
+# a = new Aroma.Audio
+# a.new_source "game/theme.ogg", "streaming", (source_id) ->
+#   a.play_source source_id
+# 
+# a.new_source "game/start.wav", "static", (source_id) ->
+#   a.play_source source_id
+# 
+# window.a = a
