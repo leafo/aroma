@@ -1,6 +1,13 @@
 
 cjson = require"cjson"
 
+-- disable invalid functions
+os.remove = -> error "os.remove is disabled"
+os.rename = -> error "os.rename is disabled"
+os.execute = -> error "os.execute is disabled"
+os.exit = -> error "os.exit is disabled"
+io.tmpfile = -> error "io.tmpfile is disabled"
+
 post_message = (o) ->
   o = cjson.encode o if type(o) == "table"
   nacl.post_message o
