@@ -230,7 +230,45 @@ class Aroma.Audio
       else
         throw "Unknown source type: #{type}"
 
+class Aroma.Font
+  constructor: (@font_string="16pt sans-serif") ->
+    @canvas = document.createElement "canvas"
+    @ctx = @canvas.getContext "2d"
+    @height = @calc_height()
+
+  reset_canvas: (w, h)->
+    @canvas.width = w
+    @canvas.height = h
+
+    @ctx.font = @font_string
+    @ctx.fillStyle = "white"
+    @ctx.textBaseline = "top"
+
+  calc_height: ->
+    e = document.createElement "div"
+    e.innerHTML = "Mg" # highest and lowest
+    e.style.font = @font_string
+    document.body.appendChild e
+
+    height = e.offsetHeight
+    document.body.removeChild e
+    height
+
+  render_glyph: (str) ->
+    default_width = 80
+    @reset_canvas default_width, @height
+    real_width = @ctx.measureText(str).width
+    @reset_canvas real_width, @height if real_width > default_width
+
+    @ctx.fillText str, 0, 0
+    bytestring = encode_byte_array @ctx.getImageData(0, 0, real_width, @height).data
+    [bytestring, real_width, @height]
+
 window.Aroma = Aroma
+
+# font test
+# c = new Aroma.Font
+# console.log c.render_glyph "H"
 
 # # audio test
 # a = new Aroma.Audio
