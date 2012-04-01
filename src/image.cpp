@@ -1,8 +1,9 @@
-#include "image.h"
 
 #include <cstdlib>
 #include <cstdio>
 #include <unistd.h>
+
+#ifndef AROMA_NACL
 
 #ifdef __APPLE__
 #include <ApplicationServices/ApplicationServices.h>
@@ -10,375 +11,349 @@
 #include <corona.h>
 #endif
 
+#endif
+
+#include "image.h"
+
+// Warning: osx represents pixels at BGRA, watch out!
+
 namespace aroma {
 
-void register_Image(lua_State *l) {
-	setfunction("image", Image::_new_from_file);
-	setfunction("image_from_bytes", Image::_new_from_raw);
-	setfunction("image_from_string", Image::_new_from_memory);
-	setfunction("image_bytes", Image::_get_image_bytes);
-}
+	const GLenum IMAGE_DATA_FORMAT = GL_RGBA;
+	const GLenum IMAGE_DATA_TYPE = GL_UNSIGNED_BYTE;
 
-static int texCoords[] = {
-	0,0,  1,0,  1,1,  0,1
-};
-
-static int next_p2(int x);
-
-struct Pixel {
-	byte r, g, b, a;
-
-	Pixel() {}
-	Pixel(byte r, byte g, byte b) : r(r), g(g), b(b), a(255) { }
-
-	bool operator==(const Pixel &other) const {
-		return r == other.r &&g == other.g && b == other.b;
-	}
-};
-
-/**
- * Create userdata for image
- */
-static Image *push_image(lua_State *l) {
-	Image *i = newuserdata(Image);
-
-	if (luaL_newmetatable(l, "Image")) {
-		lua_newtable(l); // the index table
-		setfunction("draw", Image::_draw);
-		setfunction("blit", Image::_blit);
-		setfunction("bind", Image::_bind);
-		setfunction("size", Image::_size);
-
-		setfunction("raw_update", Image::_raw_update);
-
-		lua_setfield(l, -2, "__index");
+	int next_p2(int x) {
+		int size = 1;
+		while (size < x) {
+			size = size << 1;
+		}
+		return size;
 	}
 
-	lua_setmetatable(l, -2);
-
-	return i;
-}
-
-
-/**
- * Modify the image such that color key is transparent
- */
-static void apply_color_key(int width, int height, Pixel *pixels, Pixel key) {
-	for (int i = 0; i < width*height; i++) {
-		if (*pixels == key) pixels->a = 0;
-		pixels++;
-	}
-}
+	// platform specific loaders
+#ifndef AROMA_NACL
 
 #ifdef __APPLE__
 
-CGImageSourceRef source_from_bytes(const void *bytes, size_t len) {
-	CFDataRef data = CFDataCreate(NULL, (UInt8*)bytes, len);
-	CGImageSourceRef source = CGImageSourceCreateWithData(data, NULL);
-	CFRelease(data);
-	return source;
-}
-
-CGImageSourceRef source_from_fname(const char *fname) {
-	CFStringRef path_str = CFStringCreateWithCString(0, fname, 0);
-
-	CFURLRef path = 0;
-	path = CFURLCreateWithFileSystemPath(NULL, path_str,
-			kCFURLPOSIXPathStyle, false); 
-
-	// CFShow(path);
-
-	CGImageSourceRef source = CGImageSourceCreateWithURL(path, NULL);
-
-	CFRelease(path);
-	CFRelease(path_str);
-	return source;
-}
-
-// upload from cgsource
-int copy_image(CGImageSourceRef source, Image *dest) {
-	int count = CGImageSourceGetCount(source);
-	// CGImageSourceStatus status = CGImageSourceGetStatus(source);
-	// printf("status: %d\n", status);
-
-	CGImageRef image = CGImageSourceCreateImageAtIndex(source, 0, NULL);
-
-	int width, height;
-	width = CGImageGetWidth(image);
-	height = CGImageGetHeight(image);
-
-	GLubyte *buffer = new GLubyte[width * height * 4];
-	CGColorSpaceRef color_space = CGColorSpaceCreateDeviceRGB();
-
-	int bytes_per_row = width * 4;
-
-	CGContextRef context = CGBitmapContextCreate(buffer, width, height, 8,
-			bytes_per_row, color_space, kCGImageAlphaPremultipliedFirst);
-	CGContextDrawImage(context, CGRectMake(0,0, width, height), image);
-
-	dest->create(width, height, buffer, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8);
-
-	CGContextRelease(context);
-	CFRelease(color_space);
-	delete buffer;
-
-	CGImageRelease(image);
-	return 0;
-}
+	CGImageSourceRef source_from_bytes(const void* bytes, size_t len);
+	CGImageSourceRef source_from_fname(const char* fname);
+	void copy_image(CGImageSourceRef source, ImageData* data);
 
 #else
 
-// upload from corona image
-static bool copy_image(corona::Image *src, Image *dest) {
-	apply_color_key(src->getWidth(), src->getHeight(),
-			(Pixel*)src->getPixels(), Pixel(255, 0, 255));
-
-	double start = glfwGetTime();
-	dest->create(src->getWidth(), src->getHeight(), src->getPixels());
-	cout << "uploading image: " << glfwGetTime() - start << endl;
-	return true;
-}
+	void copy_image(corona::Image *src, ImageData* dest);
 
 #endif
 
-void Image::bind() const {
-	glBindTexture(GL_TEXTURE_2D, texid);
-}
+#endif
 
-void Image::create(int width, int height, const void *bytes, GLenum format, GLenum type) {
-	this->width = width;
-	this->height = height;
+	ImageData::ImageData(int width, int height, byte* bytes)
+		: width(width), height(height), bytes(bytes), format(IMAGE_DATA_FORMAT),
+		type(IMAGE_DATA_TYPE) {}
 
-	glGenTextures(1, &texid);
-	glBindTexture(GL_TEXTURE_2D, texid);
+	ImageData::ImageData()
+		: width(0), height(0), bytes(0), format(IMAGE_DATA_FORMAT),
+		type(IMAGE_DATA_TYPE) {}
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, format, type, bytes);
-}
+	int ImageData::_gc(lua_State* l) {
+		delete getself(ImageData)->bytes;
+		return 0;
+	}
 
-void Image::update(int x, int y, int width, int height, const void *bytes) {
-	bind();
-	glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, width, height,
-			GL_RGBA, GL_UNSIGNED_BYTE, bytes);
-}
+	int ImageData::_getWidth(lua_State* l) {
+		lua_pushnumber(l, getself(ImageData)->width);
+		return 1;
+	}
 
-bool Image::load_memory(const void* bytes, int size) {
-	double start = glfwGetTime();
-#ifdef __APPLE__
-	CGImageSourceRef source = source_from_bytes(bytes, size);
-	if (!source) return false;
-	copy_image(source, this);
-	CFRelease(source);
+	int ImageData::_getHeight(lua_State* l) {
+		lua_pushnumber(l, getself(ImageData)->height);
+		return 1;
+	}
+
+	int ImageData::_getPixel(lua_State* l) {
+		ImageData* d = getself(ImageData);
+		Color *pixels = (Color*)d->bytes;
+
+		Point p = Point::read2d(l, 2);
+		return pixels[(int)p.y * d->width + (int)p.x].push(l);
+	}
+
+	int ImageData::_setPixel(lua_State* l) {
+		ImageData* d = getself(ImageData);
+		Point p = Point::read2d(l, 2);
+		Color c = Color::read(l, 4);
+
+		Color *pixels = (Color*)d->bytes;
+		pixels[(int)p.y * d->width + (int)p.x] = c;
+		return 0;
+	}
+
+	int ImageData::_new(lua_State* l) {
+		Point p = Point::read2d(l, 1);
+		int x = p.x;
+		int y = p.y;
+
+		return ImageData(x, y, new byte[x*y*4]).push(l);
+	}
+
+	int ImageData::push(lua_State* l) const {
+		ImageData* d = newuserdata(ImageData);
+		*d = *this;
+
+		if (luaL_newmetatable(l, "ImageData")) {
+			lua_newtable(l); // the index table
+			setfunction("getWidth", _getWidth);
+			setfunction("getHeight", _getHeight);
+			setfunction("getPixel", _getPixel);
+			setfunction("setPixel", _setPixel);
+
+			lua_setfield(l, -2, "__index");
+
+			setfunction("__gc", _gc);
+		}
+
+		lua_setmetatable(l, -2);
+
+		return 1;
+	}
+
+	void ImageData::apply_color_key(const Color key) {
+		Color* pixels = (Color*)bytes;
+		for (int i = 0; i < width*height; i++) {
+			if (*pixels == key) pixels->a = 0;
+			pixels++;
+		}
+	}
+
+#ifndef AROMA_NACL
+	bool from_memory_file(ImageData* data, const void* bytes, size_t len) {
+#ifdef __APPLE_
+		CGImageSourceRef source = source_from_bytes(bytes, len);
+		if (!source) return false;
+		copy_image(source, data);
+		CFRelease(source);
 #else
-	corona::Image *tmp = corona::OpenImage(corona::CreateMemoryFile(bytes, size),
+	corona::Image *tmp = corona::OpenImage(corona::CreateMemoryFile(bytes, len),
 			corona::PF_R8G8B8A8);
 
 	if (!tmp) return false; // failed
-
-	copy_image(tmp, this);
-
+	copy_image(tmp, data);
 	delete tmp;
 #endif
-	cout << "loading image: " << glfwGetTime() - start << endl;
-	return true;
-}
-
-bool Image::load(const char *fname) {
-	double start = glfwGetTime();
-#ifdef __APPLE__
-	CGImageSourceRef source = source_from_fname(fname);
-	if (!source) return false;
-	copy_image(source, this);
-	CFRelease(source);
-#else
-	corona::Image *tmp = corona::OpenImage(fname, corona::PF_R8G8B8A8);
-
-	if (!tmp) return false; // failed
-
-	copy_image(tmp, this);
-
-	delete tmp;
-#endif
-	cout << "loading image: " << glfwGetTime() - start << endl;
-	return true;
-}
-
-void Image::draw(int x, int y) {
-	/*
-	float coords[] = {
-		x, y,
-		x+width, y,
-		x+width, y+height,
-		x, y+height
-	};
-	*/
-
-	glBindTexture(GL_TEXTURE_2D, texid);
-	glBegin(GL_QUADS);
-		glTexCoord2f(0, 0);
-		glVertex2d(x, y);
-		glTexCoord2f(1, 0);
-		glVertex2d(x + width, y);
-		glTexCoord2f(1, 1);
-		glVertex2d(x + width, y + height);
-		glTexCoord2f(0, 1);
-		glVertex2d(x, y + height);
-	glEnd();
-}
-
-void Image::blit(Rect src, Rect dest) {
-	src.x = src.x / width;
-	src.y = src.y / height;
-
-	src.w = src.w / width;
-	src.h = src.h / height;
-
-	glBindTexture(GL_TEXTURE_2D, texid);
-	glBegin(GL_QUADS);
-		glTexCoord2f(src.x, src.y);
-		glVertex2d(dest.x, dest.y);
-		glTexCoord2f(src.x + src.w, src.y);
-		glVertex2d(dest.x + dest.w, dest.y);
-		glTexCoord2f(src.x + src.w, src.y + src.h);
-		glVertex2d(dest.x + dest.w, dest.y + dest.h);
-		glTexCoord2f(src.x, src.y + src.h);
-		glVertex2d(dest.x, dest.y + dest.h);
-	glEnd();
-}
-
-/**
- * Load an image from disk
- * returns image:userdata
- */
-int Image::_new_from_file(lua_State *l) {
-	const char *fname = luaL_checkstring(l, 1);
-	if (!push_image(l)->load(fname))
-		return luaL_error(l, "failed to load image: %s", fname);
-	return 1;
-}
-
-/**
- * Create an image from width, height, and binary rgba byte array
- * returns image:userdata
- */
-int Image::_new_from_raw(lua_State *l) {
-	int w = luaL_checkint(l, 1);
-	int h = luaL_checkint(l, 2);
-	const char *bytes = luaL_checkstring(l, 3);
-
-	int len = lua_objlen(l, 3);
-
-	if (len != w*h*4)
-		return luaL_error(l, "bytes do not match given dimensions");
-
-	push_image(l)->create(w, h, bytes);
-
-	return 1;
-}
-
-/**
- * Create an image from file in memory (as lua string)
- * returns image:userdata
- */
-int Image::_new_from_memory(lua_State *l) {
-	const char *bytes = luaL_checkstring(l, 1);
-	int len = lua_objlen(l, 1);
-	if (!push_image(l)->load_memory(bytes, len))
-		return luaL_error(l, "failed to load image from memory");
-	return 1;
-}
-
-
-int Image::_draw(lua_State *l) {
-	Point p = Point::pop(l);
-	getself(Image)->draw(p.x, p.y);
-	return 0;
-}
-
-int Image::_size(lua_State *l) {
-	Image *self = getself(Image);
-	lua_pushnumber(l, self->width);
-	lua_pushnumber(l, self->height);
-	return 2;
-}
-
-int Image::_blit(lua_State *l) {
-	Rect dest = Rect::pop(l);
-	Rect src = Rect::pop(l);
-
-	getself(Image)->blit(src, dest);
-	return 0;
-}
-
-int Image::_bind(lua_State *l) {
-	Image *self = getself(Image);
-	self->bind();
-	return 0;
-}
-
-int Image::_raw_update(lua_State *l) {
-	Image *self = getself(Image);
-
-	int x = luaL_checkint(l, 2);
-	int y = luaL_checkint(l, 3);
-
-	int w = luaL_checkint(l, 4);
-	int h = luaL_checkint(l, 5);
-
-	const char *bytes = luaL_checkstring(l, 6);
-	int len = lua_objlen(l, 6);
-
-	if (len != w*h*4)
-		return luaL_error(l, "bytes do not match given dimensions");
-
-	self->update(x, y, w, h, bytes);
-	cout << "updating image: " << len << " bytes" << endl;
-	return 0;
-}
-
-/**
- * Loads and image from file name, and returns a byte string of pixels
- * expensive due to copy
- *
- * returns width:number, height:number, bytes:string
- */
-int Image::_get_image_bytes(lua_State *l) {
-	unsigned int width, height;
-	Pixel *buffer;
-
-	const char *fname = luaL_checkstring(l, 1);
-
-#ifdef USE_CORONA
-	corona::Image *tmp = corona::OpenImage(fname, corona::PF_R8G8B8A8);
-	if (!tmp) return luaL_error(l, "failed to open image");
-	width = tmp->getWidth();
-	height = tmp->getHeight();
-	buffer = (Pixel*)tmp->getPixels();
-
-	apply_color_key(width, height, buffer, Pixel(255, 0, 255));
-
-	lua_pushinteger(l, width);
-	lua_pushinteger(l, height);
-	lua_pushlstring(l, (const char *)buffer, width*height*4);
-
-	delete tmp;
-	return 3;
-#else
-	return 0;
-#endif
-}
-
-static int next_p2(int x) {
-	int size = 1;
-	while (size < x) {
-		size = size << 1;
+		return true;
 	}
-	return size;
-}
+
+	bool from_file(ImageData *data, const char* fname) {
+#ifdef __APPLE_
+		CGImageSourceRef source = source_from_fname(fname);
+		if (!source) return false;
+		copy_image(source, data);
+		CFRelease(source);
+#else
+		corona::Image *tmp = corona::OpenImage(fname, corona::PF_R8G8B8A8);
+		if (!tmp) return false; // failed
+		copy_image(tmp, data);
+		delete tmp;
+#endif
+		return true;
+	}
+#endif
+
+	GLenum get_wrap_mode(const char* name) {
+		if (strcmp(name, "repeat") == 0) {
+			return GL_REPEAT;
+		} else if (strcmp(name, "clamp") == 0) {
+			return GL_CLAMP_TO_EDGE;
+		}
+		return -1;
+	}
+
+	Image Image::from_bytes(const byte* bytes, int w, int h, GLenum format, GLenum type) {
+		Image img = {0};
+		img.width = w;
+		img.height = h;
+
+		glGenTextures(1, &img.texid);
+		glBindTexture(GL_TEXTURE_2D, img.texid);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, format, type, bytes);
+
+		return img;
+	}
+
+	void Image::bind() const {
+		glBindTexture(GL_TEXTURE_2D, texid);
+	}
+
+	void Image::update(int x, int y, ImageData* data) {
+		bind();
+		glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, data->width, data->height,
+				data->format, data->type, data->bytes);
+	}
+
+	int Image::_gc(lua_State* l) {
+		Image* self = newuserdata(Image);
+		glDeleteTextures(1, &self->texid);
+		self->texid = -1;
+		return 0;
+	}
+
+	int Image::_getWidth(lua_State* l) {
+		lua_pushnumber(l, getself(Image)->width);
+		return 1;
+	}
+
+	int Image::_getHeight(lua_State* l) {
+		lua_pushnumber(l, getself(Image)->height);
+		return 1;
+	}
+
+	int Image::_setWrap(lua_State* l) {
+		Image* self = getself(Image);
+		int top = lua_gettop(l);
+
+		glBindTexture(GL_TEXTURE_2D, self->texid);
+
+		if (top > 1 && !lua_isnil(l, 2)) {
+			GLenum mode = get_wrap_mode(luaL_checkstring(l, 2));
+			if (mode < 0) {
+				return luaL_error(l, "unknown horizontal wrap mode: %s",
+						luaL_checkstring(l, 2));
+			}
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, mode);
+		}
+
+		if (top > 2 && !lua_isnil(l, 3)) {
+			GLenum mode = get_wrap_mode(luaL_checkstring(l, 3));
+			if (mode < 0) {
+				return luaL_error(l, "unknown vertical wrap mode: %s",
+						luaL_checkstring(l, 3));
+			}
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, mode);
+		}
+
+		return 0;
+	}
+
+	// take image data as first arguments
+	int Image::_new(lua_State* l) {
+		ImageData* d = getself(ImageData);
+		Image i = from_bytes(d->bytes, d->width, d->height, IMAGE_DATA_FORMAT,
+				IMAGE_DATA_TYPE);
+
+		Image *self = newuserdata(Image);
+		*self = i;
+
+		if (luaL_newmetatable(l, "Image")) {
+			lua_newtable(l); // the index table
+			setfunction("getWidth", _getWidth);
+			setfunction("getHeight", _getHeight);
+			setfunction("setWrap", _setWrap);
+
+			lua_setfield(l, -2, "__index");
+
+			setfunction("__gc", _gc);
+		}
+
+		lua_setmetatable(l, -2);
+
+		return 1;
+	}
+
+
+
+	const char* ImageModule::module_name() {
+		return "image";
+	}
+
+	void ImageModule::bind_all(lua_State* l) {
+		setfunction("newImageData", ImageData::_new);
+	}
+
+#ifndef AROMA_NACL
+
+#ifdef __APPLE__
+	//	TODO: I don't even know if this code compiles :)
+
+	CGImageSourceRef source_from_bytes(const void* bytes, size_t len) {
+		CFDataRef data = CFDataCreate(NULL, (UInt8*)bytes, len);
+		CGImageSourceRef source = CGImageSourceCreateWithData(data, NULL);
+		CFRelease(data);
+		return source;
+	}
+
+	CGImageSourceRef source_from_fname(const char* fname) {
+		CFStringRef path_str = CFStringCreateWithCString(0, fname, 0);
+
+		CFURLRef path = 0;
+		path = CFURLCreateWithFileSystemPath(NULL, path_str,
+				kCFURLPOSIXPathStyle, false);
+
+		// CFShow(path);
+
+		CGImageSourceRef source = CGImageSourceCreateWithURL(path, NULL);
+
+		CFRelease(path);
+		CFRelease(path_str);
+		return source;
+	}
+
+	void copy_image(CGImageSourceRef source, ImageData* data) {
+		int count = CGImageSourceGetCount(source);
+		// CGImageSourceStatus status = CGImageSourceGetStatus(source);
+		// printf("status: %d\n", status);
+
+		CGImageRef image = CGImageSourceCreateImageAtIndex(source, 0, NULL);
+
+		int width, height;
+		width = CGImageGetWidth(image);
+		height = CGImageGetHeight(image);
+
+		GLubyte *buffer = new GLubyte[width * height * 4];
+		CGColorSpaceRef color_space = CGColorSpaceCreateDeviceRGB();
+
+		int bytes_per_row = width * 4;
+
+		CGContextRef context = CGBitmapContextCreate(buffer, width, height, 8,
+				bytes_per_row, color_space, kCGImageAlphaPremultipliedFirst);
+		CGContextDrawImage(context, CGRectMake(0,0, width, height), image);
+
+		data->width = width;
+		data->height = height;
+		data->format = GL_BGRA;
+		data->type = GL_UNSIGNED_INT_8_8_8_8;
+		data->bytes = buffer;
+
+		CGContextRelease(context);
+		CFRelease(color_space);
+
+		CGImageRelease(image);
+	}
+
+#else
+
+	void copy_image(corona::Image *src, ImageData* dest) {
+		dest->width = src->getWidth();
+		dest->height = src->getHeight();
+		dest->bytes = new byte[dest->width * dest->height * 4];
+
+		Color* dest_pixels = (Color*)dest->bytes;
+		Color* source_pixels = (Color*)src->getPixels();
+
+		int size = dest->width * dest->height;
+		for (int i = 0; i < size; i++) {
+			dest_pixels[i] = source_pixels[i];
+		}
+	}
+
+#endif
+
+#endif
 
 }
 

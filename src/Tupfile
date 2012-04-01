@@ -15,6 +15,8 @@ endif
 flags += -g
 libs += -g
 
-: foreach *.cpp | lib/renderer_support.lua.h |> g++ -fpic -I . -c %f $(flags) |> %B.o {lib_o}
-: {lib_o} |> g++ $(link) -o %o %f $(libs) |> aroma.so
+cc = g++
+
+: foreach *.cpp | lib/renderer_support.lua.h |> $(cc) -fpic -I . -c %f $(flags) |> %B.o {lib_o}
+: {lib_o} |> $(cc) $(link) -o %o %f $(libs) |> aroma.so
 

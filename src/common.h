@@ -47,6 +47,7 @@ typedef void(*AromaRegister)(lua_State *l);
 
 #define $(val) #val ": " << val << " "
 
+// watch out this stuff breaks cmath
 #define __strx(x) #x
 #define __str(x) __strx(x)
 #define log(...) fprintf(stderr, " [" __FILE__  ":" __str(__LINE__) "] \033[1;33m>>\033[0m " __VA_ARGS__)

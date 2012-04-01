@@ -15,7 +15,7 @@ int FrameBuffer::_new(lua_State *l) {
 	cout << "creating framebuffer " << $(width) << $(height) << endl;
 	self->width = width;
 	self->height = height;
-	self->tex.create(width, height, NULL);
+	self->tex = Image::from_bytes(NULL, width, height);
 
 	glGenFramebuffersEXT(1, &self->fbo);
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, self->fbo);

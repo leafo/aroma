@@ -2,7 +2,7 @@
 #include "canvas.h"
 
 #include "image.h"
-#include "font.h"
+// #include "font.h"
 #include "tiles.h"
 #include "mesh.h"
 #include "framebuffer.h"
@@ -30,10 +30,10 @@ static int push_key_table(lua_State *l);
 static int pop_key(lua_State *l);
 
 static AromaRegister aroma_libs[] = {
-	register_Image,
-	register_Font,
+	// register_Image,
+	// register_Font,
 	register_Mesh,
-	register_Tiles,
+	// register_Tiles, // dead!
 	register_Framebuffer,
 	register_Shader,
 	0

@@ -10,7 +10,7 @@ namespace aroma {
 
 static const struct luaL_Reg aroma_funcs [] = {
 	{"new", Canvas::_new},
-	{"image_bytes", Image::_get_image_bytes},
+	// {"image_bytes", Image::_get_image_bytes},
 	{NULL, NULL}
 };
 

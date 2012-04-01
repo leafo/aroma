@@ -1,47 +1,67 @@
 
-#ifndef IMAGE_H_
-#define IMAGE_H_
+#pragma once
 
 #include "common.h"
 #include "geometry.h"
+#include "lua_binding.h"
 
 namespace aroma {
+	int next_p2(int x);
 
-void register_Image(lua_State *l);
+	struct ImageData {
+		GLenum format;
+		GLenum type;
 
-class Image {
-public:
-	GLuint texid;
-	int width, height;
+		int width, height;
+		byte* bytes;
 
-	bool load(const char *fname); // load image from disk
-	bool load_memory(const void *bytes, int size); // load image from memory
+		void apply_color_key(const Color key);
 
-	// void create(int width, int height, const void *bytes, GLenum format, GLenum type);
-	void create(int width, int height, const void *bytes, GLenum format = GL_RGBA, GLenum type = GL_UNSIGNED_BYTE);
+		// TODO get rid of constructor
+		ImageData(int width, int height, byte* bytes);
+		ImageData();
 
-	// update a portion of the image texture from bytes
-	void update(int x, int y, int width, int height, const void *bytes);
+#ifndef AROMA_NACL
+		static bool from_memory_file(ImageData* d, const void* bytes, size_t len);
+		static bool from_file(ImageData* d, const char* fname);
+#endif
 
-	void blit(Rect src, Rect dest);
-	void draw(int x, int y);
-	void bind() const;
+		static int _gc(lua_State* l);
+		static int _getWidth(lua_State* l);
+		static int _getHeight(lua_State* l);
 
-	// instance functions
-	static int _new_from_file(lua_State *l);
-	static int _new_from_raw(lua_State *l);
-	static int _new_from_memory(lua_State *l);
+		static int _getPixel(lua_State* l);
+		static int _setPixel(lua_State* l);
 
-	static int _get_image_bytes(lua_State *l); // get raw bytes for file name
+		static int _new(lua_State* l);
 
-	static int _draw(lua_State *l);
-	static int _blit(lua_State *l);
-	static int _bind(lua_State *l);
-	static int _size(lua_State *l);
+		int push(lua_State* l) const;
+	};
 
-	static int _raw_update(lua_State *l);
-};
+	struct Image {
+		GLuint texid;
+		int width, height;
+
+		void bind() const;
+		void update(int x, int y, ImageData* data);
+
+		static Image from_bytes(const byte* bytes, int width, int height, GLenum
+				format = GL_RGBA, GLenum type = GL_UNSIGNED_BYTE);
+
+		static int _gc(lua_State* l);
+
+		static int _getWidth(lua_State* l);
+		static int _getHeight(lua_State* l);
+
+		static int _setWrap(lua_State* l);
+
+		static int _new(lua_State* l);
+	};
+
+	class ImageModule : public Bindable {
+		const char* module_name();
+		void bind_all(lua_State* l);
+	};
 
 }
 
-#endif /* IMAGE_H_ */

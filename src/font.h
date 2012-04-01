@@ -1,25 +1,34 @@
-#ifndef FONT_H_
-#define FONT_H_
+#pragma once
 
 #include "common.h"
-#include "tiles.h"
+#include <map>
+#include <vector>
+
+using std::map;
+using std::vector;
 
 namespace aroma {
+	class Font {
+	};
 
-void register_Font(lua_State *l);
+	struct Glyph {
+		int letter;
+		byte* bytes;
+		size_t width;
+	};
 
-class Font {
-protected:
-	Image letters;
-	double letterWidth, letterHeight;	
-	double letterSpan;
-public:
-	static int _new(lua_State *l);
-	static int _string(lua_State *l); // draw string
+	typedef vector<Glyph> GlyphList;
 
-	void string(const Point dest, const char *str) const;
-};
+	// collects all the glyphs in one place before building the texture for the font
+	class GlyphCache {
+		private:
+			size_t height;
+			GlyphList glyphs;
+
+		public:
+			GlyphCache();
+			void add_glyph(int letter, byte* bytes, int w, int h);
+			Font build_font();
+	};
 
 }
-
-#endif /* FONT_H_ */

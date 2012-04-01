@@ -3,12 +3,12 @@
 
 #include "nacl/aroma.h"
 #include "nacl/gl_context.h"
-#include "nacl/image.h"
 #include "nacl/nacl_audio.h"
 
 #include "lua_binding.h"
 #include "renderer.h"
 #include "input.h"
+#include "image.h"
 
 namespace aroma {
 

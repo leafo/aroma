@@ -3,7 +3,7 @@
 #include "lua_binding.h"
 #include "geometry.h"
 #include "shader.h"
-#include "nacl/image.h"
+#include "image.h"
 
 namespace aroma {
 	struct QuadCoords {
