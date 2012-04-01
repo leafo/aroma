@@ -43,10 +43,12 @@ namespace aroma {
 		int width, height;
 
 		void bind() const;
-		void update(int x, int y, ImageData* data);
+		void update(int x, int y, const ImageData* data);
 
 		static Image from_bytes(const byte* bytes, int width, int height, GLenum
 				format = GL_RGBA, GLenum type = GL_UNSIGNED_BYTE);
+
+		static Image from_data(const ImageData* data);
 
 		static int _gc(lua_State* l);
 
@@ -62,6 +64,5 @@ namespace aroma {
 		const char* module_name();
 		void bind_all(lua_State* l);
 	};
-
 }
 

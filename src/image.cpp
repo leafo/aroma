@@ -18,7 +18,6 @@
 // Warning: osx represents pixels at BGRA, watch out!
 
 namespace aroma {
-
 	const GLenum IMAGE_DATA_FORMAT = GL_RGBA;
 	const GLenum IMAGE_DATA_TYPE = GL_UNSIGNED_BYTE;
 
@@ -186,11 +185,16 @@ namespace aroma {
 		return img;
 	}
 
+	Image Image::from_data(const ImageData* data) {
+		return from_bytes(data->bytes, data->width, data->height,
+				data->format, data->type);
+	}
+
 	void Image::bind() const {
 		glBindTexture(GL_TEXTURE_2D, texid);
 	}
 
-	void Image::update(int x, int y, ImageData* data) {
+	void Image::update(int x, int y, const ImageData* data) {
 		bind();
 		glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, data->width, data->height,
 				data->format, data->type, data->bytes);
@@ -242,12 +246,10 @@ namespace aroma {
 
 	// take image data as first arguments
 	int Image::_new(lua_State* l) {
-		ImageData* d = getself(ImageData);
-		Image i = from_bytes(d->bytes, d->width, d->height, IMAGE_DATA_FORMAT,
-				IMAGE_DATA_TYPE);
+		Image new_img = from_data(getself(ImageData));
 
 		Image *self = newuserdata(Image);
-		*self = i;
+		*self = new_img;
 
 		if (luaL_newmetatable(l, "Image")) {
 			lua_newtable(l); // the index table
@@ -354,6 +356,5 @@ namespace aroma {
 #endif
 
 #endif
-
 }
 
