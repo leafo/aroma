@@ -95,6 +95,21 @@ namespace aroma {
 		return eq;
 	}
 
+	// store something in the registry to prevent it from being garbage collected
+	void LuaBinding::store_in_registry(lua_State *l, int i, const char* name) {
+		luaL_newmetatable(l, AROMA_NAME);
+		lua_pushvalue(l, 1);
+		lua_setfield(l, -2, name);
+		lua_pop(l, 1); // pop metatable
+	}
+
+	// get something stored in registry
+	int LuaBinding::from_registry(lua_State *l, const char* name) {
+		luaL_newmetatable(l, AROMA_NAME);
+		lua_getfield(l, -1, name);
+		lua_remove(l, -2);
+		return 1;
+	}
 
 	// got this someplace off lua wiki/mailing list
 	void stack_dump(lua_State *L) {

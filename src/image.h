@@ -15,11 +15,15 @@ namespace aroma {
 		int width, height;
 		byte* bytes;
 
-		void apply_color_key(const Color key);
-
-		// TODO get rid of constructor
-		ImageData(int width, int height, byte* bytes);
+		ImageData(int width, int height, byte* bytes); // takes ownership of buffer
+		ImageData(int width, int height); // creates the buffer
 		ImageData();
+
+		void free(); // don't call if you've handed it off to lua
+		void clear(const Color color);
+
+		void update(int x, int y, const ImageData & other);
+		void apply_color_key(const Color key);
 
 #ifndef AROMA_NACL
 		static bool from_memory_file(ImageData* d, const void* bytes, size_t len);
@@ -43,12 +47,14 @@ namespace aroma {
 		int width, height;
 
 		void bind() const;
-		void update(int x, int y, const ImageData* data);
+		void update(int x, int y, const ImageData & data);
+
+		void free();
 
 		static Image from_bytes(const byte* bytes, int width, int height, GLenum
 				format = GL_RGBA, GLenum type = GL_UNSIGNED_BYTE);
 
-		static Image from_data(const ImageData* data);
+		static Image from_data(const ImageData & data);
 
 		static int _gc(lua_State* l);
 

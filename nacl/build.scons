@@ -43,7 +43,8 @@ aroma_files = prefix_files(aroma_src, [
     "input.cpp",
     "shader.cpp",
     "audio.cpp",
-    "nacl/nacl_audio.cpp"
+    "nacl/nacl_audio.cpp",
+    "font.cpp"
 ])
 
 import make_nacl_env

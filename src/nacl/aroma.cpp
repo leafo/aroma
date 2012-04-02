@@ -9,6 +9,7 @@
 #include "renderer.h"
 #include "input.h"
 #include "image.h"
+#include "font.h"
 
 namespace aroma {
 
@@ -239,8 +240,10 @@ namespace aroma {
 					return false;
 				}
 
+				// attach all the default aroma modules
 				input_handler = new InputHandler(binding);
 				binding->bind_module(&ImageModule());
+				binding->bind_module(&FontModule());
 				binding->bind_module(&NaClAudioModule());
 
 				PostMessage(pp::Var("Lua loaded"));

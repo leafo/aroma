@@ -54,8 +54,28 @@ namespace aroma {
 		: width(0), height(0), bytes(0), format(IMAGE_DATA_FORMAT),
 		type(IMAGE_DATA_TYPE) {}
 
+	ImageData::ImageData(int width, int height)
+		: width(width), height(height), format(IMAGE_DATA_FORMAT),
+		type(IMAGE_DATA_TYPE)
+	{
+		bytes = new byte[width*height*4];
+	}
+
+	void ImageData::free() {
+		delete bytes;
+		bytes = 0;
+	}
+
+	void ImageData::clear(const Color color) {
+		Color* pixels = (Color*)bytes;
+		int count = width * height;
+		for (int i = 0; i < count; i++) {
+			pixels[i] = color;
+		}
+	}
+
 	int ImageData::_gc(lua_State* l) {
-		delete getself(ImageData)->bytes;
+		getself(ImageData)->free();
 		return 0;
 	}
 
@@ -114,6 +134,17 @@ namespace aroma {
 		lua_setmetatable(l, -2);
 
 		return 1;
+	}
+
+	void ImageData::update(int x, int y, const ImageData & other) {
+		Color* source = (Color*)other.bytes;
+		Color* dest = (Color*)bytes;
+
+		for (int i = 0; i < other.width * other.height; i++) {
+			int xx = x + (i % other.width);
+			int yy = y + (i / other.width);
+			dest[xx + yy * width] = source[i];
+		}
 	}
 
 	void ImageData::apply_color_key(const Color key) {
@@ -185,25 +216,29 @@ namespace aroma {
 		return img;
 	}
 
-	Image Image::from_data(const ImageData* data) {
-		return from_bytes(data->bytes, data->width, data->height,
-				data->format, data->type);
+	Image Image::from_data(const ImageData & data) {
+		return from_bytes(data.bytes, data.width, data.height,
+				data.format, data.type);
 	}
 
 	void Image::bind() const {
 		glBindTexture(GL_TEXTURE_2D, texid);
 	}
 
-	void Image::update(int x, int y, const ImageData* data) {
+	void Image::update(int x, int y, const ImageData & data) {
 		bind();
-		glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, data->width, data->height,
-				data->format, data->type, data->bytes);
+		glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, data.width, data.height,
+				data.format, data.type, data.bytes);
+	}
+
+	void Image::free() {
+		glDeleteTextures(1, &texid);
+		texid = -1;
 	}
 
 	int Image::_gc(lua_State* l) {
 		Image* self = newuserdata(Image);
-		glDeleteTextures(1, &self->texid);
-		self->texid = -1;
+		self->free();
 		return 0;
 	}
 
@@ -246,7 +281,7 @@ namespace aroma {
 
 	// take image data as first arguments
 	int Image::_new(lua_State* l) {
-		Image new_img = from_data(getself(ImageData));
+		Image new_img = from_data(*getself(ImageData));
 
 		Image *self = newuserdata(Image);
 		*self = new_img;
@@ -266,8 +301,6 @@ namespace aroma {
 
 		return 1;
 	}
-
-
 
 	const char* ImageModule::module_name() {
 		return "image";

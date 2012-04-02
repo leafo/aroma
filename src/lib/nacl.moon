@@ -1,6 +1,8 @@
 
 cjson = require"cjson"
 
+ALPHABET = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-=[];',./!@#$%^&*()_+{}|:\"<>?\\`~ "
+
 -- disable invalid functions
 os.remove = -> error "os.remove is disabled"
 os.rename = -> error "os.rename is disabled"
@@ -134,6 +136,21 @@ nacl.init = {
       img_cache[url] = img
       img
 
+    -- this needs to run in the thread
+    default_font = nil
+    aroma.boot = ->
+      if not self.getDefaultFont!
+        print "BUILDING FONT"
+        glyphs = request_response { "font", "16pt sans-serif", ALPHABET }
+        cache = aroma.font.newGlyphCache!
+        for g in *glyphs
+          letter, data_string, w, h = unpack g
+          -- print "->> Adding:", letter, w, h
+          data = nacl.image_data_from_byte_string data_string, w, h
+          cache\add_glyph letter\byte!, data
+
+        self.setDefaultFont cache\to_font!
+
   audio: =>
     @newSource = (url, kind="static") ->
       msg = request_response { "audio", url, kind }
@@ -158,6 +175,7 @@ nacl.init_all = (aroma) ->
     blank = ->
     aroma[key] = blank for key in *functions_to_reset
     aroma.graphics.reset!
+    aroma.boot!
 
     setup_fn!
 

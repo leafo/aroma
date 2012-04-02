@@ -38,4 +38,3 @@ frag = [[
 
 graphics.setDefaultShader graphics.newShader vert, frag
 
-

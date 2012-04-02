@@ -101,6 +101,7 @@ namespace aroma {
 		context(context),
 		binding(binding),
 		default_shader(NULL),
+		default_font(NULL),
 		_texturing(false)
 	{
 		context->set_renderer(this);
@@ -153,6 +154,12 @@ namespace aroma {
 		binding->send_event("update", 1);
 		binding->send_event("draw", 0);
 
+		if (default_font) {
+			default_font->write_string(10, 10, "Hello World!");
+			// Transform t = { 0, 0, 0, 1, 1 };
+			// img_rect(&default_font->letters, t);
+		}
+
 		lua_settop(l, top);
 	}
 
@@ -200,6 +207,9 @@ namespace aroma {
 		set_new_func("draw", _draw);
 		set_new_func("drawq", _drawq);
 		set_new_func("setDefaultShader", _setDefaultShader);
+
+		set_new_func("getDefaultFont", _getDefaultFont);
+		set_new_func("setDefaultFont", _setDefaultFont);
 
 		set_new_func("push", _push);
 		set_new_func("pop", _pop);
@@ -282,13 +292,21 @@ namespace aroma {
 			self->default_shader = shader;
 		}
 
-		// store the shader in the aroma entry in the registry
-		// so it's not garbage collected
-		luaL_newmetatable(l, "aroma");
-		lua_pushvalue(l, 1);
-		lua_setfield(l, -2, "default_shader");
-
+		self->binding->store_in_registry(l, 1, "default_shader");
 		return 0;
+	}
+
+	int Renderer::_setDefaultFont(lua_State* l) {
+		Renderer* self = upvalue_self(Renderer);
+		Font* font = getself(Font);
+		self->default_font = font;
+		self->binding->store_in_registry(l, 1, "default_font");
+		return 0;
+	}
+
+	int Renderer::_getDefaultFont(lua_State* l) {
+		Renderer* self = upvalue_self(Renderer);
+		return self->binding->from_registry(l, "default_font");
 	}
 
 	int Renderer::_push(lua_State* l) {
@@ -368,6 +386,18 @@ namespace aroma {
 	}
 
 	QuadCoords Quad::quad_coords() const {
+		QuadCoords out = {{
+			x1, y1,
+			x2, y1,
+			x1, y2,
+			x2, y2
+		}};
+		return out;
+	}
+
+	QuadCoords QuadCoords::from_rect(float x1, float y1, float w, float h) {
+		float x2 = x1 + w, y2 = y1 + h;
+
 		QuadCoords out = {{
 			x1, y1,
 			x2, y1,

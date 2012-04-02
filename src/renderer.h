@@ -4,10 +4,12 @@
 #include "geometry.h"
 #include "shader.h"
 #include "image.h"
+#include "font.h"
 
 namespace aroma {
 	struct QuadCoords {
 		GLfloat coords[8];
+		static QuadCoords from_rect(float x, float y, float w, float h);
 	};
 
 	struct Quad {
@@ -35,13 +37,15 @@ namespace aroma {
 			GLContext* context;
 			LuaBinding* binding;
 			Shader* default_shader;
-			double last_time;
+			Font* default_font;
 
+			double last_time;
 			bool _texturing;
 			MatrixStack projection;
 
 			GLuint vert_buffer;
 			GLuint tex_buffer;
+
 		public:
 			Color current_color;
 
@@ -87,5 +91,8 @@ namespace aroma {
 			static int _rotate(lua_State* l);
 
 			static int _setDefaultShader(lua_State *l);
+
+			static int _setDefaultFont(lua_State *l);
+			static int _getDefaultFont(lua_State *l);
 	};
 }

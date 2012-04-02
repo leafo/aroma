@@ -24,6 +24,8 @@ namespace aroma {
 			virtual bool bind_all(); // set up the lua env
 
 			bool is_type(lua_State* l, int i, const char* type);
+			void store_in_registry(lua_State *l, int i, const char* name);
+			int from_registry(lua_State *l, const char* name);
 
 			void set_game_thread(lua_State* thread);
 
