@@ -21,8 +21,6 @@ namespace aroma {
 
 	Font GlyphCache::build_font() {
 		int max_width = 0;
-		int max_char = 0;
-		int min_char = -1;
 
 		if (glyphs.size() == 0) {
 			err("attemping to build font with 0 glyphs\n");
@@ -30,8 +28,6 @@ namespace aroma {
 
 		for (GlyphList::iterator g = glyphs.begin(); g != glyphs.end(); ++g) {
 			if (g->width > max_width) max_width = g->width;
-			if (g->letter > max_char) max_char = g->letter;
-			if (min_char == -1 || g->letter < min_char) min_char = g->letter;
 		}
 
 		// I don't know if this even works
@@ -41,17 +37,16 @@ namespace aroma {
 		tex_width = next_p2(tex_width);
 
 		ImageData d(tex_width, tex_width);
-		d.clear(Color(0,0,0,0));
-
-		vector<Letter> letter_map(max_char - min_char + 1);
+		d.clear(Color(0,255,255,255));
 
 		// write to image data
 		int per_row = tex_width / max_width;
 		int k = 0;
 
+		LetterList letters;
 		for (GlyphList::iterator i = glyphs.begin(); i != glyphs.end(); ++i) {
 			Letter l = { i->letter, i->width };
-			letter_map[i->letter - min_char] = l;
+			letters.push_back(l);
 
 			int x = (k % per_row) * max_width;
 			int y = (k / per_row) * height;
@@ -63,14 +58,12 @@ namespace aroma {
 		Image img = Image::from_data(d);
 		d.free();
 
-		return Font(img, height, min_char, letter_map);
+		return Font(img, height, max_width, letters);
 	}
 
 	int GlyphCache::_new(lua_State* l) {
 		GlyphCache* self = newuserdata(GlyphCache);
-
-		GlyphCache tmp;
-		memcpy(self, (const void*)&tmp, sizeof(GlyphCache));
+		new (self) GlyphCache();
 
 		if (luaL_newmetatable(l, "GlyphCache")) {
 			lua_newtable(l);
@@ -107,32 +100,37 @@ namespace aroma {
 		return 0;
 	}
 
-	Font::Font(Image letters, int line_height, int start_i,
-			vector<Letter> letter_map) :
-		letters(letters), line_height(line_height), start_i(start_i),
-		letter_map(letter_map) { }
+	Font::Font(Image letter_tex, int line_height, int max_w, LetterList letters)
+		: letter_tex(letter_tex),
+			line_height(line_height),
+			max_width(max_w),
+			letters(letters)
+		{
+			int max_char = 0;
+			int min_char = -1;
 
-	void Font::write_string(int x, int y, const char* str) {
-		size_t len = strlen(str);
-		QuadCoords verts[len];
-		QuadCoords tex[len];
+			for (LetterList::iterator l = letters.begin(); l != letters.end(); ++l) {
+				if (l->letter > max_char) max_char = l->letter;
+				if (min_char == -1 || l->letter < min_char) min_char = l->letter;
+			}
 
-		for (int i = 0; i < len; i++) {
-			const Letter l = letter_map[str[i] - start_i];
-			verts[i] = QuadCoords::from_rect(x, y, l.width, line_height);
-			x += l.width;
-			// tex[i] = QuadCoords::from_rect(x, y);
+			letter_map = vector<int>(max_char - min_char + 1);
+
+			int count = letters.size();
+			for (int i = 0; i < count; i++) {
+				letter_map[letters[i].letter] = i;
+			}
+
+			start_i = min_char;
 		}
-	}
 
 	int Font::push(lua_State* l) const {
 		Font* self = newuserdata(Font);
-		// *self = *this; // doesn't work with std containers
-		memcpy(self, this, sizeof(Font));
+		new (self) Font(*this); // AWESOME!
 
 		if (luaL_newmetatable(l, "Font")) {
 			lua_newtable(l);
-			setfunction("print", _print);
+			// setfunction("print", _print);
 			lua_setfield(l, -2, "__index");
 			setfunction("__gc", _gc);
 		}
@@ -141,13 +139,10 @@ namespace aroma {
 		return 1;
 	}
 
-	int Font::_print(lua_State* l) {
-		return 0;
-	}
-
 	int Font::_gc(lua_State* l) {
+		err("collecting font!\n");
 		Font* self = getself(Font);
-		self->letters.free();
+		self->letter_tex.free();
 		return 0;
 	}
 

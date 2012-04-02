@@ -61,6 +61,7 @@ namespace aroma {
 
 			void img_rect(const Image* i, const Transform& t);
 			void img_rect_blit(const Image* i, const Quad& q, const Transform& t);
+			void font_write(const Font* font, int x, int y, const char *str);
 
 			void texturing(bool enabled);
 

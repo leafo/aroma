@@ -13,19 +13,27 @@ namespace aroma {
 		int width;
 	};
 
+	struct Glyph {
+		int letter;
+		byte* bytes;
+		int width;
+	};
+
+	typedef vector<Letter> LetterList;
+	typedef vector<Glyph> GlyphList;
+
 	class Font {
 		protected:
-			Image letters;
-			int line_height;
+			Image letter_tex;
+			int line_height, max_width;
 			int start_i;
-			vector<Letter> letter_map;
+			LetterList letters;
+			vector<int> letter_map;
 
 		public:
-			Font(Image letters, int line_height, int start_i,
-					vector<Letter> letter_map);
+			friend class Renderer;
 
-			void write_string(int x, int y, const char* str);
-
+			Font(Image letter_tex, int line_height, int max_w, LetterList letters);
 			int push(lua_State* l) const;
 
 			static int _gc(lua_State* l);
@@ -35,14 +43,6 @@ namespace aroma {
 			// set/get line height and letter spacing
 			// width of string calculation
 	};
-
-	struct Glyph {
-		int letter;
-		byte* bytes;
-		int width;
-	};
-
-	typedef vector<Glyph> GlyphList;
 
 	// collects all the glyphs in one place before building the texture for the
 	// font

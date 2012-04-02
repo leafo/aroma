@@ -69,6 +69,74 @@ namespace aroma {
 		if (pop_mat) projection.pop();
 	}
 
+	// TODO: convert to tile map
+	void Renderer::font_write(const Font* font, int x, int y, const char *str) {
+		size_t len = strlen(str);
+		QuadCoords verts[len];
+		QuadCoords tex[len];
+
+		int per_row = font->letter_tex.width / font->max_width;
+
+		for (int i = 0; i < len; i++) {
+			int tid = font->letter_map[str[i] - font->start_i];
+			const Letter l = font->letters[tid];
+			verts[i] = QuadCoords::from_rect(x, y, l.width, font->line_height);
+			x += l.width;
+
+			int tx = (tid % per_row) * font->max_width;
+			int ty = (tid / per_row) * font->line_height;
+
+			int tw = font->letter_tex.width;
+			int th = font->letter_tex.height;
+
+			tex[i] = QuadCoords::from_rect(
+					(float)tx / tw, (float)ty / th,
+					(float)l.width / tw,
+					(float)font->line_height / th
+			);
+		}
+
+		default_shader->set_uniform("C", current_color);
+		projection.apply(default_shader);
+
+		GLuint vbuffer, tbuffer;
+
+		glGenBuffers(1, &vbuffer);
+		glBindBuffer(GL_ARRAY_BUFFER, vbuffer);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(float) * len * 8, &verts,
+				GL_STATIC_DRAW);
+
+		glGenBuffers(1, &tbuffer);
+		glBindBuffer(GL_ARRAY_BUFFER, tbuffer);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(float) * len * 8, &tex,
+				GL_STATIC_DRAW);
+
+		// ready 2 draw
+
+		default_shader->set_uniform("texturing", 1u);
+		font->letter_tex.bind();
+		default_shader->set_uniform("tex", 0u);
+
+		GLuint P = default_shader->attr_loc("P");
+		GLuint T = default_shader->attr_loc("T");
+
+		glEnableVertexAttribArray(P);
+		glBindBuffer(GL_ARRAY_BUFFER, vbuffer);
+		glVertexAttribPointer(P, 2, GL_FLOAT, false, 0, 0);
+
+		glEnableVertexAttribArray(T);
+		glBindBuffer(GL_ARRAY_BUFFER, tbuffer);
+		glVertexAttribPointer(T, 2, GL_FLOAT, false, 0, 0);
+
+		for (int i = 0; i < len; i++) {
+			glDrawArrays(GL_TRIANGLE_STRIP, i*4, 4);
+		}
+
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glDeleteBuffers(1, &tbuffer);
+		glDeleteBuffers(1, &vbuffer);
+	}
+
 	void Renderer::rect(float x1, float y1, float x2, float y2) {
 		float verts[] = {
 			x1, y1,
@@ -155,7 +223,7 @@ namespace aroma {
 		binding->send_event("draw", 0);
 
 		if (default_font) {
-			default_font->write_string(10, 10, "Hello World!");
+			font_write(default_font, 10, 10, "love2dad");
 			// Transform t = { 0, 0, 0, 1, 1 };
 			// img_rect(&default_font->letters, t);
 		}
