@@ -264,10 +264,6 @@ class Aroma.Font
     real_width = @ctx.measureText(str).width
     @reset_canvas real_width, @height if real_width > default_width
 
-    @ctx.fillStyle = "red"
-    @ctx.fillRect 0,0, real_width, @height
-    @ctx.fillStyle = "white"
-
     @ctx.fillText str, 0, 0
 
     bytestring = encode_byte_array @ctx.getImageData(0, 0, real_width, @height).data

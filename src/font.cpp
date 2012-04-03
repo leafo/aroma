@@ -30,17 +30,22 @@ namespace aroma {
 			if (g->width > max_width) max_width = g->width;
 		}
 
-		// I don't know if this even works
+		// find the power of two square texture that will fit all the glyphs, a little messy
 		int tex_width = sqrt((max_width * height) * glyphs.size());
 		if (tex_width < max_width) tex_width = max_width;
 		if (tex_width < height) tex_width = height;
 		tex_width = next_p2(tex_width);
 
+		int per_row = tex_width / max_width;
+		while((glyphs.size() / per_row + 1) * height > tex_width) {
+			tex_width = next_p2(tex_width + 1);
+			per_row = tex_width / max_width;
+		}
+
 		ImageData d(tex_width, tex_width);
-		d.clear(Color(0,255,255,255));
+		d.clear(Color(0,0,0,0));
 
 		// write to image data
-		int per_row = tex_width / max_width;
 		int k = 0;
 
 		LetterList letters;
@@ -95,7 +100,6 @@ namespace aroma {
 	}
 
 	int GlyphCache::_gc(lua_State* l) {
-		log("collecting glyph cache\n");
 		// if created from lua then all the image data is being collected by lua
 		return 0;
 	}
@@ -118,7 +122,7 @@ namespace aroma {
 
 			int count = letters.size();
 			for (int i = 0; i < count; i++) {
-				letter_map[letters[i].letter] = i;
+				letter_map[letters[i].letter - min_char] = i;
 			}
 
 			start_i = min_char;
@@ -140,7 +144,6 @@ namespace aroma {
 	}
 
 	int Font::_gc(lua_State* l) {
-		err("collecting font!\n");
 		Font* self = getself(Font);
 		self->letter_tex.free();
 		return 0;

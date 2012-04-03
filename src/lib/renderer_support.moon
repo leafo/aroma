@@ -3,6 +3,8 @@
 import graphics from aroma
 
 vert = [[
+  precision mediump float;
+
   uniform vec4 C;
   uniform mat4 PMatrix;
   uniform bool texturing;
@@ -21,6 +23,8 @@ vert = [[
 ]]
 
 frag = [[
+  precision mediump float;
+
   uniform sampler2D tex;
   uniform bool texturing;
 
@@ -29,7 +33,7 @@ frag = [[
 
   void main(void) {
     if (texturing) {
-      gl_FragColor = texture2D(tex, vTex);
+      gl_FragColor = texture2D(tex, vTex) * vColor;
     } else {
       gl_FragColor = vColor;
     }

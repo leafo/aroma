@@ -169,7 +169,7 @@ namespace aroma {
 		context(context),
 		binding(binding),
 		default_shader(NULL),
-		default_font(NULL),
+		current_font(NULL),
 		_texturing(false)
 	{
 		context->set_renderer(this);
@@ -222,12 +222,6 @@ namespace aroma {
 		binding->send_event("update", 1);
 		binding->send_event("draw", 0);
 
-		if (default_font) {
-			font_write(default_font, 10, 10, "love2dad");
-			// Transform t = { 0, 0, 0, 1, 1 };
-			// img_rect(&default_font->letters, t);
-		}
-
 		lua_settop(l, top);
 	}
 
@@ -276,8 +270,8 @@ namespace aroma {
 		set_new_func("drawq", _drawq);
 		set_new_func("setDefaultShader", _setDefaultShader);
 
-		set_new_func("getDefaultFont", _getDefaultFont);
-		set_new_func("setDefaultFont", _setDefaultFont);
+		set_new_func("getFont", _getFont);
+		set_new_func("setFont", _setFont);
 
 		set_new_func("push", _push);
 		set_new_func("pop", _pop);
@@ -285,10 +279,10 @@ namespace aroma {
 		set_new_func("scale", _scale);
 		set_new_func("rotate", _rotate);
 
+		set_new_func("print", _print);
+
 		set_new_func("newQuad", Quad::_new);
-
 		set_new_func("newShader", Shader::_new);
-
 		set_new_func("newImage", Image::_new);
 	}
 
@@ -364,17 +358,17 @@ namespace aroma {
 		return 0;
 	}
 
-	int Renderer::_setDefaultFont(lua_State* l) {
+	int Renderer::_setFont(lua_State* l) {
 		Renderer* self = upvalue_self(Renderer);
 		Font* font = getself(Font);
-		self->default_font = font;
-		self->binding->store_in_registry(l, 1, "default_font");
+		self->current_font = font;
+		self->binding->store_in_registry(l, 1, "current_font");
 		return 0;
 	}
 
-	int Renderer::_getDefaultFont(lua_State* l) {
+	int Renderer::_getFont(lua_State* l) {
 		Renderer* self = upvalue_self(Renderer);
-		return self->binding->from_registry(l, "default_font");
+		return self->binding->from_registry(l, "current_font");
 	}
 
 	int Renderer::_push(lua_State* l) {
@@ -409,6 +403,25 @@ namespace aroma {
 		Renderer* r = upvalue_self(Renderer);
 		r->current_color = Color(255,255,255);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		return 0;
+	}
+
+	int Renderer::_print(lua_State* l) {
+		Renderer* self = upvalue_self(Renderer);
+		Font* font = self->current_font;
+
+		int start = 1;
+		if (self->binding->is_type(l, 1, "Font")) {
+			font = getself(Font);
+			start++;
+		}
+
+		const char* str = luaL_checkstring(l, start);
+		Point p = Point::read2d(l, start+1);
+
+		if (font) {
+			self->font_write(font, p.x, p.y, str);
+		}
 		return 0;
 	}
 

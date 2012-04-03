@@ -37,7 +37,7 @@ namespace aroma {
 			GLContext* context;
 			LuaBinding* binding;
 			Shader* default_shader;
-			Font* default_font;
+			Font* current_font;
 
 			double last_time;
 			bool _texturing;
@@ -93,7 +93,9 @@ namespace aroma {
 
 			static int _setDefaultShader(lua_State *l);
 
-			static int _setDefaultFont(lua_State *l);
-			static int _getDefaultFont(lua_State *l);
+			static int _setFont(lua_State *l);
+			static int _getFont(lua_State *l);
+
+			static int _print(lua_State* l);
 	};
 }

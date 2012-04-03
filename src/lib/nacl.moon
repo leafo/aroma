@@ -127,6 +127,7 @@ class AudioSource
 nacl.init = {
   graphics: =>
     old_new_image = @newImage
+
     @newImage = (url, ...) ->
       return old_new_image url, ... if type(url) != "string"
       return img_cache[url] if img_cache[url]
@@ -136,20 +137,18 @@ nacl.init = {
       img_cache[url] = img
       img
 
-    -- this needs to run in the thread
-    default_font = nil
-    aroma.boot = ->
-      if not self.getDefaultFont!
-        print "BUILDING FONT"
-        glyphs = request_response { "font", "16pt sans-serif", ALPHABET }
-        cache = aroma.font.newGlyphCache!
-        for g in *glyphs
-          letter, data_string, w, h = unpack g
-          -- print "->> Adding:", letter, w, h
-          data = nacl.image_data_from_byte_string data_string, w, h
-          cache\add_glyph letter\byte!, data
+    @newFont = (font_str, alphabet=ALPHABET) ->
+      glyphs = request_response { "font", font_str, alphabet }
+      cache = aroma.font.newGlyphCache!
+      for g in *glyphs
+        letter, data_string, w, h = unpack g
+        data = nacl.image_data_from_byte_string data_string, w, h
+        cache\add_glyph letter\byte!, data
+      cache\to_font!
 
-        self.setDefaultFont cache\to_font!
+    aroma.boot = ->
+      if not self.getFont!
+        self.setFont self.newFont "16pt sans-serif"
 
   audio: =>
     @newSource = (url, kind="static") ->
