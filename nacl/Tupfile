@@ -1,0 +1,20 @@
+.gitignore
+include_rules
+
+ifeq (@(TARGET),nacl)
+
+o_files = $(root_dir)/src/*.o $(root_dir)/src/nacl/*.o lua-5.1.5/src/*.o lua-cjson-2.1.0/*.o 
+: $(o_files) |> !bin |> aroma_@(NACL_ARCH).nexe
+
+# # generate manifest file for glibc
+# create_nmf = python2 @(NACL_TC)/../../tools/create_nmf.py
+# 
+# nmf_args = -D $(OBJDUMP)
+# nmf_paths = -L @(NACL_TC)/x86_64-nacl/lib32 -L @(NACL_TC)/x86_64-nacl/lib
+# 
+# : *.nexe |> $(create_nmf) $(nmf_args) -s . -o %o $(nmf_paths) %f |> aroma.nmf
+
+endif
+
+
+
