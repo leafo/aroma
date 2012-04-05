@@ -3,7 +3,6 @@
 #include "lib/renderer_support.lua.h"
 
 namespace aroma {
-
 	GLuint init_float_buffer(size_t size) {
 		GLuint buffer;
 		glGenBuffers(1, &buffer);
@@ -170,7 +169,8 @@ namespace aroma {
 		binding(binding),
 		default_shader(NULL),
 		current_font(NULL),
-		_texturing(false)
+		_texturing(false),
+		fps(0), frames(0), elapsed_time(0)
 	{
 		context->set_renderer(this);
 		binding->bind_module(this);
@@ -178,6 +178,10 @@ namespace aroma {
 
 	GLContext* Renderer::get_context() {
 		return context;
+	}
+
+	int Renderer::get_fps() {
+		return fps;
 	}
 
 	bool Renderer::init() {
@@ -233,7 +237,17 @@ namespace aroma {
 		projection.reset(Mat4::ortho2d(0, context->width(), 0, context->height()));
 
 		double time = context->get_time();
-		draw(time - last_time);
+		double dt = time - last_time;
+
+		++frames;
+		elapsed_time += dt;
+		if (elapsed_time > FPS_UPDATE_FREQ) {
+			fps = frames / elapsed_time + 0.5;
+			elapsed_time -= FPS_UPDATE_FREQ;
+			frames = 0;
+		}
+
+		draw(dt);
 		last_time = time;
 
 		context->flush();

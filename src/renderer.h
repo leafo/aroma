@@ -1,3 +1,4 @@
+#pragma once
 
 #include "context.h"
 #include "lua_binding.h"
@@ -7,6 +8,8 @@
 #include "font.h"
 
 namespace aroma {
+	const static double FPS_UPDATE_FREQ = 1.0;
+
 	struct QuadCoords {
 		GLfloat coords[8];
 		static QuadCoords from_rect(float x, float y, float w, float h);
@@ -46,6 +49,10 @@ namespace aroma {
 			GLuint vert_buffer;
 			GLuint tex_buffer;
 
+			// for fps calculation
+			int fps;
+			int frames;
+			double elapsed_time;
 		public:
 			Color current_color;
 
@@ -66,10 +73,10 @@ namespace aroma {
 			void texturing(bool enabled);
 
 			GLContext* get_context();
+			int get_fps();
 
 			void bind_all(lua_State *l);
 			const char* module_name();
-
 
 			static int _setColor(lua_State* l);
 			static int _getColor(lua_State* l);

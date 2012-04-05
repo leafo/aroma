@@ -4,6 +4,7 @@
 #include "nacl/aroma.h"
 #include "nacl/gl_context.h"
 #include "nacl/nacl_audio.h"
+#include "nacl/nacl_time.h"
 
 #include "lua_binding.h"
 #include "renderer.h"
@@ -69,12 +70,6 @@ namespace aroma {
 		return 0;
 	}
 
-	int _time_ticks(lua_State *l) {
-		pp::Core* core = pp::Module::Get()->core();
-		lua_pushnumber(l, core->GetTimeTicks());
-		return 1;
-	}
-
 	int _image_data_from_byte_string(lua_State *l) {
 		size_t str_len;
 		const char* str = lua_tolstring(l, 1, &str_len);
@@ -120,7 +115,6 @@ namespace aroma {
 
 				bind_function("post_message", _post_message);
 				bind_function("sleep", _sleep);
-				bind_function("time_ticks", _time_ticks);
 				bind_function("image_data_from_byte_string", _image_data_from_byte_string);
 				bind_function("set_game_thread", _set_game_thread);
 
@@ -218,11 +212,14 @@ namespace aroma {
 			NaClLuaBinding* binding;
 			Renderer* renderer;
 			InputHandler* input_handler;
+			NaClTimeModule* time_module;
 
 		public:
 			AromaInstance(PP_Instance instance) :
 				pp::Instance(instance),
-				renderer(NULL)
+				renderer(NULL),
+				input_handler(NULL),
+				time_module(NULL)
 			{
 				if (PP_OK != RequestInputEvents(PP_INPUTEVENT_CLASS_MOUSE | PP_INPUTEVENT_CLASS_KEYBOARD)) {
 					log("Could not register input events\n");
@@ -240,6 +237,7 @@ namespace aroma {
 					return false;
 				}
 
+				// TODO this should probably be in the binding
 				// attach all the default aroma modules
 				input_handler = new InputHandler(binding);
 				binding->bind_module(&ImageModule());
@@ -248,6 +246,13 @@ namespace aroma {
 
 				PostMessage(pp::Var("Lua loaded"));
 				return true;
+			}
+
+			// renderer is ready
+			void InitRenderer() {
+				renderer = new Renderer(new OpenGLContext(this), binding);
+				time_module = new NaClTimeModule(renderer);
+				binding->bind_module(time_module); // TODO maybe the binding can keep track of all pointer modules
 			}
 
 			virtual ~AromaInstance() {
@@ -282,7 +287,7 @@ namespace aroma {
 				// PostMessage(pp::Var("DidChangeView"));
 				log("didchangeview\n");
 				if (!renderer) {
-					renderer = new Renderer(new OpenGLContext(this), binding);
+					InitRenderer();
 				}
 
 				pp::Size size = pos.size();
