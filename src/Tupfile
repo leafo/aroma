@@ -1,22 +1,27 @@
 .gitignore
+include_rules
 
-libs = -lglfw
-ifeq (@(TUP_PLATFORM),linux)
-  libs += -lGLU -lGL -lX11 -lXrandr -lm -lcorona -ldl
-  link = -fpic -shared
+src_files = context.cpp font.cpp geometry.cpp image.cpp input.cpp lua_binding.cpp matrix.cpp renderer.cpp shader.cpp simplex.cpp tiles.cpp audio.cpp
+
+: foreach $(src_files) | $(lua_lib_dir)/renderer_support.lua.h |> !cpp |> %B.o {lib_o}
+
+ifeq (@(TARGET),glfw)
+: {lib_o} |> $(CPP) $(link) -o %o %f $(libs) |> aroma.so
 endif
 
-ifeq (@(TUP_PLATFORM),macosx)
-  libs += -framework ApplicationServices -framework OpenGL -framework Cocoa -L/usr/X11/lib/
-  flags += -I/usr/X11/include/
-  link = -bundle -undefined dynamic_lookup
+ifeq (@(TARGET),nacl)
+
+o_files = *.o nacl/*.o $(root_dir)/nacl/lua-5.1.5/src/*.o $(root_dir)/nacl/lua-cjson-2.1.0/*.o 
+: $(o_files) |> !bin |> aroma_@(NACL_ARCH).nexe
+
+# # generate manifest file for glibc
+# create_nmf = python2 @(NACL_TC)/../../tools/create_nmf.py
+# 
+# nmf_args = -D $(OBJDUMP)
+# nmf_paths = -L @(NACL_TC)/x86_64-nacl/lib32 -L @(NACL_TC)/x86_64-nacl/lib
+# 
+# : *.nexe |> $(create_nmf) $(nmf_args) -s . -o %o $(nmf_paths) %f |> aroma.nmf
+
 endif
 
-flags += -g
-libs += -g
-
-cc = g++
-
-: foreach *.cpp | lib/renderer_support.lua.h |> $(cc) -fpic -I . -c %f $(flags) |> %B.o {lib_o}
-: {lib_o} |> $(cc) $(link) -o %o %f $(libs) |> aroma.so
 

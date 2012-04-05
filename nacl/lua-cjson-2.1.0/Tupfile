@@ -1,0 +1,10 @@
+.gitignore
+include_rules
+
+ifeq (@(TARGET),nacl)
+
+cjson_files = fpconv.c lua_cjson.c strbuf.c
+
+: foreach $(cjson_files) |> !cc |> %B.o
+
+endif

@@ -1,0 +1,67 @@
+
+!cpp = |> ^ g++ %f^ $(CPP) $(flags) $(cpp_flags) -c %f |>
+!cc = |> ^ gcc %f^ $(CC) $(flags) -c %f |>
+!bin = |> $(CPP) %f $(link) $(libs) -o %o |>
+
+root_dir = $(TUP_CWD)
+lua_lib_dir = $(TUP_CWD)/src/lib
+
+flags += -I$(TUP_CWD)/src
+
+# flags += -O2
+# link += -O2
+
+ifeq (@(TARGET),nacl)
+# TODO fix platform specific stuff
+nacl_bin = @(NACL_TC)/x86_64-nacl/bin
+
+CC = $(nacl_bin)/gcc
+CPP = $(nacl_bin)/g++
+OBJDUMP = $(nacl_bin)/objdump
+
+flags += -Wno-long-long -Wall
+flags += -I$(TUP_CWD)/nacl/lua-5.1.5/src
+flags += -I$(TUP_CWD)/nacl/lua-cjson-2.1.0
+
+flags += -DAROMA_NACL
+flags += -pthread
+
+cpp_flags += -std=gnu++98
+
+link += -lppapi_gles2 -lppapi_cpp -lppapi -lnosys
+
+ifeq (@(NACL_ARCH),x86_64)
+flags += -m64
+link += -m64
+else
+flags += -m32
+link += -m32
+endif
+
+endif
+
+ifeq (@(TARGET),glfw)
+CC = g++
+libs = -lglfw
+
+flags += -fpic 
+
+ifeq (@(TUP_PLATFORM),linux)
+  libs += -lGLU -lGL -lX11 -lXrandr -lm -lcorona -ldl
+  link = -fpic -shared
+endif
+
+ifeq (@(TUP_PLATFORM),macosx)
+  libs += -framework ApplicationServices -framework OpenGL -framework Cocoa -L/usr/X11/lib/
+  flags += -I/usr/X11/include/
+  link = -bundle -undefined dynamic_lookup
+endif
+
+endif
+
+
+# flags += -g
+# libs += -g
+
+
+

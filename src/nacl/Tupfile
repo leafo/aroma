@@ -1,0 +1,9 @@
+.gitignore
+include_rules
+
+ifeq (@(TARGET),nacl)
+
+: foreach *.cpp | $(lua_lib_dir)/nacl.lua.h |> !cc |> %B.o
+
+endif
+
