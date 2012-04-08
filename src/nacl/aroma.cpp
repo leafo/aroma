@@ -283,6 +283,11 @@ namespace aroma {
 				return false;
 			}
 
+			void DidChangeFocus(bool has_focus) {
+				lua_pushboolean(binding->lua(), has_focus);
+				binding->send_event("focus", 1);
+			}
+
 			void DidChangeView(const pp::Rect& pos, const pp::Rect& clip) {
 				// PostMessage(pp::Var("DidChangeView"));
 				log("didchangeview\n");
