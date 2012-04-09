@@ -73,6 +73,17 @@ namespace aroma {
 		return r;
 	}
 
+	Rect Rect::read(lua_State*l, int i) {
+		int count = read_tuple(l, i, 4);
+
+		if (count < 4) {
+			luaL_error(l, "expeting at least 4 numbers, got %d", count);
+		}
+
+		Rect r = { pool[0], pool[1], pool[2], pool[3] };
+		return r;
+	}
+
 	void Point::print() {
 		log("Point <%f, %f, %f>\n", x, y, z);
 	}

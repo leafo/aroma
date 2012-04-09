@@ -72,6 +72,7 @@ namespace aroma {
 
 		static Rect from_point(Point p, double _w, double _h);
 		static Rect pop(lua_State *l);
+		static Rect read(lua_State*l, int i);
 	};
 
 }

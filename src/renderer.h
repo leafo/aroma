@@ -63,6 +63,11 @@ namespace aroma {
 			int fps;
 			int frames;
 			double elapsed_time;
+
+			// draw untextured vertices that are bound to current buffer
+			void draw_primitive(GLenum type=GL_TRIANGLE_STRIP,
+				size_t vertices=4);
+
 		public:
 			Color current_color;
 
@@ -74,7 +79,8 @@ namespace aroma {
 
 			void reshape(const int w, const int h);
 
-			void rect(float x1, float y1, float x2, float y2);
+			void rect(float x1, float y1, float w, float h);
+			void rect_line(float x1, float y1, float w, float h);
 
 			void img_rect(const Image* i, const Transform& t);
 			void img_rect_blit(const Image* i, const Quad& q, const Transform& t);

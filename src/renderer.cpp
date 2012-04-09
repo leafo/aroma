@@ -65,7 +65,9 @@ namespace aroma {
 	}
 
 	// TODO: convert to tile map
-	void Renderer::font_write(const Font* font, int x, int y, const char *str) {
+	void Renderer::font_write(const Font* font, int x, int y,
+		const char *str)
+	{
 		size_t len = strlen(str);
 
 		TexQuadCoords quads[len];
@@ -121,13 +123,29 @@ namespace aroma {
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 
-	void Renderer::rect(float x1, float y1, float x2, float y2) {
-		QuadCoords quad = QuadCoords::from_rect(x1, y1, x2, y2);
+	void Renderer::rect(float x, float y, float w, float h) {
+		QuadCoords quad = QuadCoords::from_rect(x, y, w, h);
+		update_float_buffer(quad_buffer, &quad);
+		draw_primitive(GL_TRIANGLE_STRIP, 4);
+	}
 
+	void Renderer::rect_line(float x1, float y1, float w, float h) {
+		float x2 = x1 + w, y2 = y1 + h;
+
+		float verts[] = {
+			x1, y1,
+			x2, y1,
+			x2, y2,
+			x1, y2,
+		};
+
+		update_float_buffer(quad_buffer, verts, 8);
+		draw_primitive(GL_LINE_LOOP, 4);
+	}
+
+	void Renderer::draw_primitive(GLenum type, size_t vertices) {
 		default_shader->set_uniform("C", current_color);
 		projection.apply(default_shader);
-
-		update_float_buffer(quad_buffer, &quad);
 
 		default_shader->set_uniform("texturing", 0u);
 
@@ -138,7 +156,7 @@ namespace aroma {
 		glEnableVertexAttribArray(P);
 		glVertexAttribPointer(P, 2, GL_FLOAT, false, 0, 0);
 
-		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+		glDrawArrays(type, 0, vertices);
 
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
@@ -311,8 +329,19 @@ namespace aroma {
 
 	int Renderer::_rectangle(lua_State* l) {
 		Renderer* self = upvalue_self(Renderer);
-		Rect r = Rect::pop(l);
-		self->rect(r.x, r.y, r.x + r.w, r.y + r.h);
+
+		if (lua_type(l, 1) == LUA_TSTRING) {
+			Rect r = Rect::read(l, 2);
+			if (strcmp(lua_tostring(l, 1), "line") == 0) {
+				self->rect_line(r.x, r.y, r.w, r.h);
+			} else { // fill
+				self->rect(r.x, r.y, r.w, r.h);
+			}
+			return 0;
+		}
+
+		Rect r = Rect::read(l, 1);
+		self->rect(r.x, r.y, r.w, r.h);
 		return 0;
 	}
 
