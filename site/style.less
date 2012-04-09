@@ -1,0 +1,93 @@
+
+
+body {
+	background: url('images/groovepaper.png');
+	margin: 18px;
+}
+
+.grad(@top, @bottom) {
+	background-color: mix(@top, @bottom, 50%);
+	background-image: -webkit-linear-gradient(bottom, @bottom 0%, @top 100%);
+	// todo add more
+}
+
+.autograd(@color) {
+	.grad(@color, darken(@color, 10%));
+	border-top: 1px solid lighten(@color, 10%);
+}
+
+.middle() {
+	width: 960px;
+	margin: 0px auto 0px auto;
+}
+
+.column {
+	.middle();
+	border-radius: 8px 8px 0px 0px;
+	overflow: hidden;
+	border: 1px solid #74D3AD;
+	box-shadow: 0px 0px 40px rgba(0,0,0, 0.2);
+}
+
+h1, .about {
+	display: inline-block;
+	vertical-align: middle;
+}
+
+a {
+	@color: #FF4422;
+	text-decoration: none;
+	border-bottom: 1px dashed #333;
+	color: @color;
+
+	&:hover {
+		color: lighten(@color, 10%);
+	}
+}
+
+
+.header {
+	@bgcolor: #46C5BD;
+
+	@highlight: lighten(@bgcolor, 40%);
+	.autograd(lighten(@bgcolor, 30%));
+	padding: 18px 12px;
+	border-radius: 8px 8px 0px 0px;
+
+	h1 {
+		margin: 0px;
+		color: #333;
+		text-shadow: 0px 1px 0px @highlight;
+	}
+
+	.about {
+		color: darken(@bgcolor, 30%);
+		text-shadow: 0px 1px 0px @highlight;
+		font-style: italic;
+	}
+
+	border-bottom: 1px solid #74D3AD;
+}
+
+.footer {
+	.middle();
+	text-align: center;
+	color: #555;
+	font-size: 12px;
+	padding-top: 8px;
+
+	a {
+		color: #444;
+	}
+}
+
+.body {
+	background: #E7FFF6;
+	padding: 12px;
+
+	h2 {
+		color: #48817D;
+		text-shadow: 0px 1px 0px white;
+	}
+}
+
