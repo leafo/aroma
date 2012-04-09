@@ -198,6 +198,16 @@ namespace aroma {
 		return -1;
 	}
 
+	GLenum get_filter(const char* name) {
+		if (strcmp(name, "linear") == 0) {
+			return GL_LINEAR;
+		} else if (strcmp(name, "nearest") == 0) {
+			return GL_NEAREST;
+		}
+		return -1;
+	}
+
+
 	Image Image::from_bytes(const byte* bytes, int w, int h, GLenum format, GLenum type) {
 		Image img = {0};
 		img.width = w;
@@ -279,6 +289,34 @@ namespace aroma {
 		return 0;
 	}
 
+	int Image::_setFilter(lua_State* l) {
+		Image* self = getself(Image);
+		int top = lua_gettop(l);
+
+		if (top > 1 && !lua_isnil(l, 2)) {
+			GLenum filter = get_filter(luaL_checkstring(l, 2));
+			if (filter < 0) {
+				return luaL_error(l, "unknown min filter mode: %s",
+						luaL_checkstring(l, 2));
+			}
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
+		}
+
+		if (top > 2 && !lua_isnil(l, 3)) {
+			GLenum filter = get_filter(luaL_checkstring(l, 3));
+			if (filter < 0) {
+				return luaL_error(l, "unknown mag filter mode: %s",
+						luaL_checkstring(l, 3));
+			}
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
+		}
+
+
+		glBindTexture(GL_TEXTURE_2D, self->texid);
+
+		return 0;
+	}
+
 	// take image data as first arguments
 	int Image::_new(lua_State* l) {
 		Image new_img = from_data(*getself(ImageData));
@@ -291,6 +329,7 @@ namespace aroma {
 			setfunction("getWidth", _getWidth);
 			setfunction("getHeight", _getHeight);
 			setfunction("setWrap", _setWrap);
+			setfunction("setFilter", _setFilter);
 
 			lua_setfield(l, -2, "__index");
 

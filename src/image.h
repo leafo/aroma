@@ -62,6 +62,7 @@ namespace aroma {
 		static int _getHeight(lua_State* l);
 
 		static int _setWrap(lua_State* l);
+		static int _setFilter(lua_State* l);
 
 		static int _new(lua_State* l);
 	};
