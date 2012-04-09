@@ -10,6 +10,15 @@
 namespace aroma {
 	const static double FPS_UPDATE_FREQ = 1.0;
 
+	struct TexQuadCoords {
+		GLfloat coords[16];
+		static TexQuadCoords from_rect(float x, float y, float w, float h,
+				float sx, float sy, float sw, float sh);
+
+		static TexQuadCoords from_rect(float x, float y, float w, float h,
+				const Image & img, float tx, float ty, float tw, float th);
+	};
+
 	struct QuadCoords {
 		GLfloat coords[8];
 		static QuadCoords from_rect(float x, float y, float w, float h);
@@ -48,6 +57,8 @@ namespace aroma {
 
 			GLuint vert_buffer;
 			GLuint tex_buffer;
+
+			GLuint coord_buffer;
 
 			// for fps calculation
 			int fps;

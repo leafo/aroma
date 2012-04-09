@@ -3,11 +3,11 @@
 #include "lib/renderer_support.lua.h"
 
 namespace aroma {
-	GLuint init_float_buffer(size_t size) {
+	GLuint init_float_buffer(size_t size, GLenum type=GL_DYNAMIC_DRAW) {
 		GLuint buffer;
 		glGenBuffers(1, &buffer);
 		glBindBuffer(GL_ARRAY_BUFFER, buffer);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(float) * size, NULL, GL_DYNAMIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(float) * size, NULL, type);
 		return buffer;
 	}
 
@@ -71,44 +71,34 @@ namespace aroma {
 	// TODO: convert to tile map
 	void Renderer::font_write(const Font* font, int x, int y, const char *str) {
 		size_t len = strlen(str);
-		QuadCoords verts[len];
-		QuadCoords tex[len];
+
+		TexQuadCoords quads[len];
 
 		int per_row = font->letter_tex.width / font->max_width;
 
-		for (int i = 0; i < len; i++) {
+		for (int i = 0; i < len; ++i) {
 			int tid = font->letter_map[str[i] - font->start_i];
 			const Letter l = font->letters[tid];
-			verts[i] = QuadCoords::from_rect(x, y, l.width, font->line_height);
-			x += l.width;
 
 			int tx = (tid % per_row) * font->max_width;
 			int ty = (tid / per_row) * font->line_height;
 
-			int tw = font->letter_tex.width;
-			int th = font->letter_tex.height;
+			quads[i] = TexQuadCoords::from_rect(
+				x, y, l.width, font->line_height,
 
-			tex[i] = QuadCoords::from_rect(
-					(float)tx / tw, (float)ty / th,
-					(float)l.width / tw,
-					(float)font->line_height / th
+				font->letter_tex,
+				tx, ty, l.width, font->line_height
 			);
+
+			x += l.width;
 		}
 
 		default_shader->set_uniform("C", current_color);
 		projection.apply(default_shader);
 
-		GLuint vbuffer, tbuffer;
-
-		glGenBuffers(1, &vbuffer);
-		glBindBuffer(GL_ARRAY_BUFFER, vbuffer);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(float) * len * 8, &verts,
-				GL_STATIC_DRAW);
-
-		glGenBuffers(1, &tbuffer);
-		glBindBuffer(GL_ARRAY_BUFFER, tbuffer);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(float) * len * 8, &tex,
-				GL_STATIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, coord_buffer);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(TexQuadCoords) * len,
+				&quads, GL_STREAM_DRAW);
 
 		// ready 2 draw
 
@@ -119,21 +109,19 @@ namespace aroma {
 		GLuint P = default_shader->attr_loc("P");
 		GLuint T = default_shader->attr_loc("T");
 
-		glEnableVertexAttribArray(P);
-		glBindBuffer(GL_ARRAY_BUFFER, vbuffer);
-		glVertexAttribPointer(P, 2, GL_FLOAT, false, 0, 0);
+		size_t stride = sizeof(float) * 4;
 
-		glEnableVertexAttribArray(T);
-		glBindBuffer(GL_ARRAY_BUFFER, tbuffer);
-		glVertexAttribPointer(T, 2, GL_FLOAT, false, 0, 0);
+		glEnableVertexAttribArray(P); // bind vert
+		glVertexAttribPointer(P, 2, GL_FLOAT, false, stride, 0);
+
+		glEnableVertexAttribArray(T); // bind tex
+		glVertexAttribPointer(T, 2, GL_FLOAT, false, stride, (void*)(sizeof(float) * 2));
 
 		for (int i = 0; i < len; i++) {
 			glDrawArrays(GL_TRIANGLE_STRIP, i*4, 4);
 		}
 
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glDeleteBuffers(1, &tbuffer);
-		glDeleteBuffers(1, &vbuffer);
 	}
 
 	void Renderer::rect(float x1, float y1, float x2, float y2) {
@@ -205,6 +193,8 @@ namespace aroma {
 
 		vert_buffer = init_float_buffer(8);
 		tex_buffer = init_float_buffer(8);
+
+		glGenBuffers(1, &coord_buffer);
 
 		last_time = context->get_time();
 		return true;
@@ -500,6 +490,29 @@ namespace aroma {
 			x2, y2
 		}};
 		return out;
+	}
+
+	TexQuadCoords TexQuadCoords::from_rect(float x1, float y1, float w, float h,
+			float sx, float sy, float sw, float sh)
+	{
+		float x2 = x1 + w, y2 = y1 + h;
+		float sx2 = sx + sw, sy2 = sy + sh;
+
+		TexQuadCoords out = {{
+			x1, y1, sx, sy,
+			x2, y1, sx2, sy,
+			x1, y2, sx, sy2,
+			x2, y2, sx2, sy2
+		}};
+
+		return out;
+	}
+
+	TexQuadCoords TexQuadCoords::from_rect(float x, float y, float w, float h,
+				const Image & img, float tx, float ty, float tw, float th)
+	{
+		return from_rect(x, y, w, h, tx / img.width, ty / img.height,
+				tw / img.width, th / img.height);
 	}
 
 	// used for draw and drawq
