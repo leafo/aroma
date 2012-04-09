@@ -21,18 +21,13 @@ namespace aroma {
 		img_rect_blit(img, q, t);
 	}
 
-	void Renderer::img_rect_blit(const Image* img, const Quad& q, const Transform& t) {
-		QuadCoords tex_coords = q.quad_coords();
-
-		float x2 = t.x + img->width * q.width();
-		float y2 = t.y + img->height * q.height();
-
-		float verts[] = {
-			t.x, t.y,
-			x2,  t.y,
-			t.x, y2,
-			x2,  y2
-		};
+	void Renderer::img_rect_blit(const Image* img, const Quad& q,
+			const Transform& t)
+	{
+		TexQuadCoords quad = TexQuadCoords::from_rect(
+			 t.x, t.y, img->width * q.width(), img->height * q.height(),
+			 q.x1, q.y1, q.width(), q.height()
+		);
 
 		bool pop_mat = false;
 		if (t.needs_mat()) {
@@ -43,8 +38,8 @@ namespace aroma {
 		default_shader->set_uniform("C", current_color);
 		projection.apply(default_shader);
 
-		set_float_buffer(vert_buffer, verts, 8);
-		set_float_buffer(tex_buffer, (float*)&tex_coords.coords, 8);
+		glBindBuffer(GL_ARRAY_BUFFER, tex_quad_buffer);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(TexQuadCoords), &quad);
 
 		default_shader->set_uniform("texturing", 1u);
 		img->bind();
@@ -53,13 +48,14 @@ namespace aroma {
 		GLuint P = default_shader->attr_loc("P");
 		GLuint T = default_shader->attr_loc("T");
 
+		size_t stride = sizeof(float) * 4;
+
 		glEnableVertexAttribArray(P);
-		glBindBuffer(GL_ARRAY_BUFFER, vert_buffer);
-		glVertexAttribPointer(P, 2, GL_FLOAT, false, 0, 0);
+		glVertexAttribPointer(P, 2, GL_FLOAT, false, stride, 0);
 
 		glEnableVertexAttribArray(T);
-		glBindBuffer(GL_ARRAY_BUFFER, tex_buffer);
-		glVertexAttribPointer(T, 2, GL_FLOAT, false, 0, 0);
+		glVertexAttribPointer(T, 2, GL_FLOAT, false, stride,
+				(void*)(sizeof(float) * 2));
 
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
@@ -115,7 +111,8 @@ namespace aroma {
 		glVertexAttribPointer(P, 2, GL_FLOAT, false, stride, 0);
 
 		glEnableVertexAttribArray(T); // bind tex
-		glVertexAttribPointer(T, 2, GL_FLOAT, false, stride, (void*)(sizeof(float) * 2));
+		glVertexAttribPointer(T, 2, GL_FLOAT, false, stride,
+				(void*)(sizeof(float) * 2));
 
 		for (int i = 0; i < len; i++) {
 			glDrawArrays(GL_TRIANGLE_STRIP, i*4, 4);
@@ -192,7 +189,7 @@ namespace aroma {
 		}
 
 		vert_buffer = init_float_buffer(8);
-		tex_buffer = init_float_buffer(8);
+		tex_quad_buffer = init_float_buffer(16);
 
 		glGenBuffers(1, &coord_buffer);
 

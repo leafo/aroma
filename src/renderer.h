@@ -56,8 +56,8 @@ namespace aroma {
 			MatrixStack projection;
 
 			GLuint vert_buffer;
-			GLuint tex_buffer;
 
+			GLuint tex_quad_buffer;
 			GLuint coord_buffer;
 
 			// for fps calculation
