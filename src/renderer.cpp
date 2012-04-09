@@ -11,9 +11,10 @@ namespace aroma {
 		return buffer;
 	}
 
-	void set_float_buffer(GLuint buffer, float* data, size_t size) {
+	template <typename T>
+	void update_float_buffer(GLuint buffer, T* data, size_t count=1) {
 		glBindBuffer(GL_ARRAY_BUFFER, buffer);
-		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * size, data);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(T) * count, data);
 	}
 
 	void Renderer::img_rect(const Image* img, const Transform& t) {
@@ -38,8 +39,7 @@ namespace aroma {
 		default_shader->set_uniform("C", current_color);
 		projection.apply(default_shader);
 
-		glBindBuffer(GL_ARRAY_BUFFER, tex_quad_buffer);
-		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(TexQuadCoords), &quad);
+		update_float_buffer(tex_quad_buffer, &quad);
 
 		default_shader->set_uniform("texturing", 1u);
 		img->bind();
@@ -127,8 +127,7 @@ namespace aroma {
 		default_shader->set_uniform("C", current_color);
 		projection.apply(default_shader);
 
-		glBindBuffer(GL_ARRAY_BUFFER, quad_buffer);
-		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(QuadCoords), &quad);
+		update_float_buffer(quad_buffer, &quad);
 
 		default_shader->set_uniform("texturing", 0u);
 
