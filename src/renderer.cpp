@@ -122,17 +122,13 @@ namespace aroma {
 	}
 
 	void Renderer::rect(float x1, float y1, float x2, float y2) {
-		float verts[] = {
-			x1, y1,
-			x2, y1,
-			x1, y2,
-			x2, y2
-		};
+		QuadCoords quad = QuadCoords::from_rect(x1, y1, x2, y2);
 
 		default_shader->set_uniform("C", current_color);
 		projection.apply(default_shader);
 
-		set_float_buffer(vert_buffer, verts, 8);
+		glBindBuffer(GL_ARRAY_BUFFER, quad_buffer);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(QuadCoords), &quad);
 
 		default_shader->set_uniform("texturing", 0u);
 
@@ -141,7 +137,6 @@ namespace aroma {
 		glDisableVertexAttribArray(default_shader->attr_loc("T"));
 
 		glEnableVertexAttribArray(P);
-		glBindBuffer(GL_ARRAY_BUFFER, vert_buffer);
 		glVertexAttribPointer(P, 2, GL_FLOAT, false, 0, 0);
 
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -188,7 +183,7 @@ namespace aroma {
 			return false;
 		}
 
-		vert_buffer = init_float_buffer(8);
+		quad_buffer = init_float_buffer(8);
 		tex_quad_buffer = init_float_buffer(16);
 
 		glGenBuffers(1, &coord_buffer);

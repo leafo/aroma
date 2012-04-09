@@ -55,8 +55,7 @@ namespace aroma {
 			bool _texturing;
 			MatrixStack projection;
 
-			GLuint vert_buffer;
-
+			GLuint quad_buffer;
 			GLuint tex_quad_buffer;
 			GLuint coord_buffer;
 
