@@ -1,6 +1,6 @@
 {
   "program": {
     "x86-64": {"url": "aroma_x86_64.nexe"},
-    "x86-32": {"url": "aroma_x86_32.nexe"}
+    "x86-32": {"url": "aroma_i686.nexe"}
   }
 }
