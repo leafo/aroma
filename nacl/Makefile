@@ -5,6 +5,9 @@ strip:
 deploy:
 	rsync -rvuzLR *.html *.nexe *.nmf js/ game/ examples/ leaf@leafo.net:www/aroma/demo
 
+volcanox::
+	rsync -rvuzLR --exclude volcanox/.git volcanox/ leaf@leafo.net:www/aroma/
+
 32:
 	echo "CONFIG_NACL_ARCH=i686" >> ../tup.config
 	echo "CONFIG_NACL_BIN_NAME=aroma_tmp" >> ../tup.config

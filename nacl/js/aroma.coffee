@@ -20,10 +20,6 @@ get = (url, on_finish, on_fail, send=yes) ->
   else
     req
 
-module_to_url = (module_name) ->
-  module_name = module_name.replace /\./g, '/'
-  "#{module_name}.lua"
-
 
 # bytes can be array like
 encode_byte_array = (bytes, size=null) ->
@@ -48,7 +44,7 @@ get_image_data = (url, callback) ->
 
   img.onload = ->
     canvas = document.createElement "canvas"
-    console.log "loaded image #{url} [#{img.width}, #{img.height}]"
+    log "loaded image #{url} [#{img.width}, #{img.height}]"
     canvas.width = img.width
     canvas.height = img.height
 
@@ -70,10 +66,11 @@ class Aroma
   async_handlers: {
     require: (msg, callback) ->
       [_, module] = msg
-      url = module_to_url(module)
-      pass = (req) -> callback ["success", req.responseText]
-      fail = (req) -> callback ["error", "Failed to find module: tried #{url}"]
-      get url, pass, fail
+      @file_loader.get_module module, (code) ->
+        if code?
+          callback ["success", code]
+        else
+          callback ["error", "Failed to find module: tried #{url}"]
 
     image: (msg, callback) ->
       [_, path] = msg
@@ -113,6 +110,7 @@ class Aroma
 
   constructor: (@container, @events) ->
     @module = null
+    @file_loader = new Aroma.FileLoader
     @audio = new Aroma.Audio
 
     listen @container, "load", =>
@@ -150,7 +148,6 @@ class Aroma
     o = try JSON.parse msg.data
     if o
       @dispatch @message_handlers, o[0], o
-
 
 class StreamingSource
   @from_url: (url, callback) ->
@@ -268,6 +265,58 @@ class Aroma.Font
 
     bytestring = encode_byte_array @ctx.getImageData(0, 0, real_width, @height).data
     [str, bytestring, real_width, @height]
+
+
+class Aroma.FileLoader
+  loaders: {
+    # TODO
+    audio: {
+      match: (path) -> false
+      load: (path, callback) -> false
+    }
+  }
+
+  default_loader: (path, callback) ->
+    @_get path, (req) ->
+      log ">> got result for #{path}"
+      callback req.responseText
+
+  _get: (url, callback) ->
+    log ">> getting: #{url}"
+    get url, callback, @fail_fn || ->
+
+  real_path: (path) ->
+    if @root?
+      "#{@root}/#{path}"
+    else
+      path
+
+  constructor: (@root) ->
+    @file_cache = {}
+
+  get_module: (module_name, callback) ->
+    path = module_name.replace /\./g, '/'
+    path = "#{path}.lua"
+    @get_file path, callback
+
+  get_file: (path, callback) ->
+    path = @real_path path
+
+    return callback @file_cache[path] if @file_cache[path]?
+    # find loader
+    loader = null
+    for name, tuple of @loaders
+      {match: match, load: load} = tuple
+      if match.call this, path
+        loader = load
+        break
+
+    loader = @default_loader unless loader?
+    @on_fail = -> callback null
+
+    loader.call this, path, (result) =>
+      @file_cache[path] = result
+      callback result
 
 window.Aroma = Aroma
 

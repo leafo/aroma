@@ -59,6 +59,7 @@ async_require = (module_name) ->
 
   setfenv loader, getfenv 2
   mod = loader module_name
+  mod = true if mod == nil
   package.loaded[module_name] = mod
   mod
 
@@ -73,6 +74,9 @@ async_scope = setmetatable {
 game_thread = nil -- to prevent it from being garbage collected
 
 nacl.show_error = async_err
+
+nacl.prefetch = (files) ->
+  request_response { "prefetch", files }
 
 nacl.handle_message = (msg) ->
   error "unknown msg: " .. tostring(msg) if type(msg) != "string"
