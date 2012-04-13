@@ -76,7 +76,18 @@ game_thread = nil -- to prevent it from being garbage collected
 nacl.show_error = async_err
 
 nacl.prefetch = (files) ->
-  status, msg = unpack request_response { "prefetch", files }
+  tuples = {}
+
+  add_files = (list, t="text") ->
+    for k, file_or_list in pairs list
+      if type(file_or_list) == "table"
+        add_files file_or_list, k
+      else
+        table.insert tuples, { t, file_or_list }
+
+  add_files files
+
+  status, msg = unpack request_response { "prefetch", tuples }
   error "prefetch: " .. msg if status != "success"
 
 nacl.handle_message = (msg) ->

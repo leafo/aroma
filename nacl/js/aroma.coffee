@@ -67,11 +67,12 @@ class Aroma
       [_, files] = msg
       count = files.length
 
-      for file in files
+      for tuple in files
+        [loader_type, file] = tuple
         do (file) =>
-          @file_loader.get_file file, (res) ->
+          @file_loader.get_file file, loader_type,  (res) ->
             return unless callback
-            if res
+            if res isnt null
               count--
               callback ["success"] if count == 0
             else
