@@ -43,7 +43,7 @@ get_image_data = (url, callback) ->
 
   img.onload = ->
     canvas = document.createElement "canvas"
-    log "loaded image #{url} [#{img.width}, #{img.height}]"
+    log ">> loaded image #{url} [#{img.width}, #{img.height}]"
     canvas.width = img.width
     canvas.height = img.height
 
@@ -89,15 +89,22 @@ class Aroma
 
     image: (msg, callback) ->
       [_, path] = msg
-      get_image_data path, (image_bytes, width, height) ->
-        if !image_bytes
-          callback ["error", "Failed to find image: #{path}"]
+      @file_loader.get_file path, "image", (img) ->
+        if img?
+          [img, w, h] = img
+          callback ["success", img, w, h]
         else
-          callback ["success", image_bytes, width, height]
+          ["error", "Failed to find image: #{path}"]
 
     audio: (msg, callback) ->
       [_, path, type] = msg
-      @audio.new_source path, type, (source_id) ->
+
+      file_type = switch type
+        when "static" then "sound"
+        when "streaming" then "music"
+        else throw "Unknown source type: #{type}"
+
+      @file_loader.get_file path, file_type, (source_id) ->
         if source_id isnt null
           callback ["success", source_id]
         else
@@ -125,7 +132,7 @@ class Aroma
 
   constructor: (@container, @events) ->
     @module = null
-    @file_loader = new Aroma.FileLoader
+    @file_loader = new Aroma.FileLoader this
     @audio = new Aroma.Audio
 
     listen @container, "load", =>
@@ -215,7 +222,6 @@ class StaticSource
 class Aroma.Audio
   constructor: ->
     @sources = []
-    @url_to_source = {}
     @context = new webkitAudioContext
 
   stop_all: ->
@@ -227,24 +233,11 @@ class Aroma.Audio
     throw "Invalid source id #{id}" if s is undefined
     s
 
-  new_source: (url, type, callback) ->
-    existing_id = @url_to_source[url]
-    return callback existing_id if existing_id
-
-    handle_source = (source) =>
-      callback null unless source
-      id = @sources.length
-      @sources.push source
-      @url_to_source[url] = id
-      callback id
-
-    switch type
-      when "static"
-        StaticSource.from_url @context, url, handle_source
-      when "streaming"
-        StreamingSource.from_url url, handle_source
-      else
-        throw "Unknown source type: #{type}"
+  add_source: (source, url) ->
+    return null unless source
+    id = @sources.length
+    @sources.push source
+    id
 
 class Aroma.Font
   constructor: (@font_string="16pt sans-serif") ->
@@ -282,13 +275,22 @@ class Aroma.Font
     [str, bytestring, real_width, @height]
 
 
+# Loads and caches files
 class Aroma.FileLoader
   loaders: {
-    # TODO
-    audio: {
-      match: (path) -> false
-      load: (path, callback) -> false
-    }
+    sound: (path, callback) ->
+      audio = @aroma.audio
+      StaticSource.from_url audio.context, path, (source) =>
+        callback audio.add_source source
+
+    music: (path, callback) ->
+      StreamingSource.from_url path, (source) =>
+        callback @aroma.audio.add_source source
+
+    image: (path, callback) ->
+      get_image_data path, (image_bytes, width, height) ->
+        return callback [image_bytes, width, height] if image_bytes?
+        callback null
   }
 
   default_loader: (path, callback) ->
@@ -305,27 +307,22 @@ class Aroma.FileLoader
     else
       path
 
-  constructor: (@root) ->
+  constructor: (@aroma, @root) ->
     @file_cache = {}
 
   get_module: (module_name, callback) ->
     path = module_name.replace /\./g, '/'
     path = "#{path}.lua"
-    @get_file path, callback
+    @get_file path, null, callback
 
-  get_file: (path, callback) ->
+  get_file: (path, loader, callback) ->
     path = @real_path path
 
     return callback @file_cache[path] if @file_cache[path]?
-    # find loader
-    loader = null
-    for name, tuple of @loaders
-      {match: match, load: load} = tuple
-      if match.call this, path
-        loader = load
-        break
 
-    loader = @default_loader unless loader?
+    loader = @loaders[loader] if loader
+    loader = @default_loader unless loader
+
     @on_fail = -> callback null
 
     loader.call this, path, (result) =>
@@ -338,12 +335,3 @@ window.Aroma = Aroma
 # c = new Aroma.Font
 # console.log c.render_glyph "H"
 
-# # audio test
-# a = new Aroma.Audio
-# a.new_source "game/theme.ogg", "streaming", (source_id) ->
-#   a.play_source source_id
-# 
-# a.new_source "game/start.wav", "static", (source_id) ->
-#   a.play_source source_id
-# 
-# window.a = a
