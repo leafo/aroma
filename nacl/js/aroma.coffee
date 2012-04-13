@@ -20,7 +20,6 @@ get = (url, on_finish, on_fail, send=yes) ->
   else
     req
 
-
 # bytes can be array like
 encode_byte_array = (bytes, size=null) ->
   count = size || bytes.length
@@ -64,6 +63,22 @@ window.encode_byte_array = encode_byte_array
 
 class Aroma
   async_handlers: {
+    prefetch: (msg, callback) ->
+      [_, files] = msg
+      count = files.length
+
+      for file in files
+        do (file) =>
+          @file_loader.get_file file, (res) ->
+            return unless callback
+            if res
+              count--
+              callback ["success"] if count == 0
+            else
+              callback ["error", "Failed to get file #{file}"]
+              callback = null
+
+
     require: (msg, callback) ->
       [_, module] = msg
       @file_loader.get_module module, (code) ->
@@ -278,7 +293,6 @@ class Aroma.FileLoader
 
   default_loader: (path, callback) ->
     @_get path, (req) ->
-      log ">> got result for #{path}"
       callback req.responseText
 
   _get: (url, callback) ->

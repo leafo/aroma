@@ -76,7 +76,8 @@ game_thread = nil -- to prevent it from being garbage collected
 nacl.show_error = async_err
 
 nacl.prefetch = (files) ->
-  request_response { "prefetch", files }
+  status, msg = unpack request_response { "prefetch", files }
+  error "prefetch: " .. msg if status != "success"
 
 nacl.handle_message = (msg) ->
   error "unknown msg: " .. tostring(msg) if type(msg) != "string"
