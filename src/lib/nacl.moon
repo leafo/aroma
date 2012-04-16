@@ -76,6 +76,7 @@ game_thread = nil -- to prevent it from being garbage collected
 
 nacl.show_error = async_err
 
+-- these are client functions, need a way to separate them
 nacl.prefetch = (files) ->
   tuples = {}
 
@@ -91,6 +92,11 @@ nacl.prefetch = (files) ->
   return if #tuples == 0
   status, msg = unpack request_response { "prefetch", tuples }
   error "prefetch: " .. msg if status != "success"
+
+nacl.track_event = (category, action, label=nil, value=nil, interactive=true) ->
+  post_message { "track_event", { category, action, label, value, interactive } }
+
+---
 
 nacl.handle_message = (msg) ->
   error "unknown msg: " .. tostring(msg) if type(msg) != "string"

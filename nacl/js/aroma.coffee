@@ -129,6 +129,11 @@ class Aroma
       [_, source_id, fn] = msg
       s = @audio.get_source source_id
       s[fn].apply s, msg.slice 3 if s[fn]
+
+    track_event: (msg) ->
+      [_, event] = msg
+      log event
+      @track_event.apply this, event
   }
 
   constructor: (@container, @events) ->
@@ -171,6 +176,10 @@ class Aroma
     o = try JSON.parse msg.data
     if o
       @dispatch @message_handlers, o[0], o
+
+  track_event: (category, action, label=null, value=null, interactive=true) ->
+    try
+      _gaq.push ['_trackEvent', category, action, label, value, !interactive]
 
 class StreamingSource
   @from_url: (url, callback) ->
