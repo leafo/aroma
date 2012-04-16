@@ -180,7 +180,14 @@ class StreamingSource
     source = new StreamingSource elm
 
     listen elm, "loadedmetadata", -> callback source
+
     listen elm, "error", -> callback null
+
+    # listen elm, "canceled", ->
+    #   alert "canceled loading audio"
+
+    # listen elm, "stalled", ->
+    #   alert "stalled loading audio"
 
     listen elm, "ended", =>
       if source.looping
@@ -285,8 +292,13 @@ class Aroma.FileLoader
         callback audio.add_source source
 
     music: (path, callback) ->
-      StreamingSource.from_url path, (source) =>
-        callback @aroma.audio.add_source source
+      # this is ugly, but should fix the failed loading
+      load_it = =>
+        return setTimeout load_it, 60 if @pending > 5
+        StreamingSource.from_url path, (source) =>
+          callback @aroma.audio.add_source source
+
+      load_it()
 
     image: (path, callback) ->
       get_image_data path, (image_bytes, width, height) ->
@@ -309,6 +321,7 @@ class Aroma.FileLoader
       path
 
   constructor: (@aroma, @root) ->
+    @pending = 0
     @file_cache = {}
 
   get_module: (module_name, callback) ->
@@ -326,7 +339,9 @@ class Aroma.FileLoader
 
     @on_fail = -> callback null
 
+    @pending++
     loader.call this, path, (result) =>
+      @pending--
       @file_cache[path] = result
       callback result
 
