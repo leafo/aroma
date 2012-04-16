@@ -2,6 +2,7 @@
 cjson = require"cjson"
 
 ALPHABET = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-=[];',./!@#$%^&*()_+{}|:\"<>?\\`~ "
+DEFAULT_FONT = "12px sans-serif"
 
 -- disable invalid functions
 os.remove = -> error "os.remove is disabled"
@@ -87,6 +88,7 @@ nacl.prefetch = (files) ->
 
   add_files files
 
+  return if #tuples == 0
   status, msg = unpack request_response { "prefetch", tuples }
   error "prefetch: " .. msg if status != "success"
 
@@ -164,7 +166,7 @@ nacl.init = {
 
     aroma.boot = ->
       if not self.getFont!
-        self.setFont self.newFont "16pt sans-serif"
+        self.setFont self.newFont DEFAULT_FONT
 
   audio: =>
     @newSource = (url, kind="static") ->
@@ -202,5 +204,4 @@ nacl.init_all = (aroma) ->
       else
         print "unknown message"
         print unpack msg
-
 
