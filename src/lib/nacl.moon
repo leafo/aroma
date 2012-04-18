@@ -64,39 +64,40 @@ async_require = (module_name) ->
   package.loaded[module_name] = mod
   mod
 
+nacl.lib = {
+  core: nacl
+  prefetch: (files) ->
+    tuples = {}
+
+    add_files = (list, t="text") ->
+      for k, file_or_list in pairs list
+        if type(file_or_list) == "table"
+          add_files file_or_list, k
+        else
+          table.insert tuples, { t, file_or_list }
+
+    add_files files
+
+    return if #tuples == 0
+    status, msg = unpack request_response { "prefetch", tuples }
+    error "prefetch: " .. msg if status != "success"
+
+  track_event: (category, action, label=nil, value=nil, interactive=true) ->
+    post_message { "track_event", { category, action, label, value, interactive } }
+}
+
 -- scope of the game thread
 async_scope = setmetatable {
     print: async_print
     require: async_require
+    nacl: nacl.lib
   }, {
     __index: _G
   }
 
 game_thread = nil -- to prevent it from being garbage collected
 
-nacl.show_error = async_err
-
--- these are client functions, need a way to separate them
-nacl.prefetch = (files) ->
-  tuples = {}
-
-  add_files = (list, t="text") ->
-    for k, file_or_list in pairs list
-      if type(file_or_list) == "table"
-        add_files file_or_list, k
-      else
-        table.insert tuples, { t, file_or_list }
-
-  add_files files
-
-  return if #tuples == 0
-  status, msg = unpack request_response { "prefetch", tuples }
-  error "prefetch: " .. msg if status != "success"
-
-nacl.track_event = (category, action, label=nil, value=nil, interactive=true) ->
-  post_message { "track_event", { category, action, label, value, interactive } }
-
----
+nacl.show_error = async_err -- used by C to send errors to client
 
 nacl.handle_message = (msg) ->
   error "unknown msg: " .. tostring(msg) if type(msg) != "string"
