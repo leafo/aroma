@@ -67,6 +67,10 @@ class Aroma
       [_, files] = msg
       count = files.length
 
+      msg = "Prefetching #{count} file"
+      msg += "s" if count != 1
+      @show_loading msg
+
       for tuple in files
         [loader_type, file] = tuple
         do (file) =>
@@ -82,6 +86,7 @@ class Aroma
 
     require: (msg, callback) ->
       [_, module] = msg
+      @show_loading "Loading module `#{module}`"
       @file_loader.get_module module, (code) ->
         if code?
           callback ["success", code]
@@ -90,6 +95,7 @@ class Aroma
 
     image: (msg, callback) ->
       [_, path] = msg
+      @show_loading "Loading `#{path}`"
       @file_loader.get_file path, "image", (img) ->
         if img?
           [img, w, h] = img
@@ -99,6 +105,7 @@ class Aroma
 
     audio: (msg, callback) ->
       [_, path, type] = msg
+      @show_loading "Loading `#{path}`"
 
       file_type = switch type
         when "static" then "sound"
@@ -123,6 +130,7 @@ class Aroma
     request: (msg) -> # forwards to async handler
       [_, id, data] = msg
       @dispatch @async_handlers, data[0], data, (res) =>
+        @hide_loading()
         @post_message ["response", id, res]
 
     audio: (msg) ->
@@ -141,13 +149,28 @@ class Aroma
     @file_loader = new Aroma.FileLoader this
     @audio = new Aroma.Audio
 
+    @loading_elm = @container.querySelector ".loading_message"
+
     listen @container, "load", =>
       log "Loaded module"
-      @fire "loaded"
       @module = @container.querySelectorAll("embed")[0]
+      @fire "loaded"
 
     listen @container, "message", (e) =>
       @handle_message e
+
+  show_loading: (msg="Loading") ->
+    return unless @loading_elm
+
+    @loading_elm.innerHTML = msg
+    unless @loading_elm.className.match /visible/
+      @loading_elm.className += " visible"
+
+  hide_loading: ->
+    return unless @loading_elm
+
+    @loading_elm.className =
+      @loading_elm.className.replace /visible/g, ""
 
   # reset any shared state
   reset: ->
