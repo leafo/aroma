@@ -85,6 +85,8 @@ window.get_image_data = get_image_data
 window.encode_byte_array = encode_byte_array
 
 class Aroma
+  nmf_path: "aroma.nmf"
+
   async_handlers: {
     prefetch: (msg, callback) ->
       [_, files] = msg
@@ -167,23 +169,39 @@ class Aroma
       @track_event.apply this, event
   }
 
-  constructor: (@container, @events) ->
+  constructor: (@container, @width, @height, @events) ->
     @module = null
     @file_loader = new Aroma.FileLoader this
     @audio = new Aroma.Audio
 
-    @loading_elm = @container.querySelector ".loading_message"
+    @listener = @create_dom()
+    @container.appendChild @listener
+    @loading_elm = @listener.querySelector ".loading_message"
 
     insert_css()
 
-    listen @container, "load", =>
+    listen @listener, "load", =>
       log "Loaded module"
-      @module = @container.querySelectorAll("embed")[0]
+      @module = @listener.querySelector "embed"
       add_class_name @module, "loaded"
       @fire "loaded"
 
-    listen @container, "message", (e) =>
+    listen @listener, "message", (e) =>
       @handle_message e
+
+  create_dom: ->
+    listener = document.createElement "div"
+    listener.className = "aroma_listener"
+    listener.innerHTML = """
+      <div class="loading_message">Loading something..</div>
+      <embed name="nacl_module"
+        id="aroma"
+        width="#{@width}" height="#{@height}"
+        src="#{@nmf_path}"
+        type="application/x-nacl">
+        </embed>
+    """
+    listener
 
   show_loading: (msg="Loading") ->
     return unless @loading_elm
