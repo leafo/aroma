@@ -427,6 +427,7 @@ namespace aroma {
 		Renderer* r = upvalue_self(Renderer);
 		r->current_color = Color(255,255,255);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glClearColor(0.1, 0.1, 0.1, 1.0);
 		return 0;
 	}
 
