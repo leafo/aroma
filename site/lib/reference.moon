@@ -7,6 +7,8 @@ discount = require "discount"
 
 _html = require "sitegen.html"
 
+plural = (str) -> str .. "s"
+
 class Node
   new: (proto) =>
     @type = @@__name\lower!
@@ -23,16 +25,23 @@ class Node
 
   place_children: (proto) =>
     for thing in *proto
-      t = thing.type
+      t = plural thing.type
       thing.child = true
       self[t] = self[t] or {}
       thing.parent = self
       insert self[t], thing
 
 class Package extends Node
+  new: (...) =>
+    @methods = {}
+    super ...
+
   sort_methods: =>
-    table.sort @method, (a, b) ->
+    table.sort @methods, (a, b) ->
       a.name < b.name
+
+class Type extends Node
+  nil
 
 class Method extends Node
   full_name: =>
@@ -45,6 +54,15 @@ class Method extends Node
     args = @args or {}
 
     fn = -> {
+      if @returns
+        {
+          for i, ret in ipairs @returns do {
+            span { ret, class: "ret_name" }
+            if i == #@returns then "" else ", "
+          }
+          " = "
+        }
+
       @full_name!
       "("
       for i, arg in ipairs args do {
@@ -61,6 +79,7 @@ scope = {
     insert @packages, Package p
 
   method: (m) => Method m
+  type: (t) => Type t
 
   render: =>
     buffer = {}
@@ -78,11 +97,12 @@ scope = {
 
           div {
             class: "method_list"
-            for m in *p.method
+            for m in *p.methods
               div {
                 class: "method"
                 h3 {
                   class: "method_name"
+                  a { name: m\full_name! }
                   a {
                     href: "#" .. m\full_name!
                     m.name
