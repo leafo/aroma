@@ -18,9 +18,9 @@ body {
 	// todo add more
 }
 
-.autograd(@color) {
-	.grad(@color, darken(@color, 10%));
-	border-top: 1px solid lighten(@color, 10%);
+.autograd(@color, @amount: 10%) {
+	.grad(@color, darken(@color, @amount));
+	border-top: 1px solid lighten(@color, @amount);
 }
 
 .middle() {
@@ -102,6 +102,26 @@ a {
 	}
 
 	border-bottom: 1px solid @border;
+}
+
+.nav {
+	text-align: center;
+	.autograd(lighten(#BB8345, 34%));
+	font-size: 12px;
+	padding: 6px;
+	color: #333;
+	border-bottom: 1px solid #C4A37E;
+
+	a {
+		color: #534735;
+		font-weight: bold;
+		text-decoration: none;
+		text-shadow: 1px 1px 0px lighten(#BB8345, 44%);
+
+		&:hover {
+			text-decoration: underline;
+		}
+	}
 }
 
 .footer {
