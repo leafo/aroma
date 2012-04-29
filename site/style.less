@@ -1,4 +1,11 @@
 
+@border: #7CC5C1;
+
+@font-face {
+	font-family: "D3Craftism";
+	src: url(D3Craftism.ttf);
+}
+
 
 body {
 	background: url('images/groovepaper.png');
@@ -17,7 +24,7 @@ body {
 }
 
 .middle() {
-	width: 960px;
+	max-width: 960px;
 	margin: 0px auto 0px auto;
 }
 
@@ -25,7 +32,7 @@ body {
 	.middle();
 	border-radius: 8px 8px 0px 0px;
 	overflow: hidden;
-	border: 1px solid #74D3AD;
+	border: 1px solid @border;
 	box-shadow: 0px 0px 40px rgba(0,0,0, 0.2);
 }
 
@@ -51,22 +58,51 @@ a {
 
 	@highlight: lighten(@bgcolor, 40%);
 	.autograd(lighten(@bgcolor, 30%));
-	padding: 18px 12px;
+	padding: 4px 12px;
 	border-radius: 8px 8px 0px 0px;
+	text-align: center;
 
 	h1 {
+		@shadow: 1px 1px 0px #50948F;
 		margin: 0px;
-		color: #333;
-		text-shadow: 0px 1px 0px @highlight;
+		font-family: "D3Craftism";
+		text-shadow: @shadow;
+		font-weight: normal;
+		font-size: 52px;
+		line-height: 48px;
+
+		a {
+			color: white;
+			border: 0;
+
+			&:hover {
+				color: lighten(#50948F, 50%);
+				text-shadow: @shadow, 0px 0px 20px white;
+			}
+		}
 	}
 
 	.about {
-		color: darken(@bgcolor, 30%);
-		text-shadow: 0px 1px 0px @highlight;
-		font-style: italic;
+		color: white;
+		box-shadow: 0px 0px 10px rgba(0,0,0, 0.5);
+		background: #0F5A5A;
+		border-radius: 20px;
+		padding: 3px 15px;
+		margin: 8px 0px 4px 0px;
+		font-size: 14px;
+		opacity: 0.8;
+
+		a {
+			color: #A3E4A3;
+			border: 0;
+
+			&:hover {
+				color: darken(#A3E4A3, 10%);
+			}
+		}
 	}
 
-	border-bottom: 1px solid #74D3AD;
+	border-bottom: 1px solid @border;
 }
 
 .footer {
@@ -88,6 +124,87 @@ a {
 	h2, h3, h4 {
 		color: #48817D;
 		text-shadow: 0px 1px 0px white;
+	}
+}
+
+
+.package {
+	@margin: 8px;
+
+	background: white;
+	border: 1px solid #969696;
+	box-shadow: 1px 1px 4px rgba(0,0,0,0.3);
+	margin-bottom: 20px;
+
+	color: #222;
+
+	.package_name {
+		margin: 0px;
+		padding: 8px;
+		color: #222;
+		.autograd(#ddd);
+	}
+
+	.method_list {
+		border-top: 1px dashed #C2C2C2;
+		padding-top: @margin*2;
+		margin: @margin;
+	}
+
+	.package_description {
+		p {
+			margin-left: @margin;
+			margin-right: @margin;
+		}
+	}
+
+	.method {
+		padding-bottom: 8px;
+
+		.method_name {
+			@color: #FF1F6F;
+			margin: 0px;
+			padding-left: 5px;
+			a {
+				text-decoration: none;
+				border: 0;
+				color: @color;
+
+				.para {
+					color: lighten(@color, 30%);
+				}
+
+			}
+
+			&:hover {
+				.para {
+					color: @color;
+				}
+			}
+		}
+
+		.method_description {
+			margin-left: @margin + 2;
+		}
+
+		.method_code {
+			margin: @margin;
+			border: 1px dashed @border;
+			background: #E7FFF6;
+			font-size: 14px;
+			padding: @margin;
+
+			box-shadow: inset 0px 1px 0px white;
+		}
+
+		.prototype {
+			color: gray;
+			font-style: italic;
+			border: 1px solid #D5D5D5;
+			padding: 4px;
+			margin: 4px 0px;
+
+		}
 	}
 }
 
