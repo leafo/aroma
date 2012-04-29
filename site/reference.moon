@@ -47,6 +47,9 @@ package {
 
 package {
   name: "aroma.graphics"
+  show_tags: true
+  tag_order: { "drawing", "constructors", "transformations", "color" }
+
   description: [[
     Functions responsible for drawing things on the screen or changing the
     state of drawing.
@@ -54,6 +57,7 @@ package {
 
   method {
     name: "setColor"
+    tag: "color"
     args: { "red", "green", "blue", "[alpha]" }
     description: "Set the current color for drawing."
 
@@ -68,12 +72,14 @@ package {
 
   method {
     name: "getColor"
+    tag: "color"
     returns: {"red", "green", "blue", "alpha"}
     description: "Gets the current color for drawing."
   }
 
   method {
     name: "setBackgroundColor"
+    tag: "color"
     args: { "red", "green", "blue", "alpha" }
     description: "Set the color the screen is cleared to after every frame."
   }
@@ -103,6 +109,7 @@ package {
 
   method {
     name: "rectangle"
+    tag: "drawing"
     args: { "[render_style]", "x", "y", "width", "height" }
     description: [[
       Draws a rectangle on the screen.
@@ -120,6 +127,7 @@ package {
 
   method {
     name: "draw"
+    tag: "drawing"
     args: {
       "drawable", "x", "y",
       "[rotate]", "[scale_x]", "[scale_y]", "[origin_x]", "[origin_y]"
@@ -136,6 +144,7 @@ package {
 
   method {
     name: "drawq"
+    tag: "drawing"
     args: {
       "drawable", "quad", "x", "y",
       "[rotate]", "[scale_x]", "[scale_y]", "[origin_x]", "[origin_y]"
@@ -174,6 +183,7 @@ package {
 
   method {
     name: "newShader"
+    tag: "constructors"
     args: {"vertex_shader_source", "fragment_shader_source"}
     returns: {"shader"}
     description: [[
@@ -183,6 +193,7 @@ package {
 
   method {
     name: "newQuad"
+    tag: "constructors"
     args: {"x", "y", "width", "height", "source_width", "source_height"}
     returns: {"quad"}
     description: [[
@@ -198,6 +209,7 @@ package {
 
   method {
     name: "newImage"
+    tag: "constructors"
     args: {"image_url"}
     returns: {"image"}
     description: [[
@@ -218,6 +230,7 @@ package {
 
   method {
     name: "newFont"
+    tag: "constructors"
     args: {"font_name", "[alphabet]"}
     returns: {"font"}
     description: [[
@@ -261,6 +274,7 @@ package {
 
   method {
     name: "push"
+    tag: "transformations"
     description: [[
       Copies and pushes the current transformation onto the transformation
       stack.
@@ -269,6 +283,7 @@ package {
 
   method {
     name: "pop"
+    tag: "transformations"
     description: [[
       Pops the current transformation off the transformation stack.
     ]]
@@ -276,6 +291,7 @@ package {
 
   method {
     name: "translate"
+    tag: "transformations"
     args: {"tx", "tx"}
     description: [[
       Modifies the current transformation by translating all draws by `tx` and
@@ -293,6 +309,7 @@ package {
 
   method {
     name: "scale"
+    tag: "transformations"
     args: { "sx", "sy" }
     description: [[
       Modifies the current transformation by scaling all draws by `sx` and
@@ -302,6 +319,7 @@ package {
 
   method {
     name: "rotate"
+    tag: "transformations"
     args: { "deg" }
     description: [[
       Modifies the current transformation to rotate all draws by `deg` degrees.
@@ -314,13 +332,13 @@ package {
 
   method {
     name: "print"
+    tag: "drawing"
     args: {"[font]", "text", "x", "y"}
     description: [[
       Draws text on the screen. If `font` is not provided, the default font
       will be used. See [aroma.graphics.setFont](#aroma.graphics.setFont).
     ]]
   }
-
 
 
   type {
@@ -330,6 +348,9 @@ package {
 
 package {
   name: "aroma.audio"
+  description: [[
+    Functions for working with sound.
+  ]]
 
   method {
     name: "newSource"

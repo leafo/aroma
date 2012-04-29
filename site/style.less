@@ -43,8 +43,6 @@ h1, .about {
 
 a {
 	@color: #FF4422;
-	text-decoration: none;
-	border-bottom: 1px dashed #333;
 	color: @color;
 
 	&:hover {
@@ -74,6 +72,7 @@ a {
 		a {
 			color: white;
 			border: 0;
+			text-decoration: none;
 
 			&:hover {
 				color: lighten(#50948F, 50%);
@@ -143,6 +142,28 @@ a {
 		padding: 8px;
 		color: #222;
 		.autograd(#ddd);
+	}
+
+	.tagged_methods {
+		padding-bottom: @margin;
+	}
+
+	.tag_group {
+		display: inline-block;
+		vertical-align: top;
+
+		margin: @margin @margin*2;
+
+		.group_title {
+			font-weight: bold;
+		}
+
+		ul {
+			margin: 0px;
+			list-style: none;
+			padding: 0px;
+			padding-left: 10px;
+		}
 	}
 
 	.method_list {

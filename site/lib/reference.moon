@@ -36,9 +36,35 @@ class Package extends Node
     @methods = {}
     super ...
 
-  sort_methods: =>
-    table.sort @methods, (a, b) ->
-      a.name < b.name
+  tag_methods: (tag_order) =>
+    order = tag_order or @tag_order or {}
+    tags = {}
+    for m in *@methods
+      tag = m.tag or "misc"
+      tags[tag] = {} if not tags[tag]
+      table.insert tags[tag], m
+
+    tags_list = {}
+    insert_group = (name) ->
+      methods = tags[name]
+      if methods
+        table.insert tags_list, methods
+        methods.name = name
+        tags[name] = nil
+
+    insert_group name for name in *order
+    insert_group name for name in pairs tags
+
+    tags_list
+
+  sort_methods: (methods=@methods)=>
+    normalize_name = (name) ->
+      name = name\gsub "^set", "setget"
+      name = name\gsub "^get", "setget"
+      name
+
+    table.sort methods, (a, b) ->
+      normalize_name(a.name) < normalize_name(b.name)
 
 class Type extends Node
   nil
@@ -92,8 +118,25 @@ scope = {
         div {
           class: "package"
           h2 { p.name, class: "package_name" }
-          if p.description then
+
+          if p.description
             div { class: "package_description", raw p.description }
+
+          if p.show_tags
+            div {
+              class: "tagged_methods"
+              for methods in *p\tag_methods!
+                div {
+                  class: "tag_group"
+                  div { methods.name, class: "group_title"}
+                  ul {
+                    for m in *methods
+                      li {
+                        a { m.name, href: "#" .. m\full_name! }
+                      }
+                  }
+                }
+            }
 
           div {
             class: "method_list"
