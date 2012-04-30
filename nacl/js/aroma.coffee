@@ -1,7 +1,10 @@
 
 $ = (id) -> document.getElementById id
 
-log = -> console.log.apply console, arguments
+debugging = false
+
+log = ->
+  console.log.apply console, arguments if debugging
 
 listen = (elm, name, fn) -> elm.addEventListener name, fn, true
 
@@ -169,7 +172,7 @@ class Aroma
       @track_event.apply this, event
   }
 
-  constructor: (@container, @width, @height, @events) ->
+  constructor: (@container, @width, @height, @events={}) ->
     @module = null
     @file_loader = new Aroma.FileLoader this
     @audio = new Aroma.Audio
@@ -177,6 +180,9 @@ class Aroma
     @listener = @create_dom()
     @container.appendChild @listener
     @loading_elm = @listener.querySelector ".loading_message"
+
+    @events.std_out = @events.std_out || (msg) -> console.log msg
+    @events.std_err = @events.std_err || (msg) -> console.error msg
 
     insert_css()
 

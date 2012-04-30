@@ -5,5 +5,6 @@ site = sitegen.create_site =>
 
   add "index.md"
   add "reference.moon"
+  add "js_reference.moon"
 
 site\write!

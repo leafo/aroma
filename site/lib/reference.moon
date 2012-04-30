@@ -34,6 +34,7 @@ class Node
 class Package extends Node
   new: (...) =>
     @methods = {}
+    @types = {}
     super ...
 
   tag_methods: (tag_order) =>
@@ -162,6 +163,18 @@ scope = {
                   pre {
                     class: "method_code"
                     raw m\highlight_code!
+                  }
+              }
+          }
+
+          div {
+            class: "type_list"
+            for t in *p.types
+              div {
+                class: "type"
+                  h3 {
+                    class: "type_name"
+                    t.name
                   }
               }
           }

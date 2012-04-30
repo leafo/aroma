@@ -120,6 +120,7 @@ a {
 
 		&:hover {
 			text-decoration: underline;
+
 		}
 	}
 }
@@ -199,6 +200,18 @@ a {
 		}
 	}
 
+
+	.method_code, .package_description pre {
+		margin: @margin;
+		border: 1px dashed @border;
+		background: #E7FFF6;
+		font-size: 14px;
+		padding: @margin;
+
+		box-shadow: inset 0px 1px 0px white;
+	}
+
+
 	.method {
 		padding-bottom: 8px;
 
@@ -229,15 +242,6 @@ a {
 			margin-left: @margin + 2;
 		}
 
-		.method_code {
-			margin: @margin;
-			border: 1px dashed @border;
-			background: #E7FFF6;
-			font-size: 14px;
-			padding: @margin;
-
-			box-shadow: inset 0px 1px 0px white;
-		}
 
 		.prototype {
 			color: gray;
