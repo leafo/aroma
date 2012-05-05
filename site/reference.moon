@@ -1,6 +1,10 @@
 
 format "lib.reference"
 
+lua_type = (o) ->
+  o.invoke_operator = ":"
+  type o
+
 package {
   name: "nacl"
   description: [[
@@ -341,8 +345,73 @@ package {
   }
 
 
-  type {
+  lua_type {
     name: "Image"
+
+    description: [[
+      Images can be drawn with
+    ]]
+
+    method {
+      name: "getWidth"
+      returns: {"width"}
+
+      description: [[
+        Gets the width of the image.
+      ]]
+    }
+
+    method {
+      name: "getHeight"
+      returns: {"height"}
+
+      description: [[
+        Gets the height of the image.
+      ]]
+    }
+
+    method {
+      name: "setWrap"
+      args: {"horiz_wrap", "vert_wrap"}
+      description: [[
+        Sets the wrapping mode of the image when overdrawn (by something like
+        `drawq`). By default wrap is set to `"clamp"`.
+
+        Possible values for each:
+
+        * `"clamp"` -- the color at the edge of the texture will be used to
+          fill the extra space.
+
+        * `"repeat"` -- The texture will repeat to fill extra space.
+      ]]
+    }
+
+    method {
+      name: "setFilter"
+      args: {"min_filter", "mag_filter"}
+      description: [[
+        Sets how images are filtered when they are scaled. By default wrap is
+        set to `"linear"` for both min and mag.
+
+        * `min_filter` -- applied when the image is rendered smaller
+          than its original dimensions.
+
+        * `mag_filter` -- applied when the image is rendered larger
+          its original dimensions.
+
+
+        Posible values include:
+
+        * `"linear"` --  The colors of nearby pixels are blended, creates a
+          smoothing effect.
+
+        * `"nearest"` -- no blending is done. This is the best filter to use
+          when working with pixel art.
+
+      ]]
+    }
+
+
   }
 }
 

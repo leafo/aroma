@@ -40,6 +40,13 @@ class Node
       for thing in *list
         coroutine.yield thing
 
+
+  anchor_name: =>
+    if @parent
+      @parent\anchor_name! .. "." .. @name
+    else
+      @name
+
 class Package extends Node
   new: (...) =>
     @methods = {}
@@ -88,9 +95,6 @@ class Method extends Node
     target = @parent.instance_name or @parent.name
 
     table.concat { target, operator, @name }
-
-  anchor_name: =>
-    @parent.name .. "." .. @name
 
   highlight_code: =>
     trim_leading_white @code
@@ -150,9 +154,6 @@ class Constructor extends Method
 
   annotate: => -> span { "constructor", class: "annotation" }
 
-  anchor_name: =>
-    @parent.name .. "." .. @name
-
   html: =>
     @returns = @returns or { @parent.instance_name }
     @name = @parent.name unless @name
@@ -208,6 +209,7 @@ scope = {
             for t in *p.types
               div {
                 class: "type"
+                a { name: t\anchor_name! }
                 h3 { class: "type_name", t.name }
 
                 if t.description
@@ -215,11 +217,11 @@ scope = {
 
                 div {
                   class: "method_list"
-                    for c in t\each"constructor"
-                      c\html!
+                  for c in t\each"constructor"
+                    c\html!
 
-                    for m in *t.methods
-                      m\html!
+                  for m in *t.methods
+                    m\html!
                 }
               }
           }
