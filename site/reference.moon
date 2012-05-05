@@ -154,8 +154,8 @@ package {
       "[rotate]", "[scale_x]", "[scale_y]", "[origin_x]", "[origin_y]"
     }
     description: [[
-      Similar to [aroma.graphics.draw](#aroma.graphics.draw), but takes a Quad
-      as second argument.
+      Similar to [aroma.graphics.draw](#aroma.graphics.draw), but takes a
+      [Quad](#aroma.graphics.Quad) as second argument.
 
       A Quad can be used to only draw a portion of an image. Useful for drawing
       sprites from a single image.
@@ -410,8 +410,26 @@ package {
 
       ]]
     }
+  }
 
 
+  lua_type {
+    name: "Font"
+    description: [[
+      Represents a loaded font. Created with [aroma.graphics.newFont](#aroma.graphics.newFont).
+
+      Can be drawn with [setFont](#aroma.graphics.setFont) or
+      [print](#aroma.graphics.print).
+    ]]
+  }
+
+  lua_type {
+    name: "Quad"
+    description: [[
+      Represents a rectangular portion of something. Created with [aroma.graphics.newQuad](#aroma.graphics.newQuad).
+
+      Drawn with [aroma.graphics.drawq](#aroma.graphics.drawq).
+    ]]
   }
 }
 
@@ -426,7 +444,7 @@ package {
     args: {"source_url", "[source_type]"}
     returns: {"audio"}
     description: [[
-      Loads a new source by url. Returns an [AudioSource](#AudioSource).
+      Loads a new source by url. Returns an [AudioSource](#aroma.audio.AudioSource).
 
       `source_type` is an optional value that determines how the sound is
       loaded. `"static"` is the default. The following types are valid:
@@ -450,6 +468,34 @@ package {
       effect:play() -- guaranteed to play
     ]]
   }
+
+  lua_type {
+    name: "AudioSource"
+    instance_name: "source"
+
+    description: [[
+      A static or stremaing audio srouce. Created with [aroma.audio.newSource](#aroma.audio.newSource).
+    ]]
+
+    method {
+      name: "play"
+    }
+
+    method {
+      name: "pause"
+    }
+
+    method {
+      name: "stop"
+    }
+
+    method {
+      name: "setLooping"
+      args: {"looping"}
+    }
+
+  }
+
 }
 
 package {
