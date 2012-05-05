@@ -158,11 +158,22 @@ a {
 
 	color: #222;
 
-	.package_name {
+	.annotation {
+		color: gray;
+		font-size: 14px;
+		font-weight: normal;
+		font-style: italic;
+	}
+
+	.package_name, .type_name {
 		margin: 0px;
 		padding: 8px;
 		color: #222;
 		.autograd(#ddd);
+	}
+
+	.type_name {
+		border-top: 1px solid #C5C5C5;
 	}
 
 	.tagged_methods {
@@ -193,13 +204,12 @@ a {
 		margin: @margin;
 	}
 
-	.package_description {
+	.package_description, .type_description {
 		p {
 			margin-left: @margin;
 			margin-right: @margin;
 		}
 	}
-
 
 	.method_code, .package_description pre {
 		margin: @margin;

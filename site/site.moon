@@ -1,6 +1,6 @@
 require "sitegen"
 site = sitegen.create_site =>
-  @title = "Hello World"
+  @title = "Aroma"
   deploy_to "leaf@leafo.net", "www/aroma/"
 
   add "index.md"

@@ -51,13 +51,21 @@ package {
 
   type {
     name: "Aroma"
+    instance_name: "game"
+
     description: [[
       Hello world!
     ]]
 
-    method {
-      name: "constructor"
+    constructor {
+      args: {"what", "is", "this"}
     }
+
+    method {
+      name: "send_mesage"
+      args: {"msg"}
+    }
+
   }
 
 }

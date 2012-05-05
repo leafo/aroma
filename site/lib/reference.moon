@@ -18,7 +18,7 @@ class Node
 
     @format_desc!
     @place_children proto
-  
+
   format_desc: =>
     if @description
       @description = discount trim_leading_white @description
@@ -30,6 +30,15 @@ class Node
       self[t] = self[t] or {}
       thing.parent = self
       insert self[t], thing
+
+
+  -- iterator for children
+  each: (name) =>
+    list = self[plural name] or {}
+
+    coroutine.wrap ->
+      for thing in *list
+        coroutine.yield thing
 
 class Package extends Node
   new: (...) =>
@@ -68,19 +77,55 @@ class Package extends Node
       normalize_name(a.name) < normalize_name(b.name)
 
 class Type extends Node
-  nil
+  new: (...) =>
+    @methods = {}
+    super ...
+    @instance_name = @instance_name or @name\lower!
 
 class Method extends Node
   full_name: =>
-    table.concat { @parent.name, ".", @name }
+    operator = @parent.invoke_operator or "."
+    target = @parent.instance_name or @parent.name
+
+    table.concat { target, operator, @name }
+
+  anchor_name: =>
+    @parent.name .. "." .. @name
 
   highlight_code: =>
     trim_leading_white @code
 
-  render_prototype: =>
-    args = @args or {}
+  html: =>
+    ->
+      div {
+        class: "method"
+        h3 {
+          class: "method_name"
+          a { name: @full_name! }
+          a {
+            href: "#" .. @anchor_name!
+            @name
+            span { class: "para", raw "&para;" }
+            if @annotate then @annotate!
+          }
+        }
+        div { class: "prototype", @prototype_html! }
+        if @description
+          div {
+            class: "method_description"
+            raw @description
+          }
+        if @code
+          pre {
+            class: "method_code"
+            raw @highlight_code!
+          }
+      }
 
-    fn = -> {
+
+  prototype_html: =>
+    args = @args or {}
+    -> {
       if @returns
         {
           for i, ret in ipairs @returns do {
@@ -99,13 +144,26 @@ class Method extends Node
       ")"
     }
 
-    _html.build fn, ""
+class Constructor extends Method
+  full_name: =>
+    "new " .. @parent.name
+
+  annotate: => -> span { "constructor", class: "annotation" }
+
+  anchor_name: =>
+    @parent.name .. "." .. @name
+
+  html: =>
+    @returns = @returns or { @parent.instance_name }
+    @name = @parent.name unless @name
+    super!
 
 scope = {
   package: (p) =>
     insert @packages, Package p
 
   method: (m) => Method m
+  constructor: (m) => Constructor m
   type: (t) => Type t
 
   render: =>
@@ -142,29 +200,7 @@ scope = {
           div {
             class: "method_list"
             for m in *p.methods
-              div {
-                class: "method"
-                h3 {
-                  class: "method_name"
-                  a { name: m\full_name! }
-                  a {
-                    href: "#" .. m\full_name!
-                    m.name
-                    span { class: "para", raw "&para;" }
-                  }
-                }
-                div { class: "prototype", raw m\render_prototype! }
-                if m.description
-                  div {
-                    class: "method_description"
-                    raw m.description
-                  }
-                if m.code
-                  pre {
-                    class: "method_code"
-                    raw m\highlight_code!
-                  }
-              }
+              m\html!
           }
 
           div {
@@ -172,10 +208,19 @@ scope = {
             for t in *p.types
               div {
                 class: "type"
-                  h3 {
-                    class: "type_name"
-                    t.name
-                  }
+                h3 { class: "type_name", t.name }
+
+                if t.description
+                  div { class: "type_description", raw t.description }
+
+                div {
+                  class: "method_list"
+                    for c in t\each"constructor"
+                      c\html!
+
+                    for m in *t.methods
+                      m\html!
+                }
               }
           }
         }
