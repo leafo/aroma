@@ -24,7 +24,7 @@ package {
             }
           });
         </script>
-    
+
     The third argument of the `Aroma` constructor is an object of functions for
     various events. In this example we provide a function for the `loaded`
     event. The loaded event fires when Aroma's binary has finished downloading.
@@ -54,16 +54,72 @@ package {
     instance_name: "game"
 
     description: [[
-      Hello world!
+      Controls the game instance and message passing between the game and the
+      browser.
     ]]
 
     constructor {
-      args: {"what", "is", "this"}
+      args: {"container", "width", "height", "event_handlers"}
+      returns: {"aroma"}
+      description: [[
+        Creates Aroma frame and Lua environment. Causes the `nexe` to be
+        downloaded if it hasn't been already.
+
+        * `container` -- A dom node where the game will be placed. Can also be a
+          string which represents an id of a dom node.
+
+        * `width` -- Width of the frame in pixels.
+
+        * `height` -- Height of the frame in pixels.
+
+        * `event_handlers` -- An object containing functions for certain named
+          events.
+
+
+        Possible event handlers include:
+
+        * `"loaded"` -- called when the frame is ready to execute Lua.
+
+        * `"std_out"` -- Called whenever Lua writes to standard out. Recieves one
+          argument, what was written.
+
+        * `"std_err"` -- Same as above, except for standard error.
+
+
+        By default, `std_out` is set to write to `console.log` and `std_err` is
+        set to write to `console.err`.
+      ]]
+
+      code: [[
+        var game = new Aroma("game_container", 640, 480, {
+          loaded: function() {
+            game.execute("print 'hello world!'");
+          },
+          std_out: function(msg) {
+            alert(msg);
+          }
+        });
+      ]]
     }
 
     method {
-      name: "send_mesage"
-      args: {"msg"}
+      name: "execute"
+      args: {"lua_code"}
+
+      description: [[
+        Takes one argument, `lua_code`, a string of Lua code that will be
+        executed.
+      ]]
+    }
+
+    method {
+      name: "reset"
+      description: [[
+        Resets any state set by an existing game so a new game may be run
+        without conflict.
+
+        Right now only stops any audio.
+      ]]
     }
 
   }

@@ -50,6 +50,95 @@ package {
 }
 
 package {
+  name: "aroma"
+  description: [[
+    The `aroma` object serves two parts. It contians all framework's
+    submodules, which are also listed on this page, and it is where callback
+    functions are assinged.
+
+    Callbacks are functions that you create and assign to the `aroma` object.
+    They will be called by the engine when certain events happen.
+
+    You only need to assign these callback functions when if you are using
+    them, leaving them out is perfectly okay. You should never need to call
+    these functions manually (but you can).
+
+    Here is the complete list of callbacks:
+  ]]
+
+  method {
+    name: "draw"
+    description: [[
+      Where all of your drawing code should go.
+    ]]
+    code: [[
+      function aroma.draw()
+        aroma.graphics.print("hello world", 10, 10)
+      end
+    ]]
+  }
+
+  method {
+    name: "update"
+    args: {"dt"}
+    description: [[
+      Where game state updates should go. Takes one argument, `dt`, the amount
+      of time in seconds since the last frame.
+
+      You should not draw from this function, nothing will show up.
+    ]]
+    code: [[
+      function aroma.update(dt)
+        player.x = player.x + speed * dt
+      end
+    ]]
+  }
+
+  method {
+    name: "focus"
+    args: {"has_focus"}
+    description: [[
+      Called when the focus of the game window has changed
+    ]]
+    code: [[
+      function aroma.focus(has_focus)
+        print("Focus changed:", has_focus)
+      end
+    ]]
+  }
+
+  method {
+    name: "keypressed"
+    args: {"key_name", "key_code"}
+    description: [[
+      Called when a key is pressed down. Given two arguments:
+
+      * `key_name` -- A string representing the name of the key pressed
+
+      * `key_code` -- An integer representing the code of the key
+    ]]
+
+    code: [[
+      function aroma.keypressed(key_name, key_code)
+        print("Key pressed:", key_name, key_code)
+      end
+    ]]
+  }
+
+  method {
+    name: "keyreleased"
+    args: {"key_name", "key_code"}
+    description: [[
+      Callen when a key is released.
+
+      Arguments are the same as [aroma.keypressed](#aroma.keypressed).
+    ]]
+  }
+}
+
+
+
+package {
   name: "aroma.graphics"
   show_tags: true
   tag_order: { "drawing", "constructors", "transformations", "color" }
