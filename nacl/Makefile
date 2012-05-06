@@ -8,6 +8,10 @@ deploy:
 volcanox::
 	rsync -rvuzLR --exclude volcanox/.git volcanox/ leaf@leafo.net:www/aroma/
 
+
+64:
+	tup upd # 64 bit build is default
+
 32:
 	echo "CONFIG_NACL_ARCH=i686" >> ../tup.config
 	echo "CONFIG_NACL_BIN_NAME=aroma_tmp" >> ../tup.config
