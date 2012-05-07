@@ -109,19 +109,11 @@ package {
       description: [[
         Takes one argument, `lua_code`, a string of Lua code that will be
         executed.
+
+        Will reset all game state. This should only be called when you want to
+        run a new game.
       ]]
     }
-
-    method {
-      name: "reset"
-      description: [[
-        Resets any state set by an existing game so a new game may be run
-        without conflict.
-
-        Right now only stops any audio.
-      ]]
-    }
-
   }
 
 }

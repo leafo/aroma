@@ -192,7 +192,7 @@ nacl.init = {
       image_data_from_url args[1]
 }
 
-functions_to_reset = {"draw", "update", "keypressed", "keyreleased", "focus"}
+functions_to_reset = {"draw", "update", "keypressed", "keyreleased", "focus", "load"}
 
 nacl.init_all = (aroma) ->
   aroma.run = (setup_fn) ->
