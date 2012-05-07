@@ -1,0 +1,63 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title></title>
+  <script type="text/javascript" src="js/aroma.js"></script>
+  <style type="text/css">
+    body {
+      text-align: center;
+      font-family: sans-serif;
+      background: url("back.png");
+    }
+
+    .footer {
+      font-size: 12px;
+      color: #777;
+      margin-top: 12px;
+    }
+
+    .footer a {
+      color: #555;
+    }
+
+    h1 {
+      text-indent: -9000px;
+      width: 400px;
+      height: 40px;
+      margin: 12px auto;
+      background: url('logo.png') 50% 50% no-repeat;
+   }
+
+    #game {
+      box-shadow: 0px 0px 10px black;
+      display: inline-block;
+    }
+
+    embed {
+      display: block;
+    }
+
+  </style>
+</head>
+<body>
+  <h1>NaCl Tetris</h1>
+  <div id="game"></div>
+  <div class="footer">
+      <div>Demo game for the <a href="http://leafo.net/aroma/">Aroma</a> game engine.</div>
+      <div><a href="http://github.com/leafo/aroma">Source</a>.</div>
+    </div>
+  </div>
+
+  <script type="text/javascript">
+    (function() {
+     var game = new Aroma("game", 300, 500, {
+        loaded: function() {
+          game.execute("require 'main' aroma.load()");
+        }
+     });
+    })();
+  </script>
+</body>
+</html>
+
