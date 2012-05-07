@@ -1,5 +1,9 @@
 
-$ = (id) -> document.getElementById id
+$ = (id) ->
+  if typeof id == "string"
+    document.getElementById id
+  else
+    id
 
 debugging = false
 
@@ -173,6 +177,8 @@ class Aroma
   }
 
   constructor: (@container, @width, @height, @events={}) ->
+    @container = $ @container
+
     @module = null
     @file_loader = new Aroma.FileLoader this
     @audio = new Aroma.Audio
@@ -185,6 +191,12 @@ class Aroma
     @events.std_err = @events.std_err || (msg) -> console.error msg
 
     insert_css()
+
+    @events.loaded = @events.loaded || =>
+      @execute """
+        require "main"
+        aroma.load and aroma.load()
+      """
 
     listen @listener, "load", =>
       log "Loaded module"
