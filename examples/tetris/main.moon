@@ -1,4 +1,6 @@
 
+export aroma = love if love
+
 import rectangle, setColor, getColor from aroma.graphics
 import insert from table
 
@@ -147,12 +149,18 @@ class Board
     @oy = (aroma.graphics.getHeight! - my) / 2
 
   set_piece: (piece) =>
+    to_check = {}
     for x,y in piece\each_pt!
+      to_check[y] = true
       @set x,y
 
-  set: (x,y) =>
-    @grid[x][y] = true
+    for y in pairs to_check
+      print "checking", y
+      @check_row y
 
+
+  -- check if a row is completed
+  check_row: (y) =>
     for i=1,@width
       return if not @grid[i][y]
 
@@ -164,6 +172,9 @@ class Board
           @grid[xx][yy] = false
         else
           @grid[xx][yy] = @grid[xx][yy - 1]
+
+  set: (x,y) =>
+    @grid[x][y] = true
 
   draw_cell: (x, y, color) =>
     setColor color if color
@@ -196,7 +207,7 @@ class Game
 
   new: =>
     @speed = 0.2
-    @board = Board 15, 30
+    @board = Board 10, 20
 
   keypressed: (name, code) =>
     os.exit! if code == 27
@@ -225,7 +236,10 @@ class Game
   update: (dt) =>
     if not @current_piece
       cls = @pieces[math.random 1, #@pieces]
-      @current_piece = cls @board, cls.rot[1]+7, cls.rot[2]
+      @current_piece = cls @board,
+        cls.rot[1] + math.floor(@board.width / 3),
+        cls.rot[2]
+
       error "game over" if @current_piece\collides!
       @last_tick = 0
 
@@ -244,5 +258,4 @@ aroma.load = ->
   aroma.update = game\update
   aroma.draw = game\draw
   aroma.keypressed = game\keypressed
-
 
