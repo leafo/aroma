@@ -1,23 +1,10 @@
 
-Aroma is game creation framework/platform that targets both [Chrome's Native
-Client][1] and desktops. It lets you run your games in the browser with Chrome
-or distribute it as a standalone executable on Linux, Windows and OSX.
-
-Aroma games are written in the [Lua][2] programming language. Aroma implements
-parts of the [LÖVE][3] Lua API, so if you've got a game already written it's
-easy to port.
-
-  [1]: https://developers.google.com/native-client/
-  [2]: https://lua.org
-  [3]: https://love2d.org
-
-<div>$index</div>
-
 ## How It Works
 
 Native client files are distributed as `.nexe` binaries where are compiled for
 both 64-bit and 32-bit computers. Aroma comes as a compiled `.nexe` file that's
-ready to use after uploading to your server.
+ready to use after uploading to your server. All you need to due is upload your
+game alongside Aroma.
 
 ### Reusing Your Browser
 
@@ -50,8 +37,11 @@ blocking the execution of the game until the resource has been fetched.
 Combined with the caching provided by the browser, this makes loading code from
 the web pleasant.
 
-## Download
+### LÖVE API
 
-## Getting Started
+ Aroma implements parts of the [LÖVE][3] Lua API, so if you've got a game
+ already written it's easy to port.
 
-## Reference
+  [1]: https://developers.google.com/native-client/
+  [2]: https://lua.org
+  [3]: https://love2d.org

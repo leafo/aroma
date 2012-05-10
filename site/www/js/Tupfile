@@ -1,0 +1,4 @@
+.gitignore
+include_rules
+
+: foreach $(site_root_dir)/*.coffee |> coffee -c -o . %f  |> %B.js

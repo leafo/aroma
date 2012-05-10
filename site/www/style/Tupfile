@@ -1,4 +1,4 @@
 .gitignore
 include_rules
 
-: foreach $(site_root_dir)/style.less |> ^ plessc %o^ plessc %f %o |> %B.css 
+: foreach $(site_root_dir)/*.less |> ^ plessc %o^ plessc %f %o |> %B.css 
