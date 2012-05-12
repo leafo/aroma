@@ -38,20 +38,31 @@
       display: block;
     }
 
+    .directions {
+      font-size: 14px;
+      color: #555;
+    }
+
   </style>
 </head>
 <body>
   <h1>NaCl Tetris</h1>
   <div id="game"></div>
   <div class="footer">
-      <div>Demo game for the <a href="http://leafo.net/aroma/">Aroma</a> game engine.</div>
-      <div><a href="http://github.com/leafo/aroma">Source</a>.</div>
+    <div class="directions">
+      <strong>Directions:</strong> Arrows move, Space to drop, Up to rotate.
+    </div>
+    <br />
+    <div>Demo game for the <a href="http://leafo.net/aroma/">Aroma</a> game engine.</div>
+    <div>
+      <a href="http://github.com/leafo/aroma">Source</a>.
+      @<a href="http://twitter.com/moonscript">moonscript</a>
     </div>
   </div>
 
   <script type="text/javascript">
     (function() {
-     var game = new Aroma("game", 300, 500, {
+     var game = new Aroma("game", 300, 400, {
         loaded: function() {
           game.execute("require 'main' aroma.load()");
         }

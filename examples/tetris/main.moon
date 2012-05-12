@@ -4,16 +4,29 @@ export aroma = love if love
 import rectangle, setColor, getColor from aroma.graphics
 import insert from table
 
+_print = aroma.graphics.print
+
 class Piece
   rot: {2, 2} -- rotation origin
 
-  new: (@board, @ox=0, @oy=0) =>
+  new: (@board, @ox=0, @oy=0, @pts=nil) =>
     error "need shape" if not @shape
-    @pts = {}
-    for y=1,#@shape
-      for x=1,#@shape[y]
-        if @shape[y][x] > 0
-          insert @pts, {x, y}
+    if @pts == nil
+      @pts = {}
+      for y=1,#@shape
+        for x=1,#@shape[y]
+          if @shape[y][x] > 0
+            insert @pts, {x, y}
+      @calc_shadow!
+
+  calc_shadow: =>
+    return if @is_shadow
+
+    @shadow = with self.__class @board, @ox, @oy, [pt for pt in *@pts]
+      .is_shadow = true
+
+    while @shadow\try_move 0, 1 do nil
+    nil
 
   -- clockwise unless flipped
   rotate: (flip=false)=>
@@ -38,7 +51,10 @@ class Piece
 
   try_rotate: =>
     @rotate!
-    @rotate true if @collides!
+    if @collides!
+      @rotate true
+    else
+      @calc_shadow!
 
   try_move: (dx, dy) =>
     @ox += dx
@@ -48,6 +64,7 @@ class Piece
       @oy -= dy
       false
     else
+      @calc_shadow!
       true
 
   collides: =>
@@ -58,13 +75,18 @@ class Piece
     false
 
   draw: =>
+    if @shadow
+      setColor 64,64,64
+      for x,y in @shadow\each_pt!
+        @board\draw_cell x, y
+
     setColor @color
     for x, y in @each_pt!
       @board\draw_cell x, y
 
 class Ell extends Piece
   rot: {1, 2}
-  color:  {250, 94, 20}
+  color: {250, 94, 20}
   shape: {
     {1,1}
     {1,0}
@@ -73,7 +95,7 @@ class Ell extends Piece
 
 
 class Seven extends Piece
-  color:  {229, 59, 116}
+  color: {229, 59, 116}
   shape: {
     {1,1}
     {0,1}
@@ -82,7 +104,7 @@ class Seven extends Piece
 
 
 class Tee extends Piece
-  color:  {196, 229, 59}
+  color: {196, 229, 59}
   shape: {
     {0,1,0}
     {1,1,1}
@@ -90,21 +112,21 @@ class Tee extends Piece
 
 
 class Ess extends Piece
-  color:  {59, 229, 122}
+  color: {59, 229, 122}
   shape: {
     {0,1,1}
     {1,1,0}
   }
 
 class Zee extends Piece
-  color:  {229, 83, 59}
+  color: {229, 83, 59}
   shape: {
     {1,1,0}
     {0,1,1}
   }
 
 class Oo extends Piece
-  color:  {229, 219, 59}
+  color: {229, 219, 59}
   shape: {
     {1,1}
     {1,1}
@@ -113,7 +135,7 @@ class Oo extends Piece
 
 class Ii extends Piece
   rot: {1, 2}
-  color:  {59, 107, 229}
+  color: {59, 107, 229}
   shape: {
     {1}
     {1}
@@ -140,6 +162,10 @@ class Board
     
     @center!
 
+    s = (@cell_size + @padding)
+    @real_width = @width * s
+    @real_height = @height * s
+
   center: =>
     -- center in window
     size = @cell_size + @padding
@@ -148,21 +174,27 @@ class Board
     @ox = (aroma.graphics.getWidth! - mx) / 2
     @oy = (aroma.graphics.getHeight! - my) / 2
 
+  -- returns the number of rows cleared
   set_piece: (piece) =>
     to_check = {}
     for x,y in piece\each_pt!
       to_check[y] = true
       @set x,y
 
-    for y in pairs to_check
-      print "checking", y
-      @check_row y
+    print "** setting piece"
+    to_check = [y for y in pairs to_check]
+    table.sort to_check
 
+    count = 0
+    for y in *to_check
+      count += 1 if @check_row y
+    count
 
   -- check if a row is completed
   check_row: (y) =>
+    print "checking", y
     for i=1,@width
-      return if not @grid[i][y]
+      return false if not @grid[i][y]
 
     print "got row"
 
@@ -172,6 +204,7 @@ class Board
           @grid[xx][yy] = false
         else
           @grid[xx][yy] = @grid[xx][yy - 1]
+    true
 
   set: (x,y) =>
     @grid[x][y] = true
@@ -199,6 +232,63 @@ class Board
         val = @grid[x][y]
         if val then @draw_cell x, y
 
+bind_state = (state) ->
+  for ev in *{"update", "draw", "keypressed", "focus"}
+    aroma[ev] = state[ev] and (...) -> state[ev] state, ...
+
+key_repeater = (key, initial=0.2, sustain=0.05) ->
+  time = 0
+  sustaining = false
+  (dt) ->
+    if aroma.keyboard.isDown key
+      if time == 0
+        with true
+          time += dt
+      else
+        time += dt
+        dt = if sustaining then sustain else initial
+        if time >= dt
+          time -= dt
+          sustaining = true
+          true
+        else
+          false
+    else
+      time = 0
+      sustaining = false
+      false
+
+Game = nil
+
+class GameOver
+  new: (@game) =>
+
+  draw: =>
+    @game\draw!
+    setColor 0,0,0, 128
+    rectangle "fill", 0, 0, aroma.graphics.getWidth!, aroma.graphics.getHeight!
+
+    setColor 255,255,255
+    _print "Game over! - Enter to play again", 10, 10
+
+  keypressed: (key) =>
+    os.exit! if key == "escape" and love
+    if key == "return"
+      bind_state Game!
+
+class Paused
+  new: (@game) =>
+
+  focus: (focus) =>
+    bind_state @game if focus
+
+  keypressed: (key) =>
+    @focus true if key == "return"
+
+  draw: =>
+    setColor 255,255,255
+    _print "Click to play", 10, 10
+    @game\draw!
 
 class Game
   pieces: {
@@ -206,11 +296,16 @@ class Game
   }
 
   new: =>
-    @speed = 0.2
-    @board = Board 10, 20
+    @speed = 0.4
+    @board = Board 10, 22
+    @score = 0
 
-  keypressed: (name, code) =>
-    os.exit! if code == 27
+    @keys = {name, key_repeater(name) for name in *{
+      "left", "right", "up", "down", " "
+    }}
+
+  -- called from key repeaters
+  handle_key: (name) =>
     if @current_piece
       switch name
         when "left"
@@ -224,11 +319,19 @@ class Game
         when " "
           while @push_down! do nil
           nil
-          
+
+  keypressed: (key, code) =>
+    bind_state GameOver self if key == "q"
+    os.exit! if key == "escape"
 
   push_down: =>
+    return false if not @current_piece
     if not @current_piece\try_move 0, 1
-      @board\set_piece @current_piece
+      count = @board\set_piece @current_piece
+      @speed -= 0.01 if count > 0
+      @speed = math.max @speed, 0.05
+      @score += count*count*50
+
       @current_piece = nil
       false
     else true
@@ -237,11 +340,17 @@ class Game
     if not @current_piece
       cls = @pieces[math.random 1, #@pieces]
       @current_piece = cls @board,
-        cls.rot[1] + math.floor(@board.width / 3),
-        cls.rot[2]
+        cls.rot[1] + math.floor(@board.width / 3), 0
 
-      error "game over" if @current_piece\collides!
+      -- game over if it immediately collides
+      if @current_piece\collides!
+        return bind_state GameOver self
+
       @last_tick = 0
+
+    -- check for input
+    for key, fn in pairs @keys
+      @handle_key key if fn dt
 
     if @last_tick > @speed
       @last_tick -= @speed
@@ -252,10 +361,10 @@ class Game
   draw: =>
     @board\draw!
     @current_piece\draw! if @current_piece
+    setColor 200, 200, 200
+    -- _print "rate: " .. @speed, @board.ox, @board.oy - 18
+    _print "score: " .. @score, @board.ox, @board.oy + @board.real_height + 2
 
 aroma.load = ->
-  game = Game!
-  aroma.update = game\update
-  aroma.draw = game\draw
-  aroma.keypressed = game\keypressed
+  bind_state Paused Game!
 
