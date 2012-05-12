@@ -15,11 +15,19 @@ namespace aroma {
 	}
 
 	void InputHandler::dispatch_key_event(const char* event_name, int key) {
+		const char* name = key_name(key);
+
+		// don't let key repeat send events when holding
+		if (event_name == KEY_PRESSED_EVENT &&
+				keys_down.find(name) != keys_down.end())
+		{
+			return;
+		}
+
 		lua_State* l = binding->lua();
 		int top = lua_gettop(l);
 		binding->push_self();
 
-		const char* name = key_name(key);
 		if (event_name == KEY_RELEASED_EVENT) {
 			keys_down.erase(name);
 		} else if (event_name == KEY_PRESSED_EVENT) {
