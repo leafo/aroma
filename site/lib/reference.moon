@@ -6,6 +6,7 @@ import bind_methods, extend from require "moon"
 discount = require "discount"
 
 _html = require "sitegen.html"
+extra = require "sitegen.extra"
 
 plural = (str) -> str .. "s"
 
@@ -97,7 +98,8 @@ class Method extends Node
     table.concat { target, operator, @name }
 
   highlight_code: =>
-    trim_leading_white @code
+    language = "lua"
+    extra.PygmentsPlugin\_highlight language, trim_leading_white @code
 
   html: =>
     ->
@@ -120,10 +122,7 @@ class Method extends Node
             raw @description
           }
         if @code
-          pre {
-            class: "method_code"
-            raw @highlight_code!
-          }
+          raw @highlight_code!
       }
 
 
