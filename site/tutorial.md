@@ -128,8 +128,45 @@ game is placed. The second and third are the size of the game frame in pixels.
 
 That's it! You're now ready to start making games using the [Lua API][4].
 
+## Game Development Tips
 
-## Porting LÖVE Games
+### Getting Debug Output
+
+When you call `print` from Lua, or you game crashes, it useful to see the
+output. By default Aroma uses Chrome's development console to dump this
+information.
+
+Click the wrench icon in Chrome, go to the *Tools* menu option, then click on
+*Javascript Console*. This console is the console where you can see error and
+print messages.
+
+For example, if we tried to run the broken code:
+
+	```lua
+	-- note the syntax error, no closing "
+	print("hello)
+	```
+We would see something like this:
+
+<img src="http://leafo.net/shotsnb/2012-05-12_11-45-39.png" alt="Error message" />
+
+### Using Chrome's FPS Counter
+
+Although Aroma has a built in [function to get the FPS][6], Chrome has a
+convenient FPS counter that includes a graph of the FPS over time.
+
+To enable it, navigate your browser to `chrome://flags` and enable the FPS Counter.
+
+<img src="http://leafo.net/shotsnb/2012-05-12_11-50-51.png" alt="FPS Counter" />
+
+When your game runs, you'll now see something like this at the top of the screen:
+
+<img src="http://leafo.net/shotsnb/2012-05-12_11-51-48.png" alt="FPS Example" />
+
+*Note: This will show up on all webpages, it might be helpful to disable it
+when you aren't developing.*
+
+### Porting LÖVE Games
 
 One of the advantages of Aroma is that it implements parts of the LÖVE API, an
 existing game framework. The simplest way to port you game is to just assing
@@ -168,5 +205,5 @@ Or follow the author on Twitter for updates: [@moonscript](http://twitter.com/mo
  [3]: ./js_reference.html
  [4]: ./reference.html
  [5]: ./js_reference.html#aroma.js.Aroma
-
+ [6]: ./reference.html#aroma.timer.getFPS
 
