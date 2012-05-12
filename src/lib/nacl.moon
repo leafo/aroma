@@ -208,7 +208,7 @@ nacl.init_all = (aroma) ->
       if aroma[msg[1]]
         name = table.remove msg, 1
         aroma[name] unpack msg
-      else
-        print "unknown message"
-        print unpack msg
+      -- else
+      --   print "unknown message"
+      --   print unpack msg
 
