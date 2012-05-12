@@ -601,6 +601,28 @@ package {
 }
 
 package {
+  name: "aroma.keyboard"
+  description: "Functions for querying information about the keyboard."
+
+  method {
+    name: "isDown"
+    args: {"key_name"}
+    returns: {"is_down"}
+    description: [[
+      Checks if a key is currently pressed down.
+    ]]
+
+    code: [[
+      function aroma.update()
+        if aroma.keyboard.isDown(" ") then
+          print("Space is pressed!")
+        end
+      end
+    ]]
+  }
+}
+
+package {
   name: "aroma.timer"
   description: "Functions relating to the internal timer."
 
