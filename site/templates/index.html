@@ -5,6 +5,7 @@
   <title>$title</title>
   <link rel="stylesheet" href="$root/style/normalize.css" />
   <link rel="stylesheet" href="$root/style/style.css" />
+  $analytics{"UA-136625-1"}
 </head>
 <body>
   <div class="column">
@@ -20,13 +21,11 @@
     </div>
 
     <div class="nav">
-      <a href="$root">Home</a>
-      &middot;
-      <a href="$root/tutorial.html">Tutorial</a>
-      &middot;
-      <a href="$root/reference.html">Lua API</a>
-      &middot;
-      <a href="$root/js_reference.html">JavaScript API</a>
+      <a
+        href="$root" $is_page{"^index"}[[class="current"]]>Home</a><a
+        href="$root/tutorial.html" $is_page{"^tutorial"}[[class="current"]]>Tutorial</a><a
+        href="$root/reference.html" $is_page{"^reference"}[[class="current"]]>Lua API</a><a
+        href="$root/js_reference.html" $is_page{"js_reference"}[[class="current"]]>JavaScript API</a>
     </div>
 
     <div class="body">

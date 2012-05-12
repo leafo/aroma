@@ -1,5 +1,6 @@
 
 @border: #7CC5C1;
+@background: #FFF7EA;
 
 @font-face {
 	font-family: "D3Craftism";
@@ -7,7 +8,6 @@
 }
 
 body {
-	background: url('images/back.png');
 	margin: 18px;
 }
 
@@ -32,7 +32,6 @@ body {
 	border-radius: 8px 8px 0px 0px;
 	overflow: hidden;
 	box-shadow: 0px 0px 40px rgba(0,0,0, 0.6);
-	background: #E7FFF6;
 	background: #FFF7EA;
 }
 
@@ -60,6 +59,10 @@ p > code {
 	border-radius: 8px;
 	background: #E7E7E7;
 	border-bottom: 1px solid #D1D1D1;
+	font-size: 14px;
+}
+
+li > code {
 	font-size: 14px;
 }
 
@@ -126,21 +129,38 @@ p > img {
 
 .nav {
 	text-align: center;
-	.autograd(lighten(#BB8345, 34%));
+	.autograd(#e9d8c4);
 	font-size: 12px;
-	padding: 6px;
 	color: #333;
 	border-bottom: 1px solid #C4A37E;
 
 	a {
+		display: inline-block;
 		color: #534735;
 		font-weight: bold;
 		text-decoration: none;
-		text-shadow: 1px 1px 0px lighten(#BB8345, 44%);
+		text-shadow: 1px 1px 0px lighten(#e9d8c4, 10%);
+		font-size: 14px;
+
+		&:not(:last-child) {
+			border-right: 1px solid #FFECD3;
+			box-shadow: inset -1px 0px #C0A153;
+		}
+
+		padding: 6px 12px;
 
 		&:hover {
-			text-decoration: underline;
+			background: blue;
+			background: rgba(255,255,255, 0.2);
+		}
 
+		&:active {
+			position: relative;
+			top: 1px;
+		}
+
+		&.current {
+			background: #DBBF9F;
 		}
 	}
 }
@@ -409,28 +429,51 @@ p > img {
 		text-align: center;
 		margin: 20px 0px;
 
+
 		.game {
 			display: inline-block;
-			cursor: pointer;
+			text-align: right;
 
 			margin: 12px;
 			width: 260px;
 			height: 160px;
 
-			border: 1px solid #C0A07D;
-			background: white;
+			padding-top: 4px;
+			padding-right: 4px;
 
-			box-shadow: 1px 1px 4px rgba(0,0,0,0.3);
+			border: 1px solid #C0A07D;
+			background: url("images/small_title.png") 50% 50%;
+
+			box-shadow:
+				1px 1px 4px rgba(0,0,0,0.3),
+				inset 0px 0px 0px 1px white;
 
 			position: relative;
 
-			.thumb {
-				position: absolute;
-				background: url("images/small_title.png") 50% 50%;
-				top: 1px;
-				bottom: 1px;
-				left: 1px;
-				right: 1px;
+			a.button {
+				text-align: center;
+				color: white;
+				display: inline-block;
+				width: 100px;
+				background: green;
+				margin: 2px;
+				border-radius: 2px;
+
+				font-size: 12px;
+				font-weight: bold;
+				line-height: 20px;
+
+				text-decoration: none;
+				text-shadow: 1px 1px 0px darken(#ED6554, 30%);
+				.autograd(desaturate(#ED6554, 20%), 14%);
+
+				opacity: 0.9;
+
+				&:hover {
+					opacity: 1;
+					.autograd(lighten(#ED6554, 5%), 14%);
+				}
+
 			}
 
 			.title {
@@ -450,11 +493,11 @@ p > img {
 				text-shadow: 1px 1px 0px black;
 			}
 
-			-webkit-transition: -webkit-transform 0.08s ease-in;
+			// -webkit-transition: -webkit-transform 0.08s ease-in;
 
 			&:hover {
-				-webkit-transform:rotate(4deg);
-				-webkit-transition: -webkit-transform 0.08s ease-in;
+				// -webkit-transform:rotate(4deg);
+				// -webkit-transition: -webkit-transform 0.08s ease-in;
 			}
 		}
 	}
@@ -504,6 +547,98 @@ p > img {
 			border: 1px dashed lighten(@back, 10%);
 			font-size: 14px;
 		}
+	}
+}
+
+.tutorial {
+	@shadow_color: desaturate(darken(@background, 30%), 80%);
+	margin: 18px;
+
+	h2, h3 {
+		color: #664500;
+	}
+
+	pre {
+		background: darken(@background, 10%);
+		border: 1px dashed darken(@background, 60%);
+		box-shadow: 1px 1px 8px @shadow_color;
+		padding: 12px;
+		font-size: 14px;
+	}
+
+	.index {
+		float: right;
+		margin: 20px;
+		margin-top: 0px;
+
+		> ul {
+			display: inline-block;
+			background: desaturate(darken(@background, 10%), 30%);
+			margin: 0px;
+			padding: 18px;
+			padding-left: 34px;
+			border-radius: 8px;
+			border: 1px solid desaturate(darken(@background, 20%), 30%);
+			box-shadow:
+				inset 0px 1px 0px white,
+				0px 6px 12px -6px @shadow_color;
+		}
+
+		ul ul {
+			padding-left: 18px;
+		}
+	}
+
+	p > code {
+		background: darken(@background, 10%);
+		border-bottom: 1px solid darken(@background, 20%);
+		color: darken(@background, 80%);
+	}
+
+	// now to color everything
+	pre {
+		.cp {
+			color: #F1752F;
+		}
+
+		.nt, .nf {
+			color: #349BCC;
+		}
+
+		.s, .s2 {
+			color: #259E25;
+		}
+
+		.na {
+			color: #5E5E5E;
+		}
+
+		.mi {
+			color: #A33CA3;
+		}
+
+		.nx, .nc {
+			color: #FF45A6;
+		}
+
+		.p, .o {
+			color: #4D4D4D;
+		}
+
+		.kd {
+			color: #94680C;
+		}
+
+		.k {
+			color: #FF2525;
+			font-weight: bold;
+		}
+
+		.c1 {
+			background: #CBE891;
+			color: green;
+		}
+
 	}
 }
 

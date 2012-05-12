@@ -1,5 +1,6 @@
-
-<div>$index</div>
+    template: "tutorial"
+--
+<div class="index">$index</div>
 
 ## Before Starting
 
@@ -87,6 +88,7 @@ For the sake of the tutorial, we will create a small *Hello World* demo. Add a
 file called `main.lua` to the folder:
 
     ```lua
+    -- what is going on
     function aroma.draw()
       aroma.graphics.print("Hello World!", 10, 10)
     end
@@ -121,11 +123,50 @@ animation as aroma loads the frame. Then our Lua code is loaded from `main.lua`
 and `Hello World!` should appear in the frame.
 
 So far, the simple HTML page above loads the `aroma.js` dependency and creates
-an [Aroma][3] object. The first argument is the id of the HTML element where the
+an [Aroma][5] object. The first argument is the id of the HTML element where the
 game is placed. The second and third are the size of the game frame in pixels.
 
 That's it! You're now ready to start making games using the [Lua API][4].
 
- [3]: ./js_reference.html#aroma.js.Aroma
+
+## Porting LÖVE Games
+
+One of the advantages of Aroma is that it implements parts of the LÖVE API, an
+existing game framework. The simplest way to port you game is to just assing
+`aroma` to `love` at the top of your game:
+
+    ```lua
+    -- main.lua
+    love = aroma
+
+    function love.draw()
+      love.graphics.print("Hello from Aroma!", 10, 10)
+    end
+    ```
+*In the future Aroma hopes to implement the whole LÖVE API, but for the time
+being only what is listed in the [Lua API Manual][4] is supported.*
+
+## Next Steps
+
+ * [Lua Reference][4]
+ * [JavaScript Reference][3]
+
+Check out the project on GitHub, <https://github.com/leafo/aroma>. Fork the code and post issues!
+
+<div class="github-buttons">
+<iframe src="http://markdotto.github.com/github-buttons/github-btn.html?user=leafo&repo=aroma&type=watch&count=true" allowtransparency="true" frameborder="0" scrolling="0" width="110px" height="20px"></iframe>
+<br />
+<iframe src="http://markdotto.github.com/github-buttons/github-btn.html?user=leafo&repo=aroma&type=fork&count=true" allowtransparency="true" frameborder="0" scrolling="0" width="95px" height="20px"></iframe>
+</div>
+
+Post about aroma on Twitter:
+
+<a href="https://twitter.com/share" class="twitter-share-button" data-url="http://leafo.net/aroma/" data-text="Aroma - The Native Client Game engine powered by Lua" data-count="horizontal" data-via="moonscript">Tweet</a><script type="text/javascript" src="//platform.twitter.com/widgets.js"></script>
+
+Or follow the author on Twitter for updates: [@moonscript](http://twitter.com/moonscript).
+
+ [3]: ./js_reference.html
  [4]: ./reference.html
+ [5]: ./js_reference.html#aroma.js.Aroma
+
 
