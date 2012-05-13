@@ -276,6 +276,8 @@ p > img {
 			}
 		}
 
+letter-spacing: 1px;
+letter-spacing: 1px;
 		.method_description {
 			margin-left: @margin + 2;
 		}
@@ -317,6 +319,18 @@ p > img {
 	}
 
 
+	h2.decorative {
+		display: inline-block;
+		font-family: serif;
+		font-style: italic;
+		font-weight: normal;
+		letter-spacing: 1px;
+		color: #AA8767;
+		margin: 18px 0px 12px 0px;
+		padding: 0px 24px;
+		border-bottom: 1px dashed #d5d5d5;
+	}
+
 	.box {
 		.title {
 			margin: 0px;
@@ -357,6 +371,10 @@ p > img {
 
 	.row {
 		padding: 12px;
+	}
+
+	.center-row {
+		text-align: center;
 	}
 
 	.download-button {
@@ -427,14 +445,29 @@ p > img {
 
 	.game-picker {
 		text-align: center;
-		margin: 20px 0px;
+		margin-bottom: 24px;
 
+		.bookend {
+			display: inline-block;
+			vertical-align: middle;
+			text-align: center;
+			font-size: 128px;
+
+			margin: 12px;
+
+			color: #DAC7A8;
+			text-shadow: -1px -1px #B6AEA1, 1px 1px 0px white;
+
+			position: relative;
+			top: -8px;
+		}
 
 		.game {
 			display: inline-block;
+			vertical-align: middle;
 			text-align: right;
 
-			margin: 12px;
+			margin: 10px;
 			width: 260px;
 			height: 160px;
 
@@ -442,7 +475,14 @@ p > img {
 			padding-right: 4px;
 
 			border: 1px solid #C0A07D;
-			background: url("images/small_title.png") 50% 50%;
+
+			&.volcanox {
+				background: url("images/small_title.png") 50% 50%;
+			}
+
+			&.tetris {
+				background: url("images/tetris_title.png") 50% 50%;
+			}
 
 			box-shadow:
 				1px 1px 4px rgba(0,0,0,0.3),
@@ -472,6 +512,14 @@ p > img {
 				&:hover {
 					opacity: 1;
 					.autograd(lighten(#ED6554, 5%), 14%);
+				}
+
+				&:active {
+					@c: #ED6554;
+					border-top-color: @c;
+					.grad(darken(@c, 10%), lighten(@c, 10%));
+					position: relative;
+					top: 1px;
 				}
 
 			}

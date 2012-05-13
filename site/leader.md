@@ -1,5 +1,5 @@
 
-**Aroma** is game creation framework/platform that targets [Chrome's Native
+**Aroma** is game creation framework that targets [Chrome's Native
 Client][1]. It lets you create games in the [Lua][2] programming language that can
 be be distributed through the Chrome Web Store.
 

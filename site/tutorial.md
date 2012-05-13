@@ -10,42 +10,43 @@ Already know? Skip to [Enable Native Client Everywhere](#enable_native_client_ev
 
 Native Client is a (fairly) new technology that is built into all modern
 versions of Chrome. It enables developers to package compiled code of languages
-such as C and C++ into binaries that are downloaded and run on a users
-computer.
+such as C and C++ into binaries that are downloaded and run on a client's
+browser.
 
 Typically the language of web applications has been JavaScript, but with Native
 Client our options are expanded significantly.
 
-Aroma uses the scripting language [Lua][2] to enable you write games. Because Lua is
-written in C, it can be compiled into a Native Client binary and distributed to
-users visiting the site where your game is located.
+Aroma uses the scripting language [Lua][2] to enable you write games. Because
+Lua is written in C, it can be compiled into a Native Client binary and
+distributed to users visiting the site where your game is located.
 
-There are have been attempts to port Lua to JavaScript, but the results aren't
-perfect. Depending on how it's done, there are either missing features (like
-coroutines) or significant performance hits.
+There have been attempts to port Lua to JavaScript (as opposed to using
+something like Native Client), but the results aren't perfect. Depending on how
+it's done, there are either missing features (like coroutines) or significant
+performance hits.
 
 The version of Lua running in Aroma is the real Lua. It's fast, and everything
 works as expected.
 
 There are a couple caveats though. First, Native Client is only supported by
 Google Chrome. Second, Native Client applications are only allowed to run if
-they are installed as an application from the Chrome Web Store.
+they are installed from the Chrome Web Store.
 
 Even with these two minor issues, Native Client still makes a great platform
-to develop games in.
+for game development.
 
   [2]: http://www.lua.org
 
 ### Enable Native Client Everywhere
 
 By default Chrome restricts where Native Client applications can run. This
-default setting only lets them run when they are installed as an application
-from the Chrome Web Store.
+default setting only lets them run when they are installed as applications from
+the Chrome Web Store.
 
 This is fine for when you want to distribute your game, but it's not a good way
-to do development. For this reason, we will enable Native Client everywhere.
+to do development. For this reason, we will enable Native Client *everywhere*.
 
-To do this, type `chrome://flags` into your address bar and go there.
+To do this, type `chrome://flags` into your address bar and press enter.
 
 Scroll down until you find the entry for **Native Client**:
 
@@ -56,15 +57,17 @@ Just click enable, then restart your browser as directed.
 ### Testing Locally
 
 There is one more restriction Native Client puts on us. When testing your game
-locally, the page it runs on must be served by a web server. It can not be
+locally, the page it runs in must be served by a web server. It can not be
 opened from your file system.
 
+*You can tell if you are trying to open a page from your file system if the
+address in the address bar starts with `file://`.*
+
 You must run a web server locally on your computer, then place all of your game
-resources somewhere accessible.
+resources somewhere accessible by this server.
 
 *More information about this can be found
 [here](https://developers.google.com/native-client/devguide/devcycle/running#Local).*
-
 
 ## Creating a Test Game
 
@@ -75,7 +78,7 @@ Start by downloading the latest version:
 <div><a href="$root/bin/aroma-$version.zip">aroma-$version.zip</a></div>
 
 Inside the zip file, you need the following files to be uploaded alongside your
-game, so place them in a folder to begin with:
+game, so start by placing them in a folder for your game:
 
  * `aroma.nmf`
  * `aroma_i686.nexe`
@@ -85,7 +88,7 @@ game, so place them in a folder to begin with:
 ### Hello World
 
 For the sake of the tutorial, we will create a small *Hello World* demo. Add a
-file called `main.lua` to the folder:
+file called `main.lua` to the folder you just created:
 
     ```lua
     -- what is going on
@@ -94,7 +97,7 @@ file called `main.lua` to the folder:
     end
     ```
 
-This simple example will just write `"Hello World!"` to the Aroma frame at
+This simple example will just write `"Hello World!"` to the Aroma viewport at
 position 10, 10.
 
 Next we need to create the HTML page that will be the container for our game.
@@ -115,16 +118,18 @@ In the same folder create `index.html`:
     </html>
     ```
 
-A couple interesting things are happening here. But first, let's load it and
+A couple interesting things are done here. But first, let's load it and
 see what happens.
 
-If we navigate to the URL of our page right, you will see a nice loading
-animation as aroma loads the frame. Then our Lua code is loaded from `main.lua`
-and `Hello World!` should appear in the frame.
+If we navigate to the URL of our page, you will see a nice loading animation as
+Aroma loads. When Aroma is ready, our Lua code is automatically loaded from
+`main.lua` and `Hello World!` should appear in viewport.
+
+*If the game does not run, make sure you are accessing it from a web server.*
 
 So far, the simple HTML page above loads the `aroma.js` dependency and creates
-an [Aroma][5] object. The first argument is the id of the HTML element where the
-game is placed. The second and third are the size of the game frame in pixels.
+an [Aroma][5] object. The first argument is the *id* of the HTML element where the
+game is placed. The second and third are the size of the game viewport in pixels.
 
 That's it! You're now ready to start making games using the [Lua API][4].
 
@@ -137,8 +142,8 @@ output. By default Aroma uses Chrome's development console to dump this
 information.
 
 Click the wrench icon in Chrome, go to the *Tools* menu option, then click on
-*Javascript Console*. This console is the console where you can see error and
-print messages.
+*Javascript Console*. This console is where you can see error and print
+messages. (standard out and standard in)
 
 For example, if we tried to run the broken code:
 
@@ -150,9 +155,15 @@ We would see something like this:
 
 <img src="http://leafo.net/shotsnb/2012-05-12_11-45-39.png" alt="Error message" />
 
+It's possible to customize where this information is written. For example,
+consider logging errors to some server so you can tell when the client's game
+crashes.
+
+See the documentation for the [Aroma constructor][5].
+
 ### Using Chrome's FPS Counter
 
-Although Aroma has a built in [function to get the FPS][6], Chrome has a
+Although Aroma has a built in [function to get the framerate][6], Chrome has a
 convenient FPS counter that includes a graph of the FPS over time.
 
 To enable it, navigate your browser to `chrome://flags` and enable the FPS Counter.
@@ -168,9 +179,9 @@ when you aren't developing.*
 
 ### Porting LÖVE Games
 
-One of the advantages of Aroma is that it implements parts of the LÖVE API, an
-existing game framework. The simplest way to port you game is to just assing
-`aroma` to `love` at the top of your game:
+One of the advantages of Aroma is that it implements parts of the [LÖVE
+API][8], an existing game framework. The simplest way to port you game is to
+just assign `aroma` to `love` at the top of your game:
 
     ```lua
     -- main.lua
@@ -196,7 +207,7 @@ Check out the project on GitHub, <https://github.com/leafo/aroma>. Fork the code
 <iframe src="http://markdotto.github.com/github-buttons/github-btn.html?user=leafo&repo=aroma&type=fork&count=true" allowtransparency="true" frameborder="0" scrolling="0" width="95px" height="20px"></iframe>
 </div>
 
-Post about aroma on Twitter:
+Post about Aroma on Twitter:
 
 <a href="https://twitter.com/share" class="twitter-share-button" data-url="http://leafo.net/aroma/" data-text="Aroma - The Native Client Game engine powered by Lua" data-count="horizontal" data-via="moonscript">Tweet</a><script type="text/javascript" src="//platform.twitter.com/widgets.js"></script>
 
@@ -206,4 +217,6 @@ Or follow the author on Twitter for updates: [@moonscript](http://twitter.com/mo
  [4]: ./reference.html
  [5]: ./js_reference.html#aroma.js.Aroma
  [6]: ./reference.html#aroma.timer.getFPS
+ [7]: ./js_reference.html#aroma.js.Aroma.Aroma
+ [8]: https://love2d.org/wiki/Main_Page
 
