@@ -91,7 +91,7 @@ For the sake of the tutorial, we will create a small *Hello World* demo. Add a
 file called `main.lua` to the folder you just created:
 
     ```lua
-    -- what is going on
+    -- main.lua
     function aroma.draw()
       aroma.graphics.print("Hello World!", 10, 10)
     end
