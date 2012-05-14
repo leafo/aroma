@@ -22,8 +22,11 @@ body {
 
 .grad(@top, @bottom) {
 	background-color: mix(@top, @bottom, 50%);
+	background-image: linear-gradient(bottom, @bottom 0%, @top 100%);
 	background-image: -webkit-linear-gradient(bottom, @bottom 0%, @top 100%);
-	// todo add more
+	background-image: -moz-linear-gradient(bottom, @bottom 0%, @top 100%);
+	background-image: -o-linear-gradient(bottom, @bottom 0%, @top 100%);
+	background-image: -ms-linear-gradient(bottom, @bottom 0%, @top 100%);
 }
 
 .autograd(@color, @amount: 10%) {
