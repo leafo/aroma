@@ -209,7 +209,7 @@ Check out the project on GitHub, <https://github.com/leafo/aroma>. Fork the code
 
 Post about Aroma on Twitter:
 
-<a href="https://twitter.com/share" class="twitter-share-button" data-url="http://leafo.net/aroma/" data-text="Aroma - The Native Client Game engine powered by Lua" data-count="horizontal" data-via="moonscript">Tweet</a>
+<a href="https://twitter.com/share" class="twitter-share-button" data-url="http://leafo.net/aroma/" data-text="Aroma - The Native Client Game engine powered by Lua #aroma2d" data-count="horizontal" data-via="moonscript">Tweet</a>
 
 Or follow the author on Twitter for updates: [@moonscript](http://twitter.com/moonscript).
 

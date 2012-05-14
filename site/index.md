@@ -1,7 +1,7 @@
 
 ## How It Works
 
-Native client files are distributed as `.nexe` binaries where are compiled for
+Native Client files are distributed as `.nexe` binaries where are compiled for
 both 64-bit and 32-bit computers. Aroma comes as a compiled `.nexe` file that's
 ready to use after uploading to your server. All you need to do is upload your
 game alongside Aroma.
