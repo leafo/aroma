@@ -1,6 +1,8 @@
 
 format "lib.reference"
 
+set "title", "JavaScript Reference"
+
 package {
   language: "javascript"
   name: "aroma.js"

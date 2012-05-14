@@ -1,6 +1,8 @@
 
 format "lib.reference"
 
+set "title", "Lua Reference"
+
 lua_type = (o) ->
   o.invoke_operator = ":"
   type o

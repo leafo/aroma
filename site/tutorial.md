@@ -1,4 +1,5 @@
     template: "tutorial"
+    title: "Tutorial"
 --
 <div class="index">$index</div>
 
@@ -147,10 +148,10 @@ messages. (standard out and standard in)
 
 For example, if we tried to run the broken code:
 
-	```lua
-	-- note the syntax error, no closing "
-	print("hello)
-	```
+    ```lua
+    -- note the syntax error, no closing "
+    print("hello)
+    ```
 We would see something like this:
 
 <img src="http://leafo.net/shotsnb/2012-05-12_11-45-39.png" alt="Error message" />
