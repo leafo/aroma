@@ -193,9 +193,14 @@ nacl.init = {
 }
 
 functions_to_reset = {"draw", "update", "keypressed", "keyreleased", "focus", "load"}
+default_modules = { name, true for name in pairs package.loaded }
 
 nacl.init_all = (aroma) ->
   aroma.run = (setup_fn) ->
+    -- unload any modules
+    for key in pairs package.loaded
+      package.loaded[key] = nil unless default_modules[name]
+
     blank = ->
     aroma[key] = blank for key in *functions_to_reset
     aroma.graphics.reset!
