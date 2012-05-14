@@ -6,13 +6,13 @@ package {
   name: "aroma.js"
   description: [[
     The JavaScript API manages the creation and existence of your game in the
-    browser. JavaScript is used to create the Aroma window and start the
+    browser. JavaScript is used to create the Aroma viewport and start the
     execution of your game.
 
-    You can use this API to set up the size of your game window and handle
-    printing to standard out.
+    You can use this API to set up the size of your game viewport and handle
+    any text sent to standard out or standard error.
 
-    Create a game frame like so:
+    Create a game like so:
 
         ```html
         <script type="text/javascript" src="aroma.js"></script>
@@ -32,9 +32,11 @@ package {
     various events. In this example we provide a function for the `loaded`
     event. The loaded event fires when Aroma's binary has finished downloading.
 
-    After Aroma has loaded, it waits idly for some code to run. Let's write
-    something to the screen. We use the `execute` method to run arbitrary Lua
-    in the game frame:
+    After Aroma has loaded it will by default try to load `main`, which
+    involves searching for `main.lua` in the current directory.
+
+    In this example we overwrite the default load behavior and use the
+    `execute` method to run arbitrary Lua in Aroma.
 
         ```javascript
         var game = new Aroma(container, 640, 480, {
@@ -70,8 +72,8 @@ package {
         Creates Aroma frame and Lua environment. Causes the `nexe` to be
         downloaded if it hasn't been already.
 
-        * `container` -- A dom node where the game will be placed. Can also be a
-          string which represents an id of a dom node.
+        * `container` -- A DOM node where the game will be placed. Can also be a
+          string which represents an id of a DOM node.
 
         * `width` -- Width of the frame in pixels.
 
@@ -83,7 +85,7 @@ package {
 
         Possible event handlers include:
 
-        * `"loaded"` -- called when the frame is ready to execute Lua.
+        * `"loaded"` -- Called when the frame is ready to execute Lua.
 
         * `"std_out"` -- Called whenever Lua writes to standard out. Recieves one
           argument, what was written.
