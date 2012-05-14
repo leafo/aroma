@@ -10,6 +10,23 @@
 <body>
   <div class="column">
     <div class="header">
+      <div class="social-buttons">
+        <div>
+          <a href="https://twitter.com/share" class="twitter-share-button"
+            data-url="http://leafo.net/aroma/" data-text="Aroma - The Native Client Game
+            engine powered by Lua #aroma2d" data-count="horizontal"
+            data-via="moonscript">Tweet</a>
+        </div>
+
+        <div>
+          <a href="https://twitter.com/moonscript" class="twitter-follow-button" data-width="70px" data-show-count="false" data-show-screen-name="false">Follow @moonscript</a>
+        </div>
+
+        <div>
+          <g:plusone size="medium"></g:plusone>
+        </div>
+      </div>
+
       <div>
         <h1><a href="$root">aroma</a></h1>
       </div>
@@ -37,5 +54,13 @@
     logo font by <a href="http://www.digitaldreamdesign.net/">digitaldreamdesign</a>
   </div>
   <script type="text/javascript" src="js/main.js"></script>
+  <script type="text/javascript" src="//platform.twitter.com/widgets.js"></script>
+  <script type="text/javascript">
+    (function() {
+      var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+      po.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+    })();
+  </script>
 </body>
 </html>

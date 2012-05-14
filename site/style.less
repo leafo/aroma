@@ -9,6 +9,15 @@
 
 body {
 	margin: 18px;
+	background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAA7klEQVRYR83Xuw4CIRCFYSkoeP9HpKWhoiARwyaYdeUyZ7huZeHu/wVRRmGtDS/G5b0PzjkRb1VKBSnl9Rq9BAdwj6cgFwEDcvEeBASoxbkIMoAS5yBIACSOIpoAThxBVAE9cSqiCBgRpyCygJHxFuIPMCNeQ/wAZsZLiC9gRTyHuAAr40+EMMa806mGnmS9748HmNBas47j3ni6fz9g+0ewfROmiWjlN+E+PZ3zQ5R25cyVyM2N5x1GM1aiNjGfO5CMWAnKf4XmTBghnI1JicdnkwAoghqHAFQEEocBLQQaZwFKCE6cDXgiuPH4nA8Tm2H8sDE2bAAAAABJRU5ErkJggg==);
+}
+
+::selection {
+	background: #79C41A;
+}
+
+::-moz-selection {
+	background: #79C41A;
 }
 
 .grad(@top, @bottom) {
@@ -24,6 +33,7 @@ body {
 
 .middle() {
 	max-width: 960px;
+	min-width: 750px;
 	margin: 0px auto 0px auto;
 }
 
@@ -82,6 +92,7 @@ p > img {
 	padding: 4px 12px;
 	border-radius: 8px 8px 0px 0px;
 	text-align: center;
+	position: relative;
 
 	h1 {
 		@shadow: 1px 1px 0px #50948F;
@@ -102,6 +113,13 @@ p > img {
 				text-shadow: @shadow, 0px 0px 20px white;
 			}
 		}
+	}
+
+	.social-buttons {
+		text-align: left;
+		position: absolute;
+		left: 8px;
+		top: 8px;
 	}
 
 	.about {
@@ -292,6 +310,11 @@ letter-spacing: 1px;
 
 		}
 	}
+}
+
+.body {
+	box-shadow: inset 0px 11px 10px -10px #B1ADA3;
+	padding-top: 1px;
 }
 
 .box {
@@ -607,7 +630,7 @@ letter-spacing: 1px;
 	}
 
 	pre {
-		background: darken(@background, 10%);
+		background: #FFE9C3;
 		border: 1px dashed darken(@background, 60%);
 		box-shadow: 1px 1px 8px @shadow_color;
 		padding: 12px;
@@ -619,14 +642,18 @@ letter-spacing: 1px;
 		margin: 20px;
 		margin-top: 0px;
 
+		li {
+			padding: 2px 0px;
+		}
+
 		> ul {
 			display: inline-block;
-			background: desaturate(darken(@background, 10%), 30%);
+			background: #FFEED2;
 			margin: 0px;
 			padding: 18px;
 			padding-left: 34px;
 			border-radius: 8px;
-			border: 1px solid desaturate(darken(@background, 20%), 30%);
+			border: 1px solid #DDC69F;
 			box-shadow:
 				inset 0px 1px 0px white,
 				0px 6px 12px -6px @shadow_color;
