@@ -2,6 +2,7 @@
 format "lib.reference"
 
 package {
+  language: "javascript"
   name: "aroma.js"
   description: [[
     The JavaScript API manages the creation and existence of your game in the
@@ -13,6 +14,7 @@ package {
 
     Create a game frame like so:
 
+        ```html
         <script type="text/javascript" src="aroma.js"></script>
         <div id="game_container"></div>
 
@@ -24,6 +26,7 @@ package {
             }
           });
         </script>
+        ```
 
     The third argument of the `Aroma` constructor is an object of functions for
     various events. In this example we provide a function for the `loaded`
@@ -33,11 +36,13 @@ package {
     something to the screen. We use the `execute` method to run arbitrary Lua
     in the game frame:
 
+        ```javascript
         var game = new Aroma(container, 640, 480, {
           loaded: function() {
             game.execute("function aroma.draw() aroma.graphics.print('Hello World!', 10, 10) end");
           }
         });
+        ```
 
     The example above is one of the simplest examples of an Aroma game.
 

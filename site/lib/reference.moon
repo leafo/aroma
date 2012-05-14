@@ -22,7 +22,7 @@ class Node
 
   format_desc: =>
     if @description
-      @description = discount trim_leading_white @description
+      @description = discount extra.PygmentsPlugin\filter trim_leading_white @description
 
   place_children: (proto) =>
     for thing in *proto
@@ -41,6 +41,8 @@ class Node
       for thing in *list
         coroutine.yield thing
 
+  get_language: =>
+    @language or @parent and @parent\get_language!
 
   anchor_name: =>
     if @parent
@@ -98,7 +100,7 @@ class Method extends Node
     table.concat { target, operator, @name }
 
   highlight_code: =>
-    language = "lua"
+    language = @get_language! or "lua"
     extra.PygmentsPlugin\_highlight language, trim_leading_white @code
 
   html: =>
