@@ -1,8 +1,9 @@
-# aroma v0.0.1
+# aroma v0.0.2
 #### a game engine
 Leaf Corcoran, 2012
 
 <http://leafo.net/aroma/>
+[Changelog](http://leafo.net/aroma/feed.xml)
 
 ## About
 

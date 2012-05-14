@@ -26,6 +26,15 @@ return {
   description: "Aroma is a game engine for Native Client"
 
   release {
+    version: "0.0.2"
+    date: date 2012, 5, 14, 11, 23
+    changes: [[
+      * fixed broken default loader
+      * unload all modules that have been required on `execute`
+    ]]
+  }
+
+  release {
     version: "0.0.1"
     date: date 2012, 5, 13, 18, 53
     changes: [[

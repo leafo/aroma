@@ -5,7 +5,7 @@
 OUT_DIR="tmp/aroma"
 TMP_DIR=$(dirname $OUT_DIR)
 
-VERSION=0.0.1
+VERSION=0.0.2
 
 mkdir -p $OUT_DIR
 

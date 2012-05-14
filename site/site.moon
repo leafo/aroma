@@ -3,7 +3,7 @@ require "sitegen"
 sitegen.create_site =>
   disable "autoadd"
 
-  @version = "0.0.1"
+  @version = "0.0.2"
 
   deploy_to "leaf@leafo.net", "www/aroma/"
 
