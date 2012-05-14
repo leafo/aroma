@@ -97,6 +97,15 @@ package {
 
         By default, `std_out` is set to write to `console.log` and `std_err` is
         set to write to `console.err`.
+
+        The default loaded event executes the following Lua code:
+
+            ```lua
+            require "main"
+            if aroma and aroma.load then
+              aroma.load()
+            end
+            ```
       ]]
 
       code: [[

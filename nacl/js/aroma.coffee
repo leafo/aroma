@@ -195,9 +195,10 @@ class Aroma
     @events.loaded = @events.loaded || =>
       @execute """
         require "main"
-        aroma.load and aroma.load()
+        if aroma and aroma.load then
+          aroma.load()
+        end
       """
-
     listen @listener, "load", =>
       log "Loaded module"
       @module = @listener.querySelector "embed"
