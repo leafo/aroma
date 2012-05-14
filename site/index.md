@@ -52,7 +52,7 @@ perform them faster.
 Aroma is early in development but ready for testing. Get started with the
 following resources:
 
- * Download the latest version: <a href="$root/bin/aroma-$version.zip">aroma-$version.zip</a>
+ * Download the latest version: <a href="$root/bin/aroma-$version.zip" class="event_bottom_download">aroma-$version.zip</a>
  * Read the <a href="$root/tutorial.html">beginning tutorial</a>
  * <a href="$root/js_reference.html">JavaScript Reference</a>
  * <a href="$root/reference.html">Lua Reference</a>
