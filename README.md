@@ -49,7 +49,7 @@ The following dependencies are required before building:
  * [xxd](http://linux.die.net/man/1/xxd)
 
 *If you want to build the website (which you probably don't), you need
-[sitegen](http://leafo.net/sitegen) and [lessphp][http://leafo.net/lessphp]*
+[sitegen](http://leafo.net/sitegen) and [lessphp](http://leafo.net/lessphp)*
 
 After all the dependencies are set up, head into the `nacl` folder and run:
 
