@@ -203,9 +203,9 @@ being only what is listed in the [Lua API Manual][4] is supported.*
 Check out the project on GitHub, <https://github.com/leafo/aroma>. Fork the code and post issues!
 
 <div class="github-buttons">
-<iframe src="http://markdotto.github.com/github-buttons/github-btn.html?user=leafo&repo=aroma&type=watch&count=true" allowtransparency="true" frameborder="0" scrolling="0" width="110px" height="20px"></iframe>
+<iframe src="http://ghbtns.com/github-btn.html?user=leafo&repo=aroma&type=watch&count=true" allowtransparency="true" frameborder="0" scrolling="0" width="110px" height="20px"></iframe>
 <br />
-<iframe src="http://markdotto.github.com/github-buttons/github-btn.html?user=leafo&repo=aroma&type=fork&count=true" allowtransparency="true" frameborder="0" scrolling="0" width="95px" height="20px"></iframe>
+<iframe src="http://ghbtns.com/github-btn.html?user=leafo&repo=aroma&type=fork&count=true" allowtransparency="true" frameborder="0" scrolling="0" width="95px" height="20px"></iframe>
 </div>
 
 Post about Aroma on Twitter:
