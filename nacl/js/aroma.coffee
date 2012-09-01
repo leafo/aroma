@@ -141,7 +141,8 @@ class Aroma
 
       file_type = switch type
         when "static" then "sound"
-        when "streaming" then "music"
+        when "streaming" then "music" # not sure where this is from
+        when "stream" then "music"
         else throw "Unknown source type: #{type}"
 
       @file_loader.get_file path, file_type, (source_id) ->
