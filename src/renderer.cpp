@@ -286,6 +286,8 @@ namespace aroma {
 		set_new_func("getFont", _getFont);
 		set_new_func("setFont", _setFont);
 
+		set_new_func("setLineWidth", _setLineWidth);
+
 		set_new_func("push", _push);
 		set_new_func("pop", _pop);
 		set_new_func("translate", _translate);
@@ -395,6 +397,12 @@ namespace aroma {
 		return self->binding->from_registry(l, "current_font");
 	}
 
+	int Renderer::_setLineWidth(lua_State* l) {
+		double width = luaL_checknumber(l, 1);
+		glLineWidth(width);
+		return 0;
+	}
+
 	int Renderer::_push(lua_State* l) {
 		upvalue_self(Renderer)->projection.push();
 		return 0;
@@ -471,15 +479,41 @@ namespace aroma {
 		q.x2 = (x + w) / sw;
 		q.y2 = (y + h) / sw;
 
-		*newuserdata(Quad) = q;
+		return q.push(l);
+	}
+
+	int Quad::_flip(lua_State* l) {
+		Quad *self = getself(Quad);
+
+		int flip_x = lua_toboolean(l, 2);
+		int flip_y = lua_toboolean(l, 3);
+
+		Quad out = *self;
+		if (flip_x) {
+			double tmp = out.x1;
+			out.x1 = out.x2;
+			out.x2 = tmp;
+		}
+
+		if (flip_y) {
+			double tmp = out.y1;
+			out.y1 = out.y2;
+			out.y2 = tmp;
+		}
+
+		return out.push(l);
+	}
+
+	int Quad::push(lua_State* l) {
+		*newuserdata(Quad) = *this;
 
 		if (luaL_newmetatable(l, "Quad")) {
 			lua_newtable(l);
+			setfunction("flip", _flip);
 			lua_setfield(l, -2, "__index");
 		}
 
 		lua_setmetatable(l, -2);
-
 		return 1;
 	}
 

@@ -31,7 +31,11 @@ namespace aroma {
 		double height() const;
 
 		QuadCoords quad_coords() const;
+
 		static int _new(lua_State* l);
+		static int _flip(lua_State* l);
+
+		int push(lua_State* l);
 	};
 
 	// the transformation used by draw and drawq
@@ -118,6 +122,8 @@ namespace aroma {
 
 			static int _setFont(lua_State *l);
 			static int _getFont(lua_State *l);
+
+			static int _setLineWidth(lua_State *l);
 
 			static int _print(lua_State* l);
 	};
