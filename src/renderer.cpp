@@ -25,8 +25,15 @@ namespace aroma {
 	void Renderer::img_rect_blit(const Image* img, const Quad& q,
 			const Transform& t)
 	{
+		double qw = q.width();
+		double qh = q.height();
+
+		// check for flips
+		if (qw < 0) qw = -qw;
+		if (qh < 0) qh = -qh;
+
 		TexQuadCoords quad = TexQuadCoords::from_rect(
-			 t.x, t.y, img->width * q.width(), img->height * q.height(),
+			 t.x, t.y, img->width * qw, img->height * qh,
 			 q.x1, q.y1, q.width(), q.height()
 		);
 
@@ -488,20 +495,19 @@ namespace aroma {
 		int flip_x = lua_toboolean(l, 2);
 		int flip_y = lua_toboolean(l, 3);
 
-		Quad out = *self;
 		if (flip_x) {
-			double tmp = out.x1;
-			out.x1 = out.x2;
-			out.x2 = tmp;
+			double tmp = self->x1;
+			self->x1 = self->x2;
+			self->x2 = tmp;
 		}
 
 		if (flip_y) {
-			double tmp = out.y1;
-			out.y1 = out.y2;
-			out.y2 = tmp;
+			double tmp = self->y1;
+			self->y1 = self->y2;
+			self->y2 = tmp;
 		}
 
-		return out.push(l);
+		return 0;
 	}
 
 	int Quad::push(lua_State* l) {
