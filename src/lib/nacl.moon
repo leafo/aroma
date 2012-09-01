@@ -163,6 +163,7 @@ class AudioSource
   play: => @msg "play"
   stop: => @msg "stop"
   rewind: => @msg "rewind"
+  setVolume: (vol) => -- TODO
   setLooping: (should_loop) => @msg "set_looping", should_loop
 
   __tostring: => "HTMLAudioSource<" .. @url .. ">"
