@@ -119,11 +119,11 @@ class Aroma
     require: (msg, callback) ->
       [_, module] = msg
       @show_loading "Loading module `#{module}`"
-      @file_loader.get_module module, (code) ->
+      @file_loader.get_module module, (code, error) ->
         if code?
           callback ["success", code]
         else
-          callback ["error", "Failed to find module: tried #{url}"]
+          callback ["error", "Failed to find module: tried #{error}"]
 
     image: (msg, callback) ->
       [_, path] = msg
@@ -407,7 +407,7 @@ class Aroma.FileLoader
 
   _get: (url, callback) ->
     log ">> getting: #{url}"
-    get url, callback, @fail_fn || ->
+    get url, callback, => @fail_fn? url
 
   real_path: (path) ->
     if @root?
@@ -432,7 +432,7 @@ class Aroma.FileLoader
     loader = @loaders[loader] if loader
     loader = @default_loader unless loader
 
-    @on_fail = -> callback null
+    @fail_fn = (url) -> callback null, url
 
     @pending++
     loader.call this, path, (result) =>
