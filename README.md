@@ -67,7 +67,7 @@ makefile in the `nacl` folder with a directive for building 32 bit, just run:
 
     $ make 32
 
-If you want to make tup build 64 by default then edit `tup.config` in the root
+If you want to make tup build 32 by default then edit `tup.config` in the root
 directory, and uncomment the line:
 
     CONFIG_NACL_ARCH=i686
