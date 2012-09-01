@@ -66,6 +66,7 @@
 
       <select id="example_list"></select>
       <button id="run" disabled="disabled">Execute</button>
+      <button id="clear">Clear</button>
     </div>
   </div>
 
@@ -134,7 +135,7 @@
           load_example(name);
         }
 
-        load_example(default_example);
+        // load_example(default_example);
 
         // create quick list
         names.forEach(function(name) {
@@ -177,6 +178,11 @@
       }
 
       $("run").onclick = run;
+      $("clear").onclick = function() {
+        $("input").value = "";
+        $("input").focus();
+      };
+      $("input").focus();
     })();
   </script>
 </body>
