@@ -54,9 +54,9 @@ package {
 package {
   name: "aroma"
   description: [[
-    The `aroma` object serves two parts. It contians all framework's
+    The `aroma` object serves two parts. It contains all Aroma
     submodules, which are also listed on this page, and it is where callback
-    functions are assinged.
+    functions are assigned.
 
     Callbacks are functions that you create and assign to the `aroma` object.
     They will be called by the engine when certain events happen.
@@ -177,6 +177,12 @@ package {
     tag: "color"
     args: { "red", "green", "blue", "alpha" }
     description: "Set the color the screen is cleared to after every frame."
+  }
+
+  method {
+    name: "setLineWidth"
+    args: {"width"}
+    description: "Set the width of lines lines drawn."
   }
 
   method {
@@ -521,6 +527,17 @@ package {
 
       Drawn with [aroma.graphics.drawq](#aroma.graphics.drawq).
     ]]
+
+
+    method {
+      name: "flip"
+      args: {"x", "y"}
+      description: [[
+        * `x` -- Flips Quad horizontally if true
+
+        * `y` -- Flips Quad vertically if true
+      ]]
+    }
   }
 }
 
