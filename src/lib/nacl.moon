@@ -86,11 +86,29 @@ nacl.lib = {
     post_message { "track_event", { category, action, label, value, interactive } }
 }
 
+async_scope = nil
+nacl_package_seeall = (mod) ->
+  setmetatable mod, __index: async_scope
+
+module = module
+
 -- scope of the game thread
 async_scope = setmetatable {
     print: async_print
     require: async_require
     nacl: nacl.lib
+
+    -- make it so module creates tables in async_scope instead of _G
+    module: (...) ->
+      _G = _G
+      setfenv 0, async_scope
+      out = { module ... }
+      setfenv 0, _G
+      unpack out
+
+    package: setmetatable {
+      seeall: nacl_package_seeall
+    }, __index: package
   }, {
     __index: _G
   }
