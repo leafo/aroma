@@ -54,6 +54,10 @@
       background: #444;
     }
 
+    #clear {
+      float: left;
+    }
+
   </style>
 </head>
 <body>
@@ -62,11 +66,11 @@
   <div id="editor" class="box">
     <textarea id="input"></textarea>
     <div class="buttons">
-      <span class="loading">Loading...</span>
+      <button id="clear">Clear</button>
 
+      <span class="loading">Loading...</span>
       <select id="example_list"></select>
       <button id="run" disabled="disabled">Execute</button>
-      <button id="clear">Clear</button>
     </div>
   </div>
 
