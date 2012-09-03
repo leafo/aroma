@@ -56,4 +56,5 @@ following resources:
  * Read the <a href="$root/tutorial.html">beginning tutorial</a>
  * <a href="$root/js_reference.html">JavaScript Reference</a>
  * <a href="$root/reference.html">Lua Reference</a>
+ * <a href="$root/changelog.html">Changelog</a>
 
