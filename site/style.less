@@ -13,11 +13,11 @@ body {
 }
 
 ::selection {
-	background: #79C41A;
+	background: #C8FF82;
 }
 
 ::-moz-selection {
-	background: #79C41A;
+	background: #C8FF82;
 }
 
 .grad(@top, @bottom) {
@@ -67,24 +67,32 @@ ul ul {
 	margin: 0px;
 }
 
-p > code {
-	padding: 1px 6px;
-	border-radius: 8px;
-	background: #E7E7E7;
-	border-bottom: 1px solid #D1D1D1;
-	font-size: 14px;
+p {
+	margin: 10px 8px;
+	line-height: 150%;
+
+
+	> img {
+		margin-left: auto;
+		margin-right: auto;
+		display: block;
+		border: 1px solid #BDBDBD;
+		box-shadow: 1px 1px 4px rgba(0,0,0, 0.2);
+	}
+}
+
+p, em {
+	> code {
+		padding: 1px 6px;
+		border-radius: 8px;
+		background: #E7E7E7;
+		border-bottom: 1px solid #D1D1D1;
+		font-size: 14px;
+	}
 }
 
 li > code {
 	font-size: 14px;
-}
-
-p > img {
-	margin-left: auto;
-	margin-right: auto;
-	display: block;
-  border: 1px solid #BDBDBD;
-  box-shadow: 1px 1px 4px rgba(0,0,0, 0.2);
 }
 
 .header {
@@ -219,6 +227,7 @@ p > img {
 		margin: 0px;
 		padding: 8px;
 		color: #222;
+		text-shadow: 1px 1px 0px #eee;
 		.autograd(#ddd);
 	}
 
@@ -276,8 +285,9 @@ p > img {
 
 		.method_name {
 			@color: #FF1F6F;
-			margin: 0px;
+			margin: 8px 0;
 			padding-left: 5px;
+
 			a {
 				display: block;
 				text-decoration: none;
@@ -309,7 +319,7 @@ letter-spacing: 1px;
 			font-style: italic;
 			border: 1px solid #D5D5D5;
 			padding: 4px;
-			margin: 4px 0px;
+			margin: 8px;
 
 		}
 	}
@@ -632,6 +642,11 @@ letter-spacing: 1px;
 		color: #664500;
 	}
 
+	p {
+		margin: 20px 8px;
+		color: #221B10;
+	}
+
 	pre {
 		background: #FFE9C3;
 		border: 1px dashed darken(@background, 60%);
@@ -667,10 +682,12 @@ letter-spacing: 1px;
 		}
 	}
 
-	p > code {
-		background: darken(@background, 10%);
-		border-bottom: 1px solid darken(@background, 20%);
-		color: darken(@background, 80%);
+	p, em {
+		> code {
+			background: darken(@background, 10%);
+			border-bottom: 1px solid darken(@background, 20%);
+			color: darken(@background, 80%);
+		}
 	}
 
 }

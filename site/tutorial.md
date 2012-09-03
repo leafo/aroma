@@ -138,7 +138,7 @@ That's it! You're now ready to start making games using the [Lua API][4].
 
 ### Getting Debug Output
 
-When you call `print` from Lua, or you game crashes, it useful to see the
+When you call `print` from Lua, or your game crashes, it useful to see the
 output. By default Aroma uses Chrome's development console to dump this
 information.
 
