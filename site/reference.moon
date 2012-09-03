@@ -40,7 +40,7 @@ package {
     args: {"category", "action", "label", "value", "interactive"}
     description: [[
       This will attempt to send a custom event to Google Analytics. Only works
-      if it's been set up on the game page.
+      if Google Analytics is available on the game page.
     ]]
 
     code: [[
@@ -353,6 +353,42 @@ package {
 
       -- only numbers can be written with this font
       local numbers = aroma.graphics.newFont("10pt serif", "0987654321")
+    ]]
+  }
+
+  method {
+    name: "newImageFont"
+    tag: "constructors"
+    args: {"image", "alphabet"}
+    returns: {"font"}
+    description: [[
+      Creates a new font from an image and returns it. Unlike
+      [aroma.graphics.newFont](#aroma.graphics.newFont), letters are extracted
+      from a bitmap instead a typeface from the browser.
+
+      * `image` -- An image url or an ImageData object.
+      * `alphabet` -- A string of letters as they appear in the image.
+
+      The image must be formatted as a single row of letters where each letter
+      is separated by a spacer color:
+
+      ![number font](img/number_font.png)
+
+      The spacer color is always the top left color in the image, so place a
+      spacer column as the leftmost thing in the image. The spacer column can be any width.
+
+      The rightmost part of the image must also be a spacer column, or the last
+      letter will be left out.
+
+    ]]
+    code: [[
+      -- write some text with the font above
+      local number_font = aroma.graphics.newImageFont("numbers.png", " 1234567890")
+      aroma.graphics.setFont(number_font)
+
+      function aroma.draw()
+        aroma.graphics.print("1337", 10, 10)
+      end
     ]]
   }
 
