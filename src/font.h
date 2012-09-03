@@ -34,8 +34,10 @@ namespace aroma {
 			friend class Renderer;
 
 			Font(Image letter_tex, int line_height, int max_w, LetterList letters);
+
 			int push(lua_State* l) const;
 
+			static int _new_image_font(lua_State *l);
 			static int _gc(lua_State* l);
 			static int _print(lua_State* l);
 
@@ -54,6 +56,8 @@ namespace aroma {
 		public:
 			GlyphCache();
 			void add_glyph(int letter, byte* bytes, int w, int h);
+			void add_glyph(int letter, ImageData data);
+
 			Font build_font();
 
 			static int _new(lua_State* l);

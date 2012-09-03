@@ -22,6 +22,8 @@ namespace aroma {
 		void free(); // don't call if you've handed it off to lua
 		void clear(const Color color);
 
+		ImageData slice(int x, int y, int w, int h);
+
 		void update(int x, int y, const ImageData & other);
 		void apply_color_key(const Color key);
 

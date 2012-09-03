@@ -171,7 +171,6 @@ class AudioSource
 nacl.init = {
   graphics: =>
     old_new_image = @newImage
-
     @newImage = (url, ...) ->
       return old_new_image url, ... if type(url) != "string"
       return img_cache[url] if img_cache[url]
@@ -180,6 +179,15 @@ nacl.init = {
       img = old_new_image img_data
       img_cache[url] = img
       img
+
+    old_new_image_font = @newImageFont
+    @newImageFont = (url, letters) ->
+      image_data = if type(url) == "string"
+        aroma.image.newImageData url
+      else
+        url
+
+      old_new_image_font image_data, letters
 
     @newFont = (font_str, alphabet=ALPHABET) ->
       glyphs = request_response { "font", font_str, alphabet }

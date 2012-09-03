@@ -19,6 +19,10 @@ namespace aroma {
 		glyphs.push_back(g);
 	}
 
+	void GlyphCache::add_glyph(int letter, ImageData data) {
+		add_glyph(letter, data.bytes, data.width, data.height);
+	}
+
 	Font GlyphCache::build_font() {
 		int max_width = 0;
 
@@ -141,6 +145,56 @@ namespace aroma {
 		lua_setmetatable(l, -2);
 
 		return 1;
+	}
+
+
+	int Font::_new_image_font(lua_State *l) {
+		ImageData* data = getself(ImageData);
+		const char *letters = luaL_checkstring(l, 2);
+		size_t num_letters = strlen(letters);
+
+		int line_height = data->height;
+
+		Color* pixels = (Color*)data->bytes;
+		Color spacer = pixels[0];
+
+		vector<ImageData> glyph_data;
+		GlyphCache glyphs;
+
+		int letter_i = 0;
+		int x = 0;
+
+		int x_start = -1;
+
+		while (x < data->width) {
+			if (pixels[x] == spacer) {
+				if (x_start != -1) {
+					// found something
+					ImageData slice = data->slice(x_start, 0, (x - 1) - x_start, line_height);
+					glyph_data.push_back(slice);
+					glyphs.add_glyph(letters[letter_i++], slice);
+
+					if (letter_i == num_letters) {
+						break; // no more letters
+					}
+				}
+
+				x_start = -1;
+			} else if (x_start == -1) {
+				x_start = x;
+			}
+
+			x++;
+		}
+
+		Font f = glyphs.build_font();
+
+		// throw out the glyph data
+		for (int k = 0; k < glyph_data.size(); k++) {
+			glyph_data[k].free();
+		}
+
+		return f.push(l);
 	}
 
 	int Font::_gc(lua_State* l) {

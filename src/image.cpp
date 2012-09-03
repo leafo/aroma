@@ -147,6 +147,29 @@ namespace aroma {
 		}
 	}
 
+	ImageData ImageData::slice(int x, int y, int w, int h) {
+		ImageData out = ImageData(w, h);
+
+		int dest_i = 0;
+		int my = y + h;
+
+		Color* source_pixels = (Color*)bytes;
+		Color* dest_pixels = (Color*)out.bytes;
+
+		for (int yy = y; yy < my; yy++) {
+			int source_i = width * yy + x;
+			int end_i = source_i + w;
+			while (source_i < end_i) {
+				dest_pixels[dest_i] = source_pixels[source_i];
+
+				dest_i++;
+				source_i++;
+			}
+		}
+
+		return out;
+	}
+
 	void ImageData::apply_color_key(const Color key) {
 		Color* pixels = (Color*)bytes;
 		for (int i = 0; i < width*height; i++) {

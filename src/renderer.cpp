@@ -306,6 +306,7 @@ namespace aroma {
 		set_new_func("newQuad", Quad::_new);
 		set_new_func("newShader", Shader::_new);
 		set_new_func("newImage", Image::_new);
+		set_new_func("newImageFont", Font::_new_image_font);
 	}
 
 	int Renderer::_setColor(lua_State* l) {
