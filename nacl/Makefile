@@ -8,6 +8,8 @@ deploy:
 volcanox::
 	rsync -rvuzLR --exclude volcanox/.git volcanox/ leaf@leafo.net:www/aroma/
 
+exoslime::
+	rsync -rvuzLR --exclude exoslime/.git exoslime/ leaf@leafo.net:www/aroma/
 
 64:
 	tup upd # 64 bit build is default
