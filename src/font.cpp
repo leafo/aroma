@@ -170,7 +170,7 @@ namespace aroma {
 			if (pixels[x] == spacer) {
 				if (x_start != -1) {
 					// found something
-					ImageData slice = data->slice(x_start, 0, (x - 1) - x_start, line_height);
+					ImageData slice = data->slice(x_start, 0, x - x_start, line_height);
 					glyph_data.push_back(slice);
 					glyphs.add_glyph(letters[letter_i++], slice);
 
