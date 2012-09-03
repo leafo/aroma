@@ -458,11 +458,20 @@ namespace aroma {
 		}
 
 		const char* str = luaL_checkstring(l, start);
-		Point p = Point::read2d(l, start+1);
+		Transform t = Transform::read(l, start + 1);
+
+		bool pop_mat = false;
+		if (t.needs_mat()) {
+			t.push(self->projection);
+			pop_mat = true;
+		}
 
 		if (font) {
-			self->font_write(font, p.x, p.y, str);
+			self->font_write(font, t.x, t.y, str);
 		}
+
+		if (pop_mat) self->projection.pop();
+
 		return 0;
 	}
 
@@ -609,6 +618,11 @@ namespace aroma {
 		if (r != 0) proj.mul(Mat4::rotate2d(r));
 		if (sx != 1 || sy != 1) proj.mul(Mat4::scale(sx, sy));
 		proj.mul(Mat4::translate(-(x + ox), -(y+ oy))); // to origin
+	}
+
+	void Transform::print() const {
+		log("Transform<x: %f, y: %f, r: %f, sx: %f, sy: %f, ox: %f, oy: %f>\n",
+				x, y, r, sx, sy, ox, oy);
 	}
 
 }

@@ -45,6 +45,8 @@ namespace aroma {
 		bool needs_mat() const;
 		void push(MatrixStack& proj) const;
 
+		void print() const;
+
 		static Transform read(lua_State* l, int i);
 	};
 
