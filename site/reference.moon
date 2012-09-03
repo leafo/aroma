@@ -470,7 +470,10 @@ package {
   method {
     name: "print"
     tag: "drawing"
-    args: {"[font]", "text", "x", "y"}
+    args: {
+      "[font]", "text", "x", "y",
+      "[rotate]", "[scale_x]", "[scale_y]", "[origin_x]", "[origin_y]"
+    }
     description: [[
       Draws text on the screen. If `font` is not provided, the default font
       will be used. See [aroma.graphics.setFont](#aroma.graphics.setFont).
