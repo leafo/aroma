@@ -1,4 +1,4 @@
-# aroma v0.0.2
+# aroma v0.0.3
 #### a game engine
 Leaf Corcoran, 2012
 

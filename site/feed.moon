@@ -27,6 +27,18 @@ return {
   description: "Aroma is a game engine for Native Client"
 
   release {
+    version: "0.0.3"
+    date: date 2012, 9, 3, 13, 06
+    changes: [[
+      * updated to Pepper 21
+      * throw error when module can't be found
+      * `module` and `package.seeall` work within the async scope instead of the global one
+      * added `aroma.graphics.setLineWidth`, `Quad:flip`, `aroma.graphics.newImageFont`
+      * `aroma.graphics.print` can now take a transformation
+    ]]
+  }
+
+  release {
     version: "0.0.2"
     date: date 2012, 5, 14, 11, 23
     changes: [[
