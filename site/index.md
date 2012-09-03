@@ -22,7 +22,7 @@ deploy changes without having to recompile anything.
 
 If you've ever done web programming you're probably familiar with making
 asynchronous requests to a server to fetch resources by providing some sort of
-a callback function. On the other hand, when loading code in Lua typically
+a callback function. On the other hand, when loading code in Lua you typically
 write something synchronous like:
 
     ```lua
