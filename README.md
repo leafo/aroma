@@ -3,7 +3,7 @@
 Leaf Corcoran, 2012
 
 <http://leafo.net/aroma/>
-[Changelog](http://leafo.net/aroma/feed.xml)
+[Changelog](http://leafo.net/aroma/changelog.html)
 
 ## About
 

@@ -17,6 +17,7 @@ release = (t) ->
     link: "http://leafo.net/aroma/#v" .. t.version
     date: t.date
     description: desc
+    _release: t
   }
 
 return {

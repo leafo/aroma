@@ -634,9 +634,13 @@ letter-spacing: 1px;
 	}
 }
 
-.tutorial {
+.tutorial, .changelog {
 	@shadow_color: desaturate(darken(@background, 30%), 80%);
 	margin: 18px;
+
+	h2 {
+		font-size: 24px;
+	}
 
 	h2, h3 {
 		color: #664500;
@@ -690,6 +694,14 @@ letter-spacing: 1px;
 		}
 	}
 
+}
+
+.changelog {
+	.release {
+		h2 {
+			font-size: 18px;
+		}
+	}
 }
 
 // now to color everything

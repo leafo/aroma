@@ -12,4 +12,5 @@ sitegen.create_site =>
   add "tutorial.md"
   add "reference.moon"
   add "js_reference.moon"
+  add "changelog.moon"
 
